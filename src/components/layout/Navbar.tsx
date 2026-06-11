@@ -45,7 +45,7 @@ export default function Navbar() {
               className="object-contain"
             />
           </div>
-          <span className="text-lg tracking-wide text-navy-dark font-logo font-bold">
+          <span className="text-lg tracking-wide bg-clip-text text-transparent bg-gradient-to-b from-[#0dc4ea] to-[#0f4f97] font-logo font-bold">
             {COMPANY_NAME}
           </span>
         </Link>
