@@ -1,0 +1,288 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color theme variables in standard Tailwind v4 theme format */
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  
+  --color-primary: #0284c7;
+  --color-primary-foreground: #ffffff;
+  --color-primary-container: #0f172a; /* Deep Navy Dark */
+  
+  --color-secondary: #0ea5e9; /* Sky Blue */
+  --color-secondary-foreground: #ffffff;
+  --color-secondary-container: #e0f2fe; /* Light Blue Tint */
+
+  /* Explicit sky color theme definitions */
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #0284c7;
+  
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  
+  --color-accent: #f0f9ff;
+  --color-accent-foreground: #0369a1;
+  
+  --color-border: #e2e8f0;
+  --color-outline-variant: #e2e8f0;
+  
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-surface-container: #f8fafc;
+  --color-on-surface-variant: #64748b;
+
+  --color-navy-deep: #0b1329;
+  --color-navy-dark: #0f172a;
+  --color-navy-light: #1e293b;
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-logo: var(--font-zen-dots), sans-serif;
+  --font-tagline: var(--font-kalam), cursive;
+
+  /* Premium shadows */
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
+  --shadow-premium-hover: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 1px 1px 0 rgba(0, 0, 0, 0.01);
+  --shadow-glow-blue: 0 0 40px -5px rgba(14, 165, 233, 0.15);
+
+  /* Animation names mapped in theme standard */
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-infinite-scroll: infinite-scroll 40s linear infinite;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes infinite-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+}
+
+/* Custom premium scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Subtly animated gradient backdrop */
+.gradient-bg-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0) 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Explicit CSS utility fallbacks for theme consistency */
+.bg-primary-container {
+  background-color: #0f172a;
+}
+
+.text-primary-container {
+  color: #0f172a;
+}
+
+.bg-secondary {
+  background-color: #0ea5e9;
+}
+
+.text-secondary {
+  color: #0ea5e9;
+}
+
+.bg-navy-dark {
+  background-color: #0f172a;
+}
+
+.text-navy-dark {
+  color: #0f172a;
+}
+
+.text-primary {
+  color: #0284c7;
+}
+
+.hover\:text-primary:hover {
+  color: #0284c7;
+}
+
+.hover\:bg-slate-800:hover {
+  background-color: #1e293b !important;
+}
+
+/* Reusable Interactive & Motion Helper Classes */
+
+/* 1. Button Interactions */
+.btn-gradient-hover {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  transition: transform 250ms ease-out, color 250ms ease-out, border-color 250ms ease-out, box-shadow 250ms ease-out !important;
+}
+
+.btn-gradient-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #0dc4ea, #0f4f97);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 250ms ease-out;
+}
+
+.btn-gradient-hover:hover::after {
+  opacity: 1;
+}
+
+.btn-gradient-hover:hover {
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 20px rgba(13, 196, 234, 0.25) !important;
+}
+
+.btn-gradient-hover:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* 2. Link Underline Reveals */
+.nav-link-underline {
+  position: relative;
+  transition: color 200ms ease-out !important;
+}
+
+.nav-link-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease-out;
+}
+
+.nav-link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-link-underline:hover {
+  color: var(--color-primary) !important;
+}
+
+.active-nav-underline {
+  position: relative;
+  color: var(--color-primary) !important;
+}
+
+.active-nav-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(1);
+  box-shadow: 0 0 8px rgba(13, 196, 234, 0.4);
+}
+
+/* 3. Card Hover Lift & Border Accent */
+.hover-lift {
+  transition: transform 250ms ease-out !important;
+}
+.hover-lift:hover {
+  transform: translateY(-4px) !important;
+}
+
+.hover-glow {
+  transition: box-shadow 250ms ease-out !important;
+}
+.hover-glow:hover {
+  box-shadow: 0 10px 30px -10px rgba(2, 132, 199, 0.12), 0 1px 1px 0 rgba(2, 132, 199, 0.05) !important;
+}
+
+.hover-border-accent {
+  transition: border-color 250ms ease-out !important;
+}
+.hover-border-accent:hover {
+  border-color: var(--color-primary) !important;
+}
+
+/* 4. Image Gentle Zoom & Brightness */
+.hover-image-zoom {
+  transition: transform 300ms ease-out, filter 300ms ease-out !important;
+}
+.group:hover .hover-image-zoom,
+.hover-image-zoom:hover {
+  transform: scale(1.03) !important;
+  filter: brightness(1.02) !important;
+}
+
+/* 5. Logo Hover Brightness & Glow */
+.logo-hover-glow {
+  transition: filter 300ms ease-out, box-shadow 300ms ease-out !important;
+}
+.logo-hover-glow:hover {
+  filter: brightness(1.08) drop-shadow(0 0 8px rgba(13, 196, 234, 0.35)) !important;
+}
