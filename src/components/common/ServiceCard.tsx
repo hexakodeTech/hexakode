@@ -20,7 +20,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
     return (
       <div
         className={cn(
-          "col-span-1 md:col-span-2 bg-[#0b1329] text-white rounded-2xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative overflow-hidden transition-all duration-300 hover:translate-y-[-4px] shadow-premium hover:shadow-premium-hover border border-white/5",
+          "col-span-1 md:col-span-2 bg-[#0b1329] text-white rounded-2xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative overflow-hidden border border-white/5 hover-lift hover-border-accent hover-glow",
           "after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_70%_50%,rgba(14,165,233,0.15),transparent_50%)] after:pointer-events-none"
         )}
       >
@@ -77,7 +77,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
   // API & Cloud is a gray tinted card, standard size
   if (id === "api-cloud") {
     return (
-      <div className="bg-[#e2e8f0]/60 text-slate-900 rounded-2xl p-8 flex flex-col justify-between min-h-[300px] transition-all duration-300 hover:translate-y-[-4px] shadow-premium hover:shadow-premium-hover border border-slate-200/50">
+      <div className="bg-[#e2e8f0]/60 text-slate-900 rounded-2xl p-8 flex flex-col justify-between min-h-[300px] border border-slate-200/50 hover-lift hover-border-accent hover-glow">
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2.5 rounded-lg bg-slate-900/5 text-slate-800 border border-slate-900/10">
@@ -107,7 +107,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
 
   // Standard light layout card
   return (
-    <div className="bg-white text-slate-900 rounded-2xl p-8 flex flex-col justify-between min-h-[300px] transition-all duration-300 hover:translate-y-[-4px] shadow-card hover:shadow-premium-hover border border-slate-100 hover:border-slate-200/60">
+    <div className="bg-white text-slate-900 rounded-2xl p-8 flex flex-col justify-between min-h-[300px] border border-slate-100 hover-lift hover-border-accent hover-glow">
       <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2.5 rounded-lg bg-secondary-container text-primary border border-secondary-container/50">

@@ -1,21 +1,36 @@
+"use client";
+
 import React from "react";
+import { motion } from "framer-motion";
 import Container from "../common/Container";
 import { TECHNOLOGIES } from "../../constants/home";
+import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function TechnologiesSection() {
   return (
     <section className="bg-slate-50/50 py-16 border-y border-slate-100/60">
       <Container className="text-center">
-        <h3 className="text-[10px] md:text-xs font-semibold tracking-widest text-slate-400 uppercase mb-8">
-          BUILT WITH THE WORLD'S MOST RELIABLE TECHNOLOGIES
-        </h3>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6 items-center justify-center">
-          {TECHNOLOGIES.map((tech) => (
-            <div
-              key={tech.name}
-              className="flex items-center justify-center gap-2 py-3 px-4 bg-white rounded-xl border border-slate-100 hover:border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.01)] hover:shadow-card hover:translate-y-[-2px] transition-all duration-300 group cursor-default"
-            >
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="flex flex-col"
+        >
+          <motion.h3 variants={fadeUp} className="text-[10px] md:text-xs font-semibold tracking-widest text-slate-400 uppercase mb-8">
+            BUILT WITH THE WORLD'S MOST RELIABLE TECHNOLOGIES
+          </motion.h3>
+          
+          <motion.div
+            variants={staggerContainer}
+            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6 items-center justify-center"
+          >
+            {TECHNOLOGIES.map((tech) => (
+              <motion.div
+                key={tech.name}
+                variants={fadeUp}
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-white rounded-xl border border-slate-100 hover:border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.01)] hover:shadow-card hover:translate-y-[-2px] transition-all duration-300 group cursor-default"
+              >
               {/* Custom SVG logo renderings */}
               <div className="w-5 h-5 flex items-center justify-center shrink-0">
                 {tech.name === "React" && (
@@ -66,9 +81,10 @@ export default function TechnologiesSection() {
               <span className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
                 {tech.name}
               </span>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+      </motion.div>
       </Container>
     </section>
   );

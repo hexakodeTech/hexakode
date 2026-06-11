@@ -36,7 +36,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group logo-hover-glow">
           <div className="relative w-8 h-8 transition-transform duration-300 group-hover:scale-105">
             <Image
               src="/logo-icon.png"
@@ -56,7 +56,7 @@ export default function Navbar() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-sm font-semibold text-slate-700 hover:text-primary transition-colors duration-200"
+              className="text-sm font-semibold text-slate-700 nav-link-underline py-1"
             >
               {link.label}
             </Link>
@@ -93,7 +93,7 @@ export default function Navbar() {
               key={link.label}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-base font-semibold text-slate-800 hover:text-primary transition-colors duration-200 py-1"
+              className="text-base font-semibold text-slate-800 nav-link-underline py-1 self-start"
             >
               {link.label}
             </Link>

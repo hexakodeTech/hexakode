@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16">
           {/* Logo & Description */}
           <div className="md:col-span-4 flex flex-col items-start gap-4">
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-3 group logo-hover-glow">
               <div className="relative w-8 h-8 transition-transform duration-300 group-hover:scale-105">
                 <Image
                   src="/logo-icon.png"
@@ -46,7 +46,7 @@ export default function Footer() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="text-sm hover:text-white transition-colors duration-200 inline-flex items-center gap-0.5 group"
+                        className="text-sm nav-link-underline inline-flex items-center gap-0.5 group"
                       >
                         {link.label}
                         {link.href.startsWith("http") && (

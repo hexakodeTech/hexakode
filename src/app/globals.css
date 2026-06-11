@@ -168,12 +168,14 @@ body {
   background-color: #1e293b !important;
 }
 
-/* Premium brand gradient hover button style */
+/* Reusable Interactive & Motion Helper Classes */
+
+/* 1. Button Interactions */
 .btn-gradient-hover {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  transition: transform 250ms ease-out, color 250ms ease-out, border-color 250ms ease-out, box-shadow 250ms ease-out !important;
 }
 
 .btn-gradient-hover::after {
@@ -183,7 +185,7 @@ body {
   background: linear-gradient(to bottom, #0dc4ea, #0f4f97);
   opacity: 0;
   z-index: -1;
-  transition: opacity 0.3s ease;
+  transition: opacity 250ms ease-out;
 }
 
 .btn-gradient-hover:hover::after {
@@ -192,6 +194,95 @@ body {
 
 .btn-gradient-hover:hover {
   color: #ffffff !important;
+  transform: translateY(-2px) !important;
   border-color: transparent !important;
-  box-shadow: 0 4px 20px rgba(13, 196, 234, 0.4);
+  box-shadow: 0 4px 20px rgba(13, 196, 234, 0.25) !important;
+}
+
+.btn-gradient-hover:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* 2. Link Underline Reveals */
+.nav-link-underline {
+  position: relative;
+  transition: color 200ms ease-out !important;
+}
+
+.nav-link-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease-out;
+}
+
+.nav-link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-link-underline:hover {
+  color: var(--color-primary) !important;
+}
+
+.active-nav-underline {
+  position: relative;
+  color: var(--color-primary) !important;
+}
+
+.active-nav-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(1);
+  box-shadow: 0 0 8px rgba(13, 196, 234, 0.4);
+}
+
+/* 3. Card Hover Lift & Border Accent */
+.hover-lift {
+  transition: transform 250ms ease-out !important;
+}
+.hover-lift:hover {
+  transform: translateY(-4px) !important;
+}
+
+.hover-glow {
+  transition: box-shadow 250ms ease-out !important;
+}
+.hover-glow:hover {
+  box-shadow: 0 10px 30px -10px rgba(2, 132, 199, 0.12), 0 1px 1px 0 rgba(2, 132, 199, 0.05) !important;
+}
+
+.hover-border-accent {
+  transition: border-color 250ms ease-out !important;
+}
+.hover-border-accent:hover {
+  border-color: var(--color-primary) !important;
+}
+
+/* 4. Image Gentle Zoom & Brightness */
+.hover-image-zoom {
+  transition: transform 300ms ease-out, filter 300ms ease-out !important;
+}
+.group:hover .hover-image-zoom,
+.hover-image-zoom:hover {
+  transform: scale(1.03) !important;
+  filter: brightness(1.02) !important;
+}
+
+/* 5. Logo Hover Brightness & Glow */
+.logo-hover-glow {
+  transition: filter 300ms ease-out, box-shadow 300ms ease-out !important;
+}
+.logo-hover-glow:hover {
+  filter: brightness(1.08) drop-shadow(0 0 8px rgba(13, 196, 234, 0.35)) !important;
 }

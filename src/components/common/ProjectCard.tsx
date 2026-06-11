@@ -16,7 +16,7 @@ export default function ProjectCard({ project, className }: ProjectCardProps) {
     <Link
       href={href}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-100/80 transition-all duration-300 hover:shadow-premium hover:translate-y-[-4px]",
+        "group flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-100/80 hover-lift hover-border-accent hover-glow",
         className
       )}
     >
@@ -26,7 +26,7 @@ export default function ProjectCard({ project, className }: ProjectCardProps) {
           alt={title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          className="object-cover hover-image-zoom"
           priority
         />
         {/* Soft shadow overlay */}

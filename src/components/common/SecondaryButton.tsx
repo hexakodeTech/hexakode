@@ -15,11 +15,11 @@ export default function SecondaryButton({
   ...props
 }: SecondaryButtonProps) {
   const baseClasses =
-    "inline-flex items-center justify-center font-medium rounded-lg text-sm px-5 py-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] cursor-pointer gap-2 border";
+    "inline-flex items-center justify-center font-medium rounded-lg text-sm px-5 py-2.5 transition-all duration-[250ms] ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] cursor-pointer gap-2 border";
 
   const variantClasses = {
-    light: "border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 focus:ring-slate-200",
-    dark: "border-white/10 text-white bg-white/5 hover:bg-white/10 focus:ring-white/20",
+    light: "border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 hover:translate-y-[-2px] hover:shadow-premium focus:ring-slate-200",
+    dark: "border-white/10 text-white bg-white/5 hover:bg-white/10 hover:translate-y-[-2px] hover:shadow-premium focus:ring-white/20",
   };
 
   if (href) {
