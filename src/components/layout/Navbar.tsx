@@ -45,7 +45,7 @@ export default function Navbar() {
               className="object-contain"
             />
           </div>
-          <span className="text-lg tracking-wide text-navy-dark font-logo font-normal">
+          <span className="text-lg tracking-wide text-navy-dark font-logo font-bold">
             {COMPANY_NAME}
           </span>
         </Link>

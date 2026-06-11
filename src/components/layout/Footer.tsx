@@ -63,7 +63,7 @@ export default function Footer() {
 
         {/* Footer Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 ">
             &copy; {currentYear} {COMPANY_NAME}. All rights reserved.
           </p>
 

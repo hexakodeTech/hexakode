@@ -43,6 +43,14 @@
   --animate-infinite-scroll: infinite-scroll 40s linear infinite;
 }
 
+.font-logo {
+  font-family: var(--font-zen-dots), sans-serif;
+}
+
+.font-tagline {
+  font-family: var(--font-kalam), cursive;
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;
