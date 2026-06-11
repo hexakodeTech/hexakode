@@ -25,7 +25,6 @@ export default function ServicesSection() {
         >
           <motion.div variants={fadeUp}>
             <SectionHeading
-              badge="OUR SERVICES"
               title="Our Specialized Services"
               subtitle="From concept to deployment, we deliver comprehensive software solutions engineered for performance and reliability."
               align="left"

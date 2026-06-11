@@ -27,7 +27,6 @@ export default function ProjectsSection() {
             className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12 md:mb-16"
           >
             <SectionHeading
-              badge="PORTFOLIO"
               title="Featured Projects"
               subtitle="A selection of our most impactful work across various industries."
               align="left"

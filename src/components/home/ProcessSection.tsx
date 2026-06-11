@@ -25,7 +25,6 @@ export default function ProcessSection() {
         >
           <motion.div variants={fadeUp}>
             <SectionHeading
-              badge="OUR PROCESS"
               title="Our Engineering Process"
               subtitle="How we transform ideas into production-grade digital products."
               align="center"
