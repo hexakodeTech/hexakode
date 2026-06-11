@@ -22,7 +22,7 @@ export default function ProjectsSection() {
           />
           <Link
             href="#portfolio"
-            className="inline-flex items-center text-sm font-semibold text-slate-800 hover:text-sky-600 transition-colors duration-200 group shrink-0"
+            className="inline-flex items-center text-sm font-semibold text-slate-800 hover:text-primary transition-colors duration-200 group shrink-0"
           >
             View All Work
             <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1" />

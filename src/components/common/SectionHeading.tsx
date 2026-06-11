@@ -32,8 +32,8 @@ export default function SectionHeading({
           className={cn(
             "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-4",
             theme === "light"
-              ? "bg-sky-50 text-sky-600 border border-sky-100/80"
-              : "bg-white/5 text-sky-400 border border-white/10"
+              ? "bg-secondary-container text-primary border border-secondary-container/80"
+              : "bg-white/5 text-secondary border border-white/10"
           )}
         >
           {badge}

@@ -26,7 +26,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
       >
         <div className="flex-1 max-w-lg z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <div className="p-2.5 rounded-lg bg-secondary/10 text-secondary border border-secondary/20">
               <IconComponent className="w-5 h-5" />
             </div>
             <h3 className="text-xl md:text-2xl font-semibold tracking-tight">{title}</h3>
@@ -46,7 +46,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
           </div>
           <a
             href="#contact"
-            className="inline-flex items-center text-sky-400 hover:text-sky-300 text-sm font-semibold transition-colors duration-200 group"
+            className="inline-flex items-center text-secondary hover:text-primary text-sm font-semibold transition-colors duration-200 group"
           >
             Learn More
             <Icons.ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1" />
@@ -61,12 +61,12 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             <div className="h-1.5 w-1/2 bg-slate-700/40 rounded-full" />
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-sky-400 font-mono">
+            <div className="flex justify-between text-[10px] text-secondary font-mono">
               <span>PROTOTYPE_LOADED</span>
               <span>85%</span>
             </div>
             <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full w-[85%] bg-sky-500 rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)] animate-pulse" />
+              <div className="h-full w-[85%] bg-secondary rounded-full shadow-glow-blue animate-pulse" />
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
     <div className="bg-white text-slate-900 rounded-2xl p-8 flex flex-col justify-between min-h-[300px] transition-all duration-300 hover:translate-y-[-4px] shadow-card hover:shadow-premium-hover border border-slate-100 hover:border-slate-200/60">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100/50">
+          <div className="p-2.5 rounded-lg bg-secondary-container text-primary border border-secondary-container/50">
             <IconComponent className="w-5 h-5" />
           </div>
           <h3 className="text-lg font-semibold text-navy-dark tracking-tight">{title}</h3>

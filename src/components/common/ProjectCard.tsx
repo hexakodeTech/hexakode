@@ -33,10 +33,10 @@ export default function ProjectCard({ project, className }: ProjectCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
       <div className="flex flex-col p-6 flex-1">
-        <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-sky-600 mb-2">
+        <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-primary mb-2">
           {category}
         </span>
-        <h3 className="text-lg md:text-xl font-bold text-navy-dark leading-snug group-hover:text-sky-600 transition-colors duration-200">
+        <h3 className="text-lg md:text-xl font-bold text-navy-dark leading-snug group-hover:text-primary transition-colors duration-200">
           {title}
         </h3>
         <div className="flex flex-wrap gap-1.5 mt-4">

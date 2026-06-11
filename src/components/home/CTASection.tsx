@@ -13,7 +13,7 @@ export default function CTASection() {
           <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full filter blur-[80px] pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 bg-white/5 text-sky-400 border border-white/10">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 bg-white/5 text-secondary border border-white/10">
               GET IN TOUCH
             </span>
             
@@ -26,7 +26,7 @@ export default function CTASection() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full sm:w-auto">
-              <PrimaryButton href="#contact" variant="blue" className="bg-sky-400 hover:bg-sky-500 text-navy-dark font-semibold">
+              <PrimaryButton href="#contact" variant="blue" className="btn-gradient-hover">
                 Start Your Project
               </PrimaryButton>
               <SecondaryButton href="#contact" variant="dark">

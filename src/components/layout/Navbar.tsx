@@ -65,7 +65,7 @@ export default function Navbar() {
 
         {/* Desktop CTA Button */}
         <div className="hidden md:block">
-          <PrimaryButton href="#contact" variant="dark">
+          <PrimaryButton href="#contact" variant="dark" className="btn-gradient-hover">
             Start Your Project
           </PrimaryButton>
         </div>
@@ -93,13 +93,13 @@ export default function Navbar() {
               key={link.label}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-base font-semibold text-slate-800 hover:text-sky-600 transition-colors duration-200 py-1"
+              className="text-base font-semibold text-slate-800 hover:text-primary transition-colors duration-200 py-1"
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <PrimaryButton href="#contact" variant="dark" onClick={() => setIsOpen(false)} className="w-full">
+        <PrimaryButton href="#contact" variant="dark" onClick={() => setIsOpen(false)} className="w-full btn-gradient-hover">
           Start Your Project
         </PrimaryButton>
       </div>

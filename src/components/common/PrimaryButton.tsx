@@ -22,7 +22,7 @@ export default function PrimaryButton({
 
   const variantClasses = {
     dark: "bg-navy-dark text-white hover:bg-slate-800 focus:ring-navy-dark",
-    blue: "bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500 shadow-sm",
+    blue: "bg-secondary text-white hover:bg-primary focus:ring-secondary shadow-sm",
     white: "bg-white text-navy-dark hover:bg-slate-50 focus:ring-white shadow-sm",
   };
 
