@@ -22,7 +22,7 @@ interface CTASectionProps {
 export default function CTASection({
   title = "Ready to Engineer Excellence?",
   description = "Join 50+ enterprise partners who trust HexaKode for their mission-critical engineering needs. Get a custom technical estimate in 48 hours.",
-  primaryBtnText = "Estimate Project",
+  primaryBtnText = "Start Your Project",
   primaryBtnHref = "#contact",
   secondaryBtnText = "BOOK A TECHNICAL DISCOVERY CALL",
   secondaryBtnHref = "#contact",

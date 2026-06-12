@@ -45,8 +45,10 @@ export default function SectionHeading({
 
       <h2
         className={cn(
-          "font-headline-md mb-4",
-          titleSize === "lg" ? "text-headline-xl font-headline-lg" : "text-headline-md",
+          "mb-4 font-bold tracking-tight",
+          titleSize === "lg"
+            ? "text-3xl sm:text-4xl md:text-5xl font-headline-lg"
+            : "text-2xl sm:text-3xl font-headline-md",
           theme === "light" ? "text-on-background" : "text-white"
         )}
       >

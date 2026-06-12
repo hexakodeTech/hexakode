@@ -84,6 +84,15 @@ export default function CompetenciesSection() {
           viewport={{ once: true, margin: "-100px" }}
           className="flex flex-col"
         >
+          <motion.div variants={fadeUp}>
+            <SectionHeading
+              badge="Capabilities"
+              title="Core Competencies"
+              align="left"
+              underline={true}
+              titleSize="lg"
+            />
+          </motion.div>
 
           {/* Bento Grid */}
           <motion.div
