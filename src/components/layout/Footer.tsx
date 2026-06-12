@@ -20,6 +20,7 @@ export default function Footer() {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_zrELXV2pEVyY_zQhDfkswqgdUPyuCrFoE01YX_eE_bufiCuL0pcc5UbjepicohvNODMBE_6NV-3POCl1MZo2hX7VEsXPPsQpQRuiXy8A5lW-NkT8mKT-rwTiVvDsU6ClUx-fz3YnDfoGwNmaFiRPqeOdMmCzyjleGPsJv3YVdwvcMoktRk1-PSwycodQTaUdVEZMNROJkbZUC2BnupDOCp2CnDQhAqbtYJ_69Jn_dPBndOu2Daq7JAzyfvIgPY81edfdATU1IKFa"
                 alt="HexaKode Logo"
                 fill
+                sizes="40px"
                 className="object-contain brightness-0 invert"
               />
             </div>
