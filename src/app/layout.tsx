@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Zen_Dots, Kalam } from "next/font/google";
+import { Geist, Geist_Mono, Zen_Dots, Kalam, Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +28,24 @@ const kalam = Kalam({
   display: "swap",
 });
 
+const hankenGrotesk = Hanken_Grotesk({
+  variable: "--font-hanken-grotesk",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "HexaKode | Code that powers growth",
   description:
@@ -40,6 +58,7 @@ export const metadata: Metadata = {
     "API Integrations",
     "HexaKode",
     "SaaS Platform",
+    "Looking forward to engineering excellence",
   ],
   authors: [{ name: "HexaKode" }],
   openGraph: {
@@ -59,9 +78,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${zenDots.variable} ${kalam.variable} h-full antialiased scroll-smooth`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zenDots.variable} ${kalam.variable} ${hankenGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-white font-sans text-navy-dark antialiased">
+      <body className="min-h-full flex flex-col bg-background font-sans text-on-background antialiased">
         {children}
       </body>
     </html>
