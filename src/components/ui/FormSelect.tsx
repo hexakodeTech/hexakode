@@ -51,15 +51,11 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              "w-full border rounded-lg pl-4 pr-10 py-3 font-body-md focus:border-secondary focus:ring-0 transition-all outline-none appearance-none cursor-pointer duration-200",
+              "w-full border rounded-lg pl-4 pr-10 py-3 font-body-md focus:border-secondary focus:ring-0 transition-all outline-none appearance-none cursor-pointer duration-250 ease-out",
               isDark
-                ? "bg-[#1f2937] text-white focus:shadow-[0_0_0_4px_rgba(93,202,253,0.1)]"
-                : "bg-surface-container-lowest text-on-surface focus:shadow-[0_0_0_4px_rgba(93,202,253,0.2)]",
-              error
-                ? "border-error"
-                : isDark
-                ? "border-white/10"
-                : "border-outline-variant/65",
+                ? "glass-input-premium"
+                : "bg-surface-container-lowest text-on-surface focus:shadow-[0_0_0_4px_rgba(93,202,253,0.2)] border-outline-variant/65",
+              error && "border-error focus:border-error focus:shadow-[0_0_0_4px_rgba(239,68,68,0.1)]",
               className
             )}
             {...props}

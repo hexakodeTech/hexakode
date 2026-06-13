@@ -45,10 +45,10 @@ export default function SocialLinksCard({ isDark = false }: { isDark?: boolean }
   return (
     <div
       className={cn(
-        "p-8 rounded-xl border shadow-sm transition-all duration-700",
+        "p-8 rounded-xl transition-all duration-300 ease-out border",
         isDark
-          ? "glass-panel-dark text-white border-white/10"
-          : "glass-card text-on-background border-outline-variant/10"
+          ? "glass-social-premium text-white border-0"
+          : "glass-card text-on-background border border-outline-variant/10 shadow-sm"
       )}
     >
       <h3
@@ -69,10 +69,10 @@ export default function SocialLinksCard({ isDark = false }: { isDark?: boolean }
             title={link.platform}
             aria-label={link.platform}
             className={cn(
-              "w-12 h-12 rounded-lg flex items-center justify-center hover:-translate-y-1 hover:shadow-premium-hover transition-all duration-300",
+              "w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300",
               isDark
-                ? "bg-white/10 text-slate-300 hover:bg-secondary-container hover:text-on-secondary-container"
-                : "bg-surface text-on-surface-variant hover:bg-secondary-container hover:text-on-secondary-container"
+                ? "glass-social-btn text-white/80"
+                : "bg-surface text-on-surface-variant hover:bg-secondary-container hover:text-on-secondary-container hover:-translate-y-1 hover:shadow-premium-hover"
             )}
           >
             {getSocialIcon(link.iconName)}

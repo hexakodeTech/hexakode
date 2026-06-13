@@ -65,10 +65,10 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   return (
     <div
       className={cn(
-        "lg:col-span-8 p-8 md:p-12 rounded-xl shadow-sm transition-all duration-700",
+        "lg:col-span-8 p-8 md:p-12 rounded-xl transition-all duration-300 ease-out",
         isDark
-          ? "glass-panel-dark text-white border border-white/5"
-          : "glass-card text-on-background border border-outline-variant/10"
+          ? "glass-form-premium text-white"
+          : "glass-card text-on-background border border-outline-variant/10 shadow-sm"
       )}
     >
       <AnimatePresence mode="wait">
@@ -169,11 +169,16 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
               <PrimaryButton
                 type="submit"
                 size="lg"
-                variant="primary"
+                variant={isDark ? undefined : "primary"}
                 shimmer={true}
                 magnetic={true}
                 disabled={isLoading}
-                className="w-full sm:w-auto font-headline-sm text-white px-10 py-4 shadow-md bg-primary disabled:opacity-50"
+                className={cn(
+                  "w-full sm:w-auto font-headline-sm px-10 py-4 shadow-md",
+                  isDark
+                    ? "glass-btn-primary text-white"
+                    : "bg-primary text-white disabled:opacity-50"
+                )}
               >
                 {isLoading ? "Sending..." : "Send Message"}
               </PrimaryButton>
@@ -227,16 +232,16 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
             >
               Thank you for reaching out. An engineering expert from HexaKode will review your project details and get in touch with you shortly.
             </p>
-            <PrimaryButton
+             <PrimaryButton
               onClick={handleReset}
-              variant="white"
+              variant={isDark ? undefined : "white"}
               size="md"
               shimmer={false}
               magnetic={true}
               className={cn(
-                "font-label-mono uppercase transition-all duration-500 border",
+                "font-label-mono uppercase transition-all duration-300 border",
                 isDark
-                  ? "text-white border-white/10 bg-white/5 hover:bg-white/15"
+                  ? "glass-social-btn text-white hover:bg-white/10"
                   : "text-primary border-outline-variant/30 hover:bg-surface-container"
               )}
             >
