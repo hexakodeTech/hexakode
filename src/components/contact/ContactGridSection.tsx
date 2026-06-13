@@ -6,6 +6,7 @@ import { cn } from "../../lib/utils";
 import Container from "../ui/Container";
 import ContactForm from "./ContactForm";
 import ContactSidebar from "./ContactSidebar";
+import BouncingCircles from "./BouncingCircles";
 
 export default function ContactGridSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -40,8 +41,11 @@ export default function ContactGridSection() {
         isDark ? "bg-[#090b0f] text-white dark" : "bg-white text-on-background"
       )}
     >
+      {/* Moving background circles bouncing off container walls */}
+      <BouncingCircles isDark={isDark} />
+
       <Container>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start relative z-10">
           <ContactForm isDark={isDark} />
           <ContactSidebar isDark={isDark} />
         </div>
