@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { label: "Services", href: "/services" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "About Us", href: "/about" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {
@@ -83,7 +83,7 @@ export default function Navbar() {
         {/* Desktop CTA Button */}
         <div className="hidden md:flex items-center gap-4">
           <PrimaryButton
-            href="/#contact"
+            href="/contact"
             variant="primary"
             shimmer={true}
             magnetic={true}
@@ -129,7 +129,7 @@ export default function Navbar() {
           })}
         </nav>
         <PrimaryButton
-          href="/#contact"
+          href="/contact"
           variant="primary"
           onClick={() => setIsOpen(false)}
           className="w-full text-center"
