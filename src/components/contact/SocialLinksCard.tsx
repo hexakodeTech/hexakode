@@ -47,8 +47,8 @@ export default function SocialLinksCard({ isDark = false }: { isDark?: boolean }
       className={cn(
         "p-8 rounded-xl border shadow-sm transition-all duration-700",
         isDark
-          ? "bg-white/5 border-white/10"
-          : "bg-surface-container-high border-outline-variant/10"
+          ? "glass-panel-dark text-white border-white/10"
+          : "glass-card text-on-background border-outline-variant/10"
       )}
     >
       <h3

@@ -22,8 +22,8 @@ export default function ContactDetailsCard({ isDark = false }: { isDark?: boolea
       className={cn(
         "p-8 rounded-xl shadow-sm transition-all duration-700 hover:shadow-premium-hover border",
         isDark
-          ? "bg-white/5 border-white/10 hover:border-secondary/30"
-          : "bg-surface-container border-outline-variant/20 hover:border-secondary/20"
+          ? "glass-panel-dark text-white border-white/10 hover:border-secondary/30"
+          : "glass-card text-on-background border-outline-variant/10 hover:border-secondary/20"
       )}
     >
       <h3
