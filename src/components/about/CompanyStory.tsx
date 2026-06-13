@@ -64,7 +64,7 @@ export default function CompanyStory() {
                 <div>
                   <h4 className="font-headline-sm text-headline-sm text-primary mb-2">Our Mission</h4>
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    To empower organizations through precision-engineered software that solves real-world complexities with simplicity and scale.
+                    HexaKode is dedicated to engineering superior web and mobile experiences through structured, scalable code. Our mission is to provide businesses with the digital tools necessary to accelerate their growth and dominate their industry
                   </p>
                 </div>
               </motion.div>
@@ -76,7 +76,7 @@ export default function CompanyStory() {
                 <div>
                   <h4 className="font-headline-sm text-headline-sm text-primary mb-2">Our Vision</h4>
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    To be the global benchmark for technical excellence, where engineering meets artistry to redefine the digital frontier.
+                    To bridge the gap between ambitious ideas and digital reality, ensuring that every entrepreneur has access to the world-class technology needed to power their growth
                   </p>
                 </div>
               </motion.div>
