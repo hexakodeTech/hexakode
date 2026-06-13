@@ -34,7 +34,7 @@ export default function ProjectsSection() {
               className="mb-0 max-w-2xl"
             />
             <Link
-              href="#portfolio"
+              href="/portfolio"
               className="inline-flex items-center text-sm font-semibold text-slate-800 nav-link-underline py-1 group shrink-0 self-start sm:self-auto"
             >
               View All Work
