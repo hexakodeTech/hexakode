@@ -29,9 +29,9 @@ export const CONTACT_DETAILS: ContactDetail[] = [
   {
     id: "cd2",
     label: "Call Us",
-    value: "+91 XXXXX XXXXX",
+    value: "+91 9497 38 9224",
     type: "phone",
-    href: "tel:+91XXXXXXXXXX",
+    href: "tel:+919497389224",
   },
   {
     id: "cd3",
