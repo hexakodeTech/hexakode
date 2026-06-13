@@ -46,11 +46,11 @@ export const TEAM_MEMBERS: TeamMember[] = [
   },
   {
     id: "t2",
-    name: "Sindhu",
+    name: "Sindhu P",
     role: "Frontend Engineer",
     imageUrl:
       "https://media.licdn.com/dms/image/v2/D4D03AQGqtPFc0XIVEQ/profile-displayphoto-crop_800_800/B4DZkvWa7DJgAM-/0/1757436041864?e=1782950400&v=beta&t=qHnPIRJP_VuGHA62LwmXNPA7GRzRk05_MDV1rvM556E",
-    imageAlt: "Sindu, Frontend Engineer",
+    imageAlt: "Sindu P, Frontend Engineer",
     socialUrl: "https://www.linkedin.com/in/sindhu-p-330baa362/",
   },
 ];
@@ -61,7 +61,7 @@ export const TRUST_POINTS: TrustPoint[] = [
     number: "01",
     title: "Proven Track Record",
     description:
-      "We've successfully delivered over 200+ enterprise-grade projects across fintech, healthtech, and logistics.",
+      "We've successfully delivered over 3+ enterprise-grade projects across fintech, healthtech, and logistics.",
   },
   {
     id: "tp2",
