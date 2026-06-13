@@ -13,7 +13,7 @@ export default function MetricCard({ metric, className }: MetricCardProps) {
   return (
     <div
       className={cn(
-        "bg-primary-container rounded-xl flex flex-col items-center justify-center text-center p-6 transition-all duration-300 hover:bg-primary-container/80 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-secondary/20",
+        "bg-white/5 border border-white/10 rounded-xl flex flex-col items-center justify-center text-center p-6 transition-all duration-300 hover:bg-white/10 hover:-translate-y-1 hover:shadow-premium-hover hover:border-secondary/30",
         className
       )}
     >

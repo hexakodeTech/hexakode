@@ -60,18 +60,18 @@ export default function TrustMetrics() {
             variants={staggerContainer}
           >
             <div className="space-y-4">
-              <motion.div variants={fadeUp} className="h-full">
+              <motion.div variants={fadeUp}>
                 <MetricCard metric={TRUST_METRICS[0]} className="aspect-square" />
               </motion.div>
-              <motion.div variants={fadeUp} className="h-full">
+              <motion.div variants={fadeUp}>
                 <MetricCard metric={TRUST_METRICS[2]} className="aspect-[4/3]" />
               </motion.div>
             </div>
             <div className="space-y-4 pt-8">
-              <motion.div variants={fadeUp} className="h-full">
+              <motion.div variants={fadeUp}>
                 <MetricCard metric={TRUST_METRICS[1]} className="aspect-[4/3]" />
               </motion.div>
-              <motion.div variants={fadeUp} className="h-full">
+              <motion.div variants={fadeUp}>
                 <MetricCard metric={TRUST_METRICS[3]} className="aspect-square" />
               </motion.div>
             </div>

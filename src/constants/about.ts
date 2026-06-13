@@ -28,30 +28,30 @@ export const CORE_VALUES: CoreValue[] = [
 export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "t1",
-    name: "Alex Thorne",
-    role: "Chief Systems Architect",
+    name: "Navaneeth P P",
+    role: "CEO, Full Stack Engineer",
     imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCW-JJic6xUltXY-J-yuhXJWoNN-85F6p2KAsHeaCg-BVBDDJnApuCMskEIwxlqmmQGJ8X76s1OhxXlgk0YQvEB2sMZT1g34rj3kU1coKE_JqqGhhS29H3OTgS9AtYZOaBgZrdkDK21O3vvZsckMaACnwgB4TuvNOOZ3FdLDlSnAVk4o0GIKSNWgoOtp1pdAQr-1otug7CeOi6bRURU-iopjx43yBcMibRBXD2MsjcT-7Z_5rvJZ7YSXfehz5fScHuCXFGVpuqSH1fL",
-    imageAlt: "Alex Thorne, Chief Systems Architect",
-    socialUrl: "#",
-  },
-  {
-    id: "t2",
-    name: "Sarah Chen",
-    role: "Head of Product Design",
-    imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCcba4KzUn2cGI6dpLD_2qj2lssfk0TGqUMjN0DhX6uYPrAVKsO8pmEuTQ18QVlb6aiXnZ3GmDqHU96dieumcasLjp9jvaJTpzxCOkEVTmzp2_AOBaS0c9Zy9utNfq7jcIaQ77xA4GYubGaCVScEdkDnykuwhDsv9-qj6z3bUtP3D0wVIwFWIGxd5hYuZPZS-aU_NhJ1Fc7nHiD-pk3uCJrIt_sSid8dHuFskOpkzihe-Nl6ksgpX8VvX0w_5pT73LcOfTxA_v_pLd8",
-    imageAlt: "Sarah Chen, Head of Product Design",
-    socialUrl: "#",
+      "https://media.licdn.com/dms/image/v2/D5603AQGI7qc0KWHh-A/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1711121694916?e=1782950400&v=beta&t=KcselM7swgrb65AWGv9Mi_mS-yzw0s0pYoR1XvkTtSY",
+    imageAlt: "Navaneeth, CEO and Full Stack Engineer",
+    socialUrl: "https://www.linkedin.com/in/navaneethpp/",
   },
   {
     id: "t3",
-    name: "Marcus Vane",
-    role: "Director of Engineering",
+    name: "Prajosh C",
+    role: "CTO, Backend Engineer",
     imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDtdK-Mbfzl9eXWQQflB4DSd_KdBMfPeu234Oqber_2pMGyi7sVHj1eJN9ULHOgPaWvo-69y49NeFhcBg0HUaWbbnNS3ToRlXhpkVHZ6THlzEasvjFq35HiWqSSqMsgVJemFrhJlhJCtk9P7FNEY1kFLQzRphG1_3mD2SjYXdj24gwZeBrXQtISQIadtt58VTivnRa7zThlZDqV95Cx5aTlSAxjav1BRWDozPFxuA2jYaa27R3ARBTLqOkuqnEVN8G00H2IqhKUVWg3",
-    imageAlt: "Marcus Vane, Director of Engineering",
-    socialUrl: "#",
+      "https://media.licdn.com/dms/image/v2/D4E03AQGAqvvY2DcSMw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1713256342366?e=1782950400&v=beta&t=_SwYB3uEWqEVQoaVioy3_zC-mMvaBbf5zqlxsDsZeGQ",
+    imageAlt: "Prajosh C, CTO and Backend Engineer",
+    socialUrl: "https://www.linkedin.com/in/prajosh-c-586404304/",
+  },
+  {
+    id: "t2",
+    name: "Sindhu",
+    role: "Frontend Engineer",
+    imageUrl:
+      "https://media.licdn.com/dms/image/v2/D4D03AQGqtPFc0XIVEQ/profile-displayphoto-crop_800_800/B4DZkvWa7DJgAM-/0/1757436041864?e=1782950400&v=beta&t=qHnPIRJP_VuGHA62LwmXNPA7GRzRk05_MDV1rvM556E",
+    imageAlt: "Sindu, Frontend Engineer",
+    socialUrl: "https://www.linkedin.com/in/sindhu-p-330baa362/",
   },
 ];
 

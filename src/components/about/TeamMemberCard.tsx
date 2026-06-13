@@ -19,6 +19,7 @@ export default function TeamMemberCard({ member }: { member: TeamMember }) {
           <div className="flex gap-3">
             <Link
               href={member.socialUrl}
+              target="_blank"
               className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-colors"
             >
               <LinkIcon className="text-white w-4 h-4" />
