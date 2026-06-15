@@ -16,6 +16,7 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
 }
 
 const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ({ label, options, placeholder, error, className, id, onFocus, onBlur, isDark = false, children, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
 

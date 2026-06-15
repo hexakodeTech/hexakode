@@ -35,7 +35,10 @@ export default function ContactGridSection() {
   const orb4ParallaxY = useTransform(smoothY, [-1, 1], [-4.5, 4.5]);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

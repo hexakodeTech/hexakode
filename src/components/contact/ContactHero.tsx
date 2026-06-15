@@ -47,7 +47,7 @@ export default function ContactHero() {
           variants={fadeUp}
           className="font-headline-lg text-headline-lg md:text-display-lg text-primary mb-6 max-w-4xl tracking-tight"
         >
-          Let's Start a Conversation
+          Let&apos;s Start a Conversation
         </motion.h1>
 
         <motion.p

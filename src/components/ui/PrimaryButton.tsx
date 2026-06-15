@@ -15,6 +15,11 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?: "md" | "lg";
 }
 
+type CleanButtonProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onTransitionEnd" | "onDrag" | "onDragStart" | "onDragEnd" | "onDragEnter" | "onDragLeave" | "onDragOver" | "onDrop"
+>;
+
 export default function PrimaryButton({
   children,
   href,
@@ -70,7 +75,6 @@ export default function PrimaryButton({
   };
 
   const motionProps = {
-    ref: ref as any,
     style: { x: springX, y: springY },
     onMouseMove: handleMouseMove,
     onMouseLeave: handleMouseLeave,
@@ -81,20 +85,32 @@ export default function PrimaryButton({
     const isExternal = href.startsWith("http") || href.startsWith("#");
     if (isExternal) {
       return (
-        <motion.a href={href} {...motionProps}>
+        <motion.a 
+          href={href} 
+          ref={ref as React.Ref<HTMLAnchorElement>} 
+          {...motionProps}
+        >
           {children}
         </motion.a>
       );
     }
     return (
-      <MotionLink href={href} {...(motionProps as any)}>
+      <MotionLink 
+        href={href} 
+        ref={ref as React.Ref<HTMLAnchorElement>} 
+        {...motionProps}
+      >
         {children}
       </MotionLink>
     );
   }
 
   return (
-    <motion.button {...motionProps} {...(props as any)}>
+    <motion.button 
+      ref={ref as React.Ref<HTMLButtonElement>} 
+      {...motionProps} 
+      {...(props as CleanButtonProps)}
+    >
       {children}
     </motion.button>
   );

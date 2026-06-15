@@ -4,7 +4,6 @@ import React from "react";
 import { motion, Variants } from "framer-motion";
 import PrimaryButton from "../ui/PrimaryButton";
 import SecondaryButton from "../ui/SecondaryButton";
-import Badge from "../ui/Badge";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },

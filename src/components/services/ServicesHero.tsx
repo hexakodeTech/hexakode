@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import Image from "next/image";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import Container from "../ui/Container";
