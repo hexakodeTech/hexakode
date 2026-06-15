@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Shield, CheckCircle2, Loader2, ArrowRight, ShieldAlert } from "lucide-react";
+import { Mail, Shield, CheckCircle2, Loader2, ArrowRight, ShieldAlert, AlertCircle } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
 export default function LoginForm() {
@@ -16,6 +16,36 @@ export default function LoginForm() {
   // Forgot Password flow states
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+
+  // Email format validation helper
+  const isEmailValid = (emailStr: string) => {
+    if (!emailStr) return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(emailStr);
+  };
+
+  const handleResetPasswordClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast("Email Required", {
+        description: "Please enter your corporate email address before requesting a password reset.",
+        icon: <AlertCircle className="w-4 h-4 text-amber-500" />,
+        duration: 3000,
+        className: "bg-surface-container-lowest border border-amber-500/20 text-on-surface shadow-card",
+      });
+      return;
+    }
+    if (!isEmailValid(email)) {
+      toast("Invalid Email Address", {
+        description: "Please enter a valid corporate email address before continuing.",
+        icon: <AlertCircle className="w-4 h-4 text-amber-500" />,
+        duration: 3000,
+        className: "bg-surface-container-lowest border border-amber-500/20 text-on-surface shadow-card",
+      });
+      return;
+    }
+    setIsConfirmOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,16 +172,17 @@ export default function LoginForm() {
                 >
                   Access Token
                 </label>
-                <a
-                  className="font-label-mono text-[10px] text-secondary hover:underline transition-all uppercase tracking-wider"
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsConfirmOpen(true);
-                  }}
+                <button
+                  type="button"
+                  onClick={handleResetPasswordClick}
+                  className={`font-label-mono text-[10px] uppercase tracking-wider transition-all duration-200 ${
+                    isEmailValid(email)
+                      ? "text-secondary hover:underline cursor-pointer opacity-100"
+                      : "text-outline/60 cursor-not-allowed opacity-60"
+                  }`}
                 >
                   Reset Password
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/70" />
