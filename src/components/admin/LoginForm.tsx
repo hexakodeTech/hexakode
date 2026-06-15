@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Shield, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Shield, CheckCircle2, Loader2, ArrowRight, ShieldAlert } from "lucide-react";
+import { Toaster, toast } from "sonner";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -11,6 +12,10 @@ export default function LoginForm() {
   const [token, setToken] = useState("");
   const [remember, setRemember] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+
+  // Forgot Password flow states
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +145,10 @@ export default function LoginForm() {
                 <a
                   className="font-label-mono text-[10px] text-secondary hover:underline transition-all uppercase tracking-wider"
                   href="#"
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsConfirmOpen(true);
+                  }}
                 >
                   Reset Password
                 </a>
@@ -272,6 +280,120 @@ export default function LoginForm() {
           </div>
         </footer>
       </main>
+
+      {/* Reset Password Flows */}
+      <AnimatePresence>
+        {isConfirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-md bg-surface-container-lowest/90 backdrop-blur-xl rounded-xl border border-outline-variant/30 p-6 shadow-premium relative overflow-hidden"
+            >
+              {/* Subtle top border blue gradient */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-secondary to-secondary-container" />
+
+              <div className="flex items-start gap-4">
+                <div className="rounded-lg bg-secondary-container/10 p-2.5 text-secondary flex-shrink-0">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-headline-sm text-sm font-semibold text-primary">
+                    Request Password Reset
+                  </h3>
+                  <p className="text-xs text-on-surface-variant/85 leading-relaxed font-body-sm">
+                    For security reasons, administrator passwords can only be reset by the Main Administrator.
+                  </p>
+                  <p className="text-xs text-on-surface-variant/85 leading-relaxed font-body-sm font-medium">
+                    Would you like to submit a password reset request?
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmOpen(false)}
+                  className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-all cursor-pointer text-on-surface"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsConfirmOpen(false);
+                    setIsSuccessOpen(true);
+                    toast.success("Request Sent", {
+                      description: "Password reset request submitted successfully.",
+                      position: "top-right",
+                      duration: 4000,
+                    });
+                  }}
+                  className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer"
+                >
+                  Submit Request
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isSuccessOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-md bg-surface-container-lowest/90 backdrop-blur-xl rounded-xl border border-outline-variant/30 p-6 shadow-premium relative overflow-hidden"
+            >
+              {/* Subtle top border gradient */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-secondary-container to-secondary" />
+
+              <div className="flex flex-col items-center text-center space-y-4 py-2">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                  className="p-3 bg-secondary-container/20 text-secondary rounded-full"
+                >
+                  <CheckCircle2 className="w-8 h-8 text-secondary" />
+                </motion.div>
+
+                <h3 className="font-headline-sm text-sm font-semibold text-primary">
+                  Request Submitted Successfully
+                </h3>
+
+                <div className="space-y-2 text-xs text-on-surface-variant/80 leading-relaxed font-body-sm px-2">
+                  <p>
+                    Your password reset request has been sent to the Main Administrator.
+                  </p>
+                  <p>
+                    Please wait for their response. You will be notified once your password has been reset and access has been restored.
+                  </p>
+                  <p className="text-[11px] text-on-surface-variant/50 pt-1 italic">
+                    If this request was submitted in error, please contact the Main Administrator directly.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-outline-variant/20">
+                <button
+                  type="button"
+                  onClick={() => setIsSuccessOpen(false)}
+                  className="w-full bg-primary text-on-primary py-2.5 rounded-lg text-xs font-semibold hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer text-center"
+                >
+                  Understood
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <Toaster position="top-right" theme="light" expand={false} richColors />
     </div>
   );
 }
