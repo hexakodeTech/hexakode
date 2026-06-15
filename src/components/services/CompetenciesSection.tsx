@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Monitor, Smartphone, Palette, Cloud, Cpu, LucideIcon } from "lucide-react";
+import { Monitor, Smartphone, Palette, Cloud, LucideIcon } from "lucide-react";
 import Container from "../ui/Container";
 import Section from "../ui/Section";
 import SectionHeading from "../ui/SectionHeading";

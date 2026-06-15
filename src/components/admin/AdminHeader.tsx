@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Bell, Search, User } from "lucide-react";
+import { Menu, Bell, Search } from "lucide-react";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -21,7 +21,10 @@ export default function AdminHeader({ onMenuToggle }: HeaderProps) {
       month: "short",
       day: "numeric",
     };
-    setCurrentDate(new Date().toLocaleDateString("en-US", options));
+    const timer = setTimeout(() => {
+      setCurrentDate(new Date().toLocaleDateString("en-US", options));
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Compute dynamic title based on path

@@ -16,7 +16,6 @@ import {
   PlusCircle,
   Settings,
   ArrowRight,
-  TrendingUp,
   Activity
 } from "lucide-react";
 

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { MOCK_TESTIMONIALS } from "@/mock-data/testimonials";
 import { AdminTestimonial } from "@/types/admin";
 import DataTable from "./DataTable";
-import { Star, Edit2, Trash2, Plus, Check, X, ShieldAlert } from "lucide-react";
+import { Star, Edit2, Trash2, Plus, X } from "lucide-react";
 
 export default function TestimonialTable() {
   const [testimonials, setTestimonials] = useState<AdminTestimonial[]>(MOCK_TESTIMONIALS);
@@ -161,7 +161,7 @@ export default function TestimonialTable() {
                 <div>
                   <span className="text-xs font-semibold text-primary block">{t.clientName}</span>
                   <p className="text-[11px] text-on-surface-variant/75 mt-0.5 line-clamp-1 max-w-sm italic">
-                    "{t.content}"
+                    &quot;{t.content}&quot;
                   </p>
                 </div>
               </td>
@@ -301,7 +301,7 @@ export default function TestimonialTable() {
                 </label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  onChange={(e) => setStatus(e.target.value as AdminTestimonial["status"])}
                   className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary"
                 >
                   <option value="Pending">Pending Approval</option>

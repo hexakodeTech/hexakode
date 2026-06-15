@@ -24,7 +24,7 @@ export default function PortfolioCTA() {
               Ready to engineer your success story?
             </h2>
             <p className="font-body-lg text-on-primary-container/70 leading-relaxed">
-              Let's collaborate to build something that sets new standards in your industry.
+              Let&apos;s collaborate to build something that sets new standards in your industry.
             </p>
           </motion.div>
 

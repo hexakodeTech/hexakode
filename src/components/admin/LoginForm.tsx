@@ -125,6 +125,7 @@ export default function LoginForm() {
       <main className="relative z-10 w-full max-w-md px-6 py-12 flex flex-col items-center">
         {/* Branding */}
         <div className="mb-10 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt="HexaKode Logo"
             className="h-16 w-auto mb-5 mx-auto transition-transform duration-500 hover:scale-105"

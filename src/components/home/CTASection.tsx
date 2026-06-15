@@ -34,7 +34,7 @@ export default function CTASection() {
               variants={fadeUp}
               className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight"
             >
-              Let's Build Something Amazing Together
+              Let&apos;s Build Something Amazing Together
             </motion.h2>
             
             <motion.p

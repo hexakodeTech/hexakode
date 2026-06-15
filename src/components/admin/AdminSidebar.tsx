@@ -55,6 +55,7 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         {/* Header Branding */}
         <div className="flex items-center justify-between px-2 mb-8">
           <Link href="/admin/dashboard" className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5_VqrmGo0Yyz2eCzbJ2FcbcrPZN_jWkAN6euuVQzxrMkBQ2CfDpOjYWVe3aq_AIEswpv2MS4XO9VgfvgOFIYMSC9rIm3SjEQNwjrtmhhJmp1ft5nzoPat2z9QwmJwgn0zJZJsMIPoV_gQAD4p0NGbbo0TUaWEuuKEfg6nSP7dh7vq5hNBrqxnYyEYRa9qzr-Tg45hOyEIhgvax0BWxfDDB6uswBvAKj-sJbsOilWcd1wIOkM4PBdSVCjBDaXsnpVcMmsk_TKfO8Xk"
               alt="HexaKode Logo"

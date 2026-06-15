@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { MOCK_ENQUIRIES } from "@/mock-data/enquiries";
 import { AdminEnquiry } from "@/types/admin";
 import DataTable from "./DataTable";
-import { Eye, CheckSquare, Archive, Check, X, Mail, Landmark } from "lucide-react";
+import { Eye, CheckSquare, Archive, X, Mail, Landmark } from "lucide-react";
 
 export default function EnquiryTable() {
   const [enquiries, setEnquiries] = useState<AdminEnquiry[]>(MOCK_ENQUIRIES);

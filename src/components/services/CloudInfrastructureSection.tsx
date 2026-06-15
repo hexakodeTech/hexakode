@@ -2,11 +2,10 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, Terminal, ShieldCheck, Gauge, LucideIcon } from "lucide-react";
+import { TrendingUp, Terminal, ShieldCheck, Gauge } from "lucide-react";
 import Container from "../ui/Container";
 import Section from "../ui/Section";
 import Card from "../ui/Card";
-import Badge from "../ui/Badge";
 import BenefitsCard from "./BenefitsCard";
 import ProcessTimeline from "./ProcessTimeline";
 import { fadeUp, staggerContainer } from "@/lib/motion";

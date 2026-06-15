@@ -1,6 +1,8 @@
+import { LucideIcon } from "lucide-react";
+
 export interface CoreValue {
   id: string;
-  icon: any; // We will use lucide-react icons
+  icon: LucideIcon; // We will use lucide-react icons
   title: string;
   description: string;
 }

@@ -18,7 +18,7 @@ export default function TechnologiesSection() {
           className="flex flex-col"
         >
           <motion.h3 variants={fadeUp} className="text-[10px] md:text-xs font-semibold tracking-widest text-slate-400 uppercase mb-8">
-            BUILT WITH THE WORLD'S MOST RELIABLE TECHNOLOGIES
+            BUILT WITH THE WORLD&apos;S MOST RELIABLE TECHNOLOGIES
           </motion.h3>
           
           <motion.div

@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import PortfolioOverlay from "./PortfolioOverlay";
 import { cn } from "../../lib/utils";
 

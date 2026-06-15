@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { MOCK_PROJECTS } from "@/mock-data/portfolio";
 import { AdminProject } from "@/types/admin";
 import DataTable from "./DataTable";
-import { Edit2, Trash2, Eye, Plus, Check, X } from "lucide-react";
+import { Edit2, Trash2, Eye, Plus, X } from "lucide-react";
 
 export default function PortfolioTable() {
   const [projects, setProjects] = useState<AdminProject[]>(MOCK_PROJECTS);
@@ -163,6 +163,7 @@ export default function PortfolioTable() {
             <tr key={project.id} className="hover:bg-surface-container-low/30 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={project.image}
                     alt={project.title}
@@ -286,7 +287,7 @@ export default function PortfolioTable() {
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => setCategory(e.target.value as AdminProject["category"])}
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary"
                   >
                     <option value="Web">Web</option>
@@ -301,7 +302,7 @@ export default function PortfolioTable() {
                   </label>
                   <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
+                    onChange={(e) => setStatus(e.target.value as AdminProject["status"])}
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary"
                   >
                     <option value="Draft">Draft</option>
@@ -380,6 +381,7 @@ export default function PortfolioTable() {
           <div className="w-full max-w-lg bg-surface-container-lowest rounded-xl border border-outline-variant/30 overflow-hidden shadow-premium">
             {/* Project Image */}
             <div className="relative h-48 w-full bg-slate-900">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeProject.image}
                 alt={activeProject.title}
