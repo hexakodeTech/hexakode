@@ -6,12 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
-  Briefcase,
-  MessageSquare,
   Inbox,
   Settings,
   LogOut,
-  X
+  X,
+  Database
 } from "lucide-react";
 
 interface SidebarProps {
@@ -25,9 +24,8 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
 
   const menuItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Portfolio", path: "/admin/portfolio", icon: Briefcase },
-    { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare },
     { name: "Enquiries", path: "/admin/enquiries", icon: Inbox },
+    { name: "CMS", path: "/admin/cms", icon: Database },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
 
