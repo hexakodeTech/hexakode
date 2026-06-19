@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -10,7 +10,8 @@ import {
   Settings,
   LogOut,
   X,
-  Database
+  Database,
+  Loader2
 } from "lucide-react";
 
 interface SidebarProps {
@@ -29,9 +30,23 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
 
-  const handleLogout = () => {
-    // Clear simulate or session if any, and direct to login
-    router.push("/admin");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      if (response.ok) {
+        router.push("/admin");
+      } else {
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -116,10 +131,17 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         <div className="pt-4 border-t border-outline-variant/20">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-error hover:bg-error-container/10 transition-colors group cursor-pointer"
+            disabled={isLoggingOut}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-error hover:bg-error-container/10 transition-colors group cursor-pointer disabled:opacity-50"
           >
-            <LogOut className="w-4 h-4 text-on-surface-variant/70 group-hover:text-error transition-colors" />
-            <span className="font-body-sm text-[13px]">Logout Session</span>
+            {isLoggingOut ? (
+              <Loader2 className="w-4 h-4 animate-spin text-error" />
+            ) : (
+              <LogOut className="w-4 h-4 text-on-surface-variant/70 group-hover:text-error transition-colors" />
+            )}
+            <span className="font-body-sm text-[13px]">
+              {isLoggingOut ? "Ending Session..." : "Logout Session"}
+            </span>
           </button>
         </div>
       </aside>

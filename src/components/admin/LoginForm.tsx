@@ -9,7 +9,7 @@ import { Toaster, toast } from "sonner";
 export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
+  const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
 
@@ -47,19 +47,45 @@ export default function LoginForm() {
     setIsConfirmOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !token) return;
+    if (!email || !password) return;
 
     setStatus("loading");
 
-    // Simulate authentication processing
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setStatus("idle");
+        toast.error("Access Denied", {
+          description: data.error || "Invalid email or password.",
+          duration: 4000,
+          className: "bg-surface-container-lowest border border-error/20 text-on-surface shadow-card",
+        });
+        return;
+      }
+
       setStatus("success");
       setTimeout(() => {
         router.push("/admin/dashboard");
       }, 800);
-    }, 1200);
+    } catch {
+      setStatus("idle");
+      toast.error("Connection Error", {
+        description: "Could not reach the authorization server. Please try again later.",
+        duration: 4000,
+        className: "bg-surface-container-lowest border border-error/20 text-on-surface shadow-card",
+      });
+    }
   };
 
   return (
@@ -164,14 +190,14 @@ export default function LoginForm() {
               </div>
             </div>
 
-            {/* Token Field */}
+            {/* Password Field */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label
                   className="block font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider text-[10px]"
-                  htmlFor="token"
+                  htmlFor="password"
                 >
-                  Access Token
+                  Password
                 </label>
                 <button
                   type="button"
@@ -189,10 +215,10 @@ export default function LoginForm() {
                 <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/70" />
                 <input
                   className="w-full bg-surface-container-low/60 border border-outline-variant/40 rounded-lg pl-11 pr-4 py-3 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all placeholder:text-outline/40 text-sm font-mono"
-                  id="token"
+                  id="password"
                   type="password"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
                 />
@@ -354,14 +380,38 @@ export default function LoginForm() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsConfirmOpen(false);
-                    setIsSuccessOpen(true);
-                    toast.success("Request Sent", {
-                      description: "Password reset request submitted successfully.",
-                      position: "top-right",
-                      duration: 4000,
-                    });
+                    try {
+                      const response = await fetch("/api/auth/reset-password", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email }),
+                      });
+                      const data = await response.json();
+                      if (response.ok && data.success) {
+                        setIsSuccessOpen(true);
+                        toast.success("Request Sent", {
+                          description: "Password reset request submitted successfully.",
+                          position: "top-right",
+                          duration: 4000,
+                        });
+                      } else {
+                        toast.error("Request Failed", {
+                          description: data.error || "Failed to submit reset request.",
+                          position: "top-right",
+                          duration: 4000,
+                        });
+                      }
+                    } catch {
+                      toast.error("Connection Error", {
+                        description: "Could not reach the server.",
+                        position: "top-right",
+                        duration: 4000,
+                      });
+                    }
                   }}
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer"
                 >
