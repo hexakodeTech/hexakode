@@ -49,70 +49,44 @@ export async function loginAction(email: string, password: string, ipAddress?: s
         { email: supabaseUser.email! },
       ],
     },
-    include: { role: true },
   });
 
   console.log("[DEBUG] Local user profile search result:", localUser ? {
     id: localUser.id,
     email: localUser.email,
     supabaseId: localUser.supabaseId,
-    role: localUser.role.name,
   } : "Not Found");
 
   if (!localUser) {
     console.log("[DEBUG] Starting automatic user provisioning flow (user not found in local DB).");
-    
-    // Admin bootstrap check: check if any Super Admin exists
-    const superAdminRole = await prisma.role.findFirst({
-      where: { name: { equals: 'Super Admin', mode: 'insensitive' } },
-    });
-    const viewerRole = await prisma.role.findFirst({
-      where: { name: { equals: 'Viewer', mode: 'insensitive' } },
-    });
-
-    console.log("[DEBUG] Retrieved DB Roles:", {
-      superAdminRole: superAdminRole ? { id: superAdminRole.id, name: superAdminRole.name } : "NOT FOUND",
-      viewerRole: viewerRole ? { id: viewerRole.id, name: viewerRole.name } : "NOT FOUND",
-    });
-
-    if (!superAdminRole || !viewerRole) {
-      console.error("[DEBUG] Role initialization check failed. Super Admin or Viewer roles do not exist in DB.");
-      return {
-        success: false,
-        error: 'Database roles not initialized. Please seed roles first.',
-      };
-    }
-
-    const hasSuperAdmin = await prisma.user.findFirst({
-      where: {
-        role: {
-          name: { equals: 'Super Admin', mode: 'insensitive' },
-        },
-      },
-    });
-
-    console.log("[DEBUG] Super Admin existence check in DB:", hasSuperAdmin ? "Found existing Super Admin" : "No Super Admin exists (First User bootstrap)");
-
-    const assignedRole = hasSuperAdmin ? viewerRole : superAdminRole;
-    console.log("[DEBUG] Assigning role to new user:", assignedRole.name);
 
     localUser = await prisma.user.create({
       data: {
         supabaseId: supabaseUser.id,
         email: supabaseUser.email!,
         name: supabaseUser.user_metadata?.name || supabaseUser.email!.split('@')[0],
-        roleId: assignedRole.id,
         status: 'ACTIVE',
         lastLoginAt: new Date(),
       },
-      include: { role: true },
     });
     
     console.log("[DEBUG] Automatically provisioned local user profile successfully:", {
       id: localUser.id,
       email: localUser.email,
-      role: localUser.role.name,
     });
+
+    // Create audit log for user provisioning
+    console.log("[DEBUG] Creating USER_PROVISIONED audit log entry.");
+    await prisma.auditLog.create({
+      data: {
+        userId: localUser.id,
+        action: 'USER_PROVISIONED',
+        entityType: 'User',
+        entityId: localUser.id,
+        ipAddress,
+      },
+    });
+    console.log("[DEBUG] USER_PROVISIONED audit log created successfully.");
   } else {
     // Update existing user with supabaseId and lastLoginAt
     console.log("[DEBUG] User already exists locally. Updating supabaseId and lastLoginAt.");
@@ -122,7 +96,6 @@ export async function loginAction(email: string, password: string, ipAddress?: s
         supabaseId: supabaseUser.id,
         lastLoginAt: new Date(),
       },
-      include: { role: true },
     });
     console.log("[DEBUG] Updated local user profile successfully:", {
       id: localUser.id,
@@ -153,7 +126,6 @@ export async function loginAction(email: string, password: string, ipAddress?: s
       name: localUser.name,
       status: localUser.status,
     },
-    role: localUser.role.name,
   };
 }
 
@@ -235,7 +207,6 @@ export async function getCurrentUser() {
         { email: user.email! },
       ],
     },
-    include: { role: true },
   });
 
   if (!localUser) return null;
@@ -251,6 +222,5 @@ export async function getCurrentUser() {
   return {
     user,
     localUser,
-    role: localUser.role.name,
   };
 }

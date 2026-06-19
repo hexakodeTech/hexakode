@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { updateSession } from './lib/supabase/proxy';
 import prisma from './lib/prisma';
-import { hasAccess } from './lib/auth/rbac';
 
 export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
@@ -10,8 +9,6 @@ export async function proxy(request: NextRequest) {
 
   // 1. Define public admin routes that do not require authentication
   const isLoginPage = pathname === '/admin' || pathname === '/admin/';
-  const isUnauthorizedPage =
-    pathname === '/admin/unauthorized' || pathname === '/admin/unauthorized/';
 
   // 2. Route protection for /admin/* and /studio/*
   const isAdminOrStudioPath = pathname.startsWith('/admin') || pathname.startsWith('/studio');
@@ -25,10 +22,6 @@ export async function proxy(request: NextRequest) {
       return supabaseResponse;
     }
 
-    if (isUnauthorizedPage) {
-      return supabaseResponse;
-    }
-
     // Protect all other admin/studio routes
     if (!user) {
       // Redirect unauthenticated users to login
@@ -36,7 +29,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Authenticated: check local user profile and RBAC
+    // Authenticated: check local user profile status
     try {
       const localUser = await prisma.user.findFirst({
         where: {
@@ -45,21 +38,15 @@ export async function proxy(request: NextRequest) {
             { email: user.email! },
           ],
         },
-        include: { role: true },
       });
 
       if (!localUser || localUser.status !== 'ACTIVE') {
-        return NextResponse.redirect(new URL('/admin/unauthorized', request.url));
-      }
-
-      // Check role permissions using hasAccess helper
-      if (!hasAccess(localUser.role.name, pathname)) {
-        return NextResponse.redirect(new URL('/admin/unauthorized', request.url));
+        return NextResponse.redirect(new URL('/admin', request.url));
       }
     } catch (dbError) {
       console.error('Database check error in proxy:', dbError);
-      // Fallback: during migrations or seed, redirect to unauthorized to prevent leaks
-      return NextResponse.redirect(new URL('/admin/unauthorized', request.url));
+      // Fallback: redirect to login to prevent leaks
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 
