@@ -12,6 +12,7 @@ import FormSelect from "../ui/FormSelect";
 import FormTextarea from "../ui/FormTextarea";
 import PrimaryButton from "../ui/PrimaryButton";
 import { PROJECT_TYPES, BUDGET_RANGES } from "../../constants/contact";
+import { submitEnquiryAction } from "@/lib/enquiries/actions";
 
 const contactSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -49,12 +50,30 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
 
   const onSubmit = async (data: ContactFormFields) => {
     setIsLoading(true);
-    // Simulate API request latency
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsLoading(false);
-    setIsSubmitted(true);
-    toast.success("Thank you! Your message has been sent successfully.");
-    console.log("Mock Contact Form Submission Successful:", data);
+    try {
+      const result = await submitEnquiryAction({
+        name: data.name,
+        email: data.email,
+        phone: data.phone || null,
+        company: data.company || null,
+        service: data.projectType,
+        budget: data.budget,
+        message: data.message,
+      });
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to submit enquiry. Please try again.");
+        return;
+      }
+
+      setIsSubmitted(true);
+      toast.success("Thank you for contacting HexaKode. Your enquiry has been received successfully. Our team will respond within 24 business hours.");
+    } catch (err) {
+      console.error("Enquiry submission error:", err);
+      toast.error("An unexpected error occurred. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleReset = () => {
