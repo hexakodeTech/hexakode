@@ -1,0 +1,132 @@
+// HexaKode - Prisma Schema
+// Database: Supabase PostgreSQL
+// ORM: Prisma 7
+// Focus: Authentication & Operational Data
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PasswordResetStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  EXPIRED
+}
+
+enum EnquiryStatus {
+  NEW
+  IN_PROGRESS
+  RESPONDED
+  CLOSED
+  ARCHIVED
+}
+
+// ─────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────
+
+/// Application user accounts.
+/// Supports future Auth.js integration.
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  supabaseId   String?    @unique
+  name         String
+  email        String     @unique
+  passwordHash String?
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  auditLogs             AuditLog[]
+  passwordResetRequests PasswordResetRequest[] @relation("PasswordResetUser")
+  approvedResets        PasswordResetRequest[] @relation("PasswordResetApprover")
+
+  @@index([email])
+  @@index([status])
+  @@map("users")
+}
+
+/// Admin-approved password reset workflow.
+/// User requests → Main Admin approves/rejects.
+model PasswordResetRequest {
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String              @db.Uuid
+  status      PasswordResetStatus @default(PENDING)
+  requestedAt DateTime            @default(now())
+  approvedAt  DateTime?
+  approvedBy  String?             @db.Uuid
+
+  user     User  @relation("PasswordResetUser", fields: [userId], references: [id])
+  approver User? @relation("PasswordResetApprover", fields: [approvedBy], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("password_reset_requests")
+}
+
+/// Immutable audit trail for all admin/system actions.
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  action     String
+  entityType String?
+  entityId   String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+/// Contact form / project enquiry submissions.
+model Enquiry {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  service   String?
+  budget    String?
+  message   String
+  status    EnquiryStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@map("enquiries")
+}
+
+/// Key-value store for dynamic system configuration.
+model SystemSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
