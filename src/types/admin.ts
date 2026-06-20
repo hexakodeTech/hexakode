@@ -26,6 +26,7 @@ export interface AdminEnquiry {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
   company: string;
   projectType: string;
   message: string;

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { AdminEnquiry } from "@/types/admin";
 import DataTable from "./DataTable";
-import { Eye, CheckSquare, Archive, X, Mail, Landmark, Trash2, Loader2 } from "lucide-react";
+import { Eye, CheckSquare, Archive, X, Mail, Landmark, Trash2, Loader2, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { getEnquiriesAction, updateEnquiryStatusAction, deleteEnquiryAction } from "@/lib/enquiries/actions";
 
@@ -268,7 +268,13 @@ export default function EnquiryTable() {
                     <p className="font-semibold text-primary leading-tight break-all text-[11px]">
                       {activeEnquiry.email}
                     </p>
-                    <span className="font-label-mono text-[8px] bg-secondary-container/30 text-on-secondary-container px-1 py-0.5 rounded uppercase mt-1 inline-block">
+                    {activeEnquiry.phone && (
+                      <p className="text-[10px] text-on-surface-variant mt-1 flex items-center gap-1 font-mono">
+                        <Phone className="w-3 h-3 text-secondary" />
+                        {activeEnquiry.phone}
+                      </p>
+                    )}
+                    <span className="font-label-mono text-[8px] bg-secondary-container/30 text-on-secondary-container px-1 py-0.5 rounded uppercase mt-1.5 inline-block">
                       {activeEnquiry.projectType || "-"}
                     </span>
                   </div>
