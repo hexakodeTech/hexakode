@@ -53,7 +53,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
       // Trigger standard change event on the hidden native select element
       if (selectRef.current) {
         selectRef.current.value = optionValue;
-        
+
         // Dispatch event so react-hook-form captures it
         const event = new Event("change", { bubbles: true });
         selectRef.current.dispatchEvent(event);
@@ -67,7 +67,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
     // Handle keyboard accessibility on trigger button
     const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (props.disabled) return;
-      
+
       if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === " " || e.key === "Enter") {
         e.preventDefault();
         setIsOpen(true);
@@ -97,8 +97,8 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             isFocused || isOpen
               ? "text-secondary font-semibold"
               : isDark
-              ? "text-slate-400"
-              : "text-on-surface-variant"
+                ? "text-slate-400"
+                : "text-on-surface-variant"
           )}
           onClick={() => {
             const trigger = document.getElementById(`${id}-trigger`);
@@ -107,7 +107,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
         >
           {label}
         </label>
-        
+
         <div className="relative w-full">
           {/* Hidden native select for React Hook Form integration */}
           <select
@@ -159,8 +159,8 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
                 ? "glass-input-premium text-white"
                 : "bg-surface-container-lowest text-on-surface border-outline-variant/65",
               (isFocused || isOpen) && (
-                isDark 
-                  ? "border-secondary ring-2 ring-secondary/20" 
+                isDark
+                  ? "border-secondary ring-2 ring-secondary/20"
                   : "border-secondary shadow-[0_0_0_4px_rgba(93,202,253,0.2)]"
               ),
               error && "border-error focus:border-error",
@@ -186,7 +186,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
               className={cn(
                 "absolute top-full left-0 w-full mt-1.5 z-50 rounded-lg border shadow-premium max-h-60 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-1 duration-150",
                 isDark
-                  ? "glass-form-premium border-outline-variant/30 text-white"
+                  ? "bg-navy-deep/95 backdrop-blur-xl border-white/10 text-white"
                   : "bg-surface-container-lowest border-outline-variant/60 text-on-surface"
               )}
               role="listbox"
@@ -204,9 +204,9 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
                     className={cn(
                       "w-full text-left px-4 py-2.5 text-xs transition-colors duration-150 cursor-pointer flex items-center justify-between border-l-2",
                       isSelected
-                        ? (isDark 
-                            ? "bg-secondary-container/20 text-white font-semibold border-secondary-container" 
-                            : "bg-secondary-container/10 text-secondary-container font-semibold border-secondary-container")
+                        ? (isDark
+                          ? "bg-secondary-container/20 text-white font-semibold border-secondary-container"
+                          : "bg-secondary-container/10 text-secondary-container font-semibold border-secondary-container")
                         : "border-transparent",
                       isDark
                         ? "text-slate-200 hover:bg-secondary-container/20 hover:text-white"
@@ -220,7 +220,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             </div>
           )}
         </div>
-        
+
         {error && (
           <span className="text-error font-body-sm mt-1 text-left">{error}</span>
         )}
