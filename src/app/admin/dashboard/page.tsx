@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StatsCard from "@/components/admin/StatsCard";
 import QuickActionCard from "@/components/admin/QuickActionCard";
-import { MOCK_ENQUIRIES } from "@/mock-data/enquiries";
+import { getDashboardEnquiryStatsAction } from "@/lib/enquiries/actions";
 import {
   Inbox,
   Database,
@@ -13,17 +13,34 @@ import {
   Settings,
   ArrowRight,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
+  
+  const [stats, setStats] = useState<{ total: number; unread: number; recent: any[] }>({
+    total: 0,
+    unread: 0,
+    recent: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Get first 5 recent enquiries
-  const recentEnquiries = MOCK_ENQUIRIES.slice(0, 5);
+  // Load dashboard data on mount
+  useEffect(() => {
+    async function loadDashboardData() {
+      setIsLoading(true);
+      const data = await getDashboardEnquiryStatsAction();
+      setStats(data);
+      setIsLoading(false);
+    }
+    loadDashboardData();
+  }, []);
 
-  const totalEnquiriesCount = MOCK_ENQUIRIES.length;
-  const unreadEnquiriesCount = MOCK_ENQUIRIES.filter(e => e.status === "New").length;
+  const totalEnquiriesCount = stats.total;
+  const unreadEnquiriesCount = stats.unread;
+  const recentEnquiries = stats.recent;
 
   const quickActions = [
     {
@@ -81,14 +98,14 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatsCard
             title="Total Enquiries"
-            value={totalEnquiriesCount}
+            value={isLoading ? "..." : totalEnquiriesCount}
             subtext="All contact responses"
             icon={Inbox}
             trend={{ value: "Stable", type: "neutral" }}
           />
           <StatsCard
             title="Unread Enquiries"
-            value={unreadEnquiriesCount}
+            value={isLoading ? "..." : unreadEnquiriesCount}
             subtext="Require review"
             icon={Inbox}
             trend={{ value: "+24%", type: "positive" }}
@@ -157,25 +174,42 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {recentEnquiries.map((e) => (
-                  <tr key={e.id} className="hover:bg-surface-container-low/30 transition-colors">
-                    <td className="px-5 py-3 text-xs font-semibold text-primary">{e.name}</td>
-                    <td className="px-5 py-3 text-xs text-on-surface-variant">{e.company}</td>
-                    <td className="px-5 py-3 text-xs text-on-surface">{e.projectType}</td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`text-[8px] font-semibold uppercase px-2 py-0.5 rounded-full ${
-                          e.status === "New"
-                            ? "bg-secondary-container/20 text-on-secondary-container"
-                            : "bg-surface-container text-on-surface-variant/60"
-                        }`}
-                      >
-                        {e.status}
-                      </span>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-secondary" />
+                        <span className="text-xs text-on-surface-variant/70">Loading recent enquiries...</span>
+                      </div>
                     </td>
-                    <td className="px-5 py-3 text-xs text-on-surface-variant font-mono">{e.date}</td>
                   </tr>
-                ))}
+                ) : recentEnquiries.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-xs text-on-surface-variant/50">
+                      No enquiries received yet.
+                    </td>
+                  </tr>
+                ) : (
+                  recentEnquiries.map((e) => (
+                    <tr key={e.id} className="hover:bg-surface-container-low/30 transition-colors">
+                      <td className="px-5 py-3 text-xs font-semibold text-primary">{e.name}</td>
+                      <td className="px-5 py-3 text-xs text-on-surface-variant">{e.company || "-"}</td>
+                      <td className="px-5 py-3 text-xs text-on-surface">{e.projectType || "-"}</td>
+                      <td className="px-5 py-3">
+                        <span
+                          className={`text-[8px] font-semibold uppercase px-2 py-0.5 rounded-full ${
+                            e.status === "New"
+                              ? "bg-secondary-container/20 text-on-secondary-container"
+                              : "bg-surface-container text-on-surface-variant/60"
+                          }`}
+                        >
+                          {e.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-on-surface-variant font-mono">{e.date}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

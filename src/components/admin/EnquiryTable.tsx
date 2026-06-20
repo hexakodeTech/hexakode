@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { MOCK_ENQUIRIES } from "@/mock-data/enquiries";
+import React, { useState, useEffect } from "react";
 import { AdminEnquiry } from "@/types/admin";
 import DataTable from "./DataTable";
-import { Eye, CheckSquare, Archive, X, Mail, Landmark } from "lucide-react";
+import { Eye, CheckSquare, Archive, X, Mail, Landmark, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { getEnquiriesAction, updateEnquiryStatusAction, deleteEnquiryAction } from "@/lib/enquiries/actions";
 
 export default function EnquiryTable() {
-  const [enquiries, setEnquiries] = useState<AdminEnquiry[]>(MOCK_ENQUIRIES);
+  const [enquiries, setEnquiries] = useState<AdminEnquiry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,17 +19,63 @@ export default function EnquiryTable() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [activeEnquiry, setActiveEnquiry] = useState<AdminEnquiry | null>(null);
 
+  // Fetch enquiries on mount
+  useEffect(() => {
+    async function loadEnquiries() {
+      setIsLoading(true);
+      const data = await getEnquiriesAction();
+      setEnquiries(data);
+      setIsLoading(false);
+    }
+    loadEnquiries();
+  }, []);
+
   // Status updates
-  const handleMarkReviewed = (id: string) => {
+  const handleMarkReviewed = async (id: string) => {
+    const prevEnquiries = enquiries;
     setEnquiries(
       enquiries.map((e) => (e.id === id ? { ...e, status: "Reviewed" as const } : e))
     );
+
+    const res = await updateEnquiryStatusAction(id, 'RESPONDED');
+    if (!res.success) {
+      toast.error(res.error || "Failed to update status in database.");
+      setEnquiries(prevEnquiries);
+    } else {
+      toast.success("Enquiry marked as reviewed.");
+    }
   };
 
-  const handleMarkArchived = (id: string) => {
+  const handleMarkArchived = async (id: string) => {
+    const prevEnquiries = enquiries;
     setEnquiries(
       enquiries.map((e) => (e.id === id ? { ...e, status: "Archived" as const } : e))
     );
+
+    const res = await updateEnquiryStatusAction(id, 'ARCHIVED');
+    if (!res.success) {
+      toast.error(res.error || "Failed to archive enquiry.");
+      setEnquiries(prevEnquiries);
+    } else {
+      toast.success("Enquiry archived successfully.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this enquiry? This action cannot be undone.")) {
+      return;
+    }
+
+    const prevEnquiries = enquiries;
+    setEnquiries(enquiries.filter((e) => e.id !== id));
+
+    const res = await deleteEnquiryAction(id);
+    if (!res.success) {
+      toast.error(res.error || "Failed to delete enquiry from database.");
+      setEnquiries(prevEnquiries);
+    } else {
+      toast.success("Enquiry deleted successfully.");
+    }
   };
 
   const handleOpenView = (enquiry: AdminEnquiry) => {
@@ -87,7 +135,16 @@ export default function EnquiryTable() {
         }
         headers={["Name", "Contact Info", "Company", "Project Type", "Date", "Status", "Actions"]}
       >
-        {displayedEnquiries.length === 0 ? (
+        {isLoading ? (
+          <tr>
+            <td colSpan={7} className="text-center py-12">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-secondary" />
+                <span className="text-xs text-on-surface-variant/70">Loading live enquiries...</span>
+              </div>
+            </td>
+          </tr>
+        ) : displayedEnquiries.length === 0 ? (
           <tr>
             <td colSpan={7} className="text-center py-8 text-xs text-on-surface-variant/50">
               No enquiries found matching searches.
@@ -106,11 +163,11 @@ export default function EnquiryTable() {
               </td>
               <td className="px-6 py-4">
                 <span className="font-label-mono text-[9px] text-on-surface-variant/70 uppercase">
-                  {e.company}
+                  {e.company || "-"}
                 </span>
               </td>
               <td className="px-6 py-4">
-                <span className="text-xs text-on-surface">{e.projectType}</span>
+                <span className="text-xs text-on-surface">{e.projectType || "-"}</span>
               </td>
               <td className="px-6 py-4">
                 <span className="text-xs text-on-surface-variant/70 font-mono">{e.date}</span>
@@ -155,6 +212,13 @@ export default function EnquiryTable() {
                       <Archive className="w-3.5 h-3.5" />
                     </button>
                   )}
+                  <button
+                    onClick={() => handleDelete(e.id)}
+                    className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error transition-all cursor-pointer"
+                    title="Delete Enquiry"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -191,7 +255,7 @@ export default function EnquiryTable() {
                     <span className="font-label-mono text-[8px] uppercase text-on-surface-variant/60">
                       Company
                     </span>
-                    <p className="font-semibold text-primary">{activeEnquiry.company}</p>
+                    <p className="font-semibold text-primary">{activeEnquiry.company || "-"}</p>
                     <p className="text-[10px] text-on-surface-variant">{activeEnquiry.name}</p>
                   </div>
                 </div>
@@ -201,11 +265,11 @@ export default function EnquiryTable() {
                     <span className="font-label-mono text-[8px] uppercase text-on-surface-variant/60">
                       Contact
                     </span>
-                    <p className="font-semibold text-primary leading-tight break-all">
+                    <p className="font-semibold text-primary leading-tight break-all text-[11px]">
                       {activeEnquiry.email}
                     </p>
                     <span className="font-label-mono text-[8px] bg-secondary-container/30 text-on-secondary-container px-1 py-0.5 rounded uppercase mt-1 inline-block">
-                      {activeEnquiry.projectType}
+                      {activeEnquiry.projectType || "-"}
                     </span>
                   </div>
                 </div>
@@ -268,6 +332,15 @@ export default function EnquiryTable() {
                     Archive Message
                   </button>
                 )}
+                <button
+                  onClick={() => {
+                    handleDelete(activeEnquiry.id);
+                    setIsViewOpen(false);
+                  }}
+                  className="px-4 py-2 bg-error text-on-error text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-error/10 transition-all cursor-pointer"
+                >
+                  Delete Message
+                </button>
                 <button
                   onClick={() => setIsViewOpen(false)}
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer"
