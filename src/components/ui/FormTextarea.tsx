@@ -1,0 +1,64 @@
+import React, { forwardRef, useState } from "react";
+import { cn } from "../../lib/utils";
+
+interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  error?: string;
+  isDark?: boolean;
+}
+
+const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
+  ({ label, error, className, id, onFocus, onBlur, isDark = false, ...props }, ref) => {
+    const [isFocused, setIsFocused] = useState(false);
+
+    const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      setIsFocused(true);
+      if (onFocus) onFocus(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      setIsFocused(false);
+      if (onBlur) onBlur(e);
+    };
+
+    return (
+      <div className="space-y-2 flex flex-col w-full">
+        <label
+          htmlFor={id}
+          className={cn(
+            "font-label-mono text-label-mono uppercase transition-colors duration-200 self-start cursor-pointer",
+            isFocused
+              ? "text-secondary font-semibold"
+              : isDark
+              ? "text-slate-400"
+              : "text-on-surface-variant"
+          )}
+        >
+          {label}
+        </label>
+        <textarea
+          id={id}
+          ref={ref}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={cn(
+            "w-full border rounded-lg px-4 py-4 font-body-md focus:border-secondary focus:ring-0 transition-all outline-none duration-250 ease-out",
+            isDark
+              ? "glass-input-premium"
+              : "bg-surface-container-lowest text-on-surface focus:shadow-[0_0_0_4px_rgba(93,202,253,0.2)] border-outline-variant/65",
+            error && "border-error focus:border-error focus:shadow-[0_0_0_4px_rgba(239,68,68,0.1)]",
+            className
+          )}
+          {...props}
+        />
+        {error && (
+          <span className="text-error font-body-sm mt-1 text-left">{error}</span>
+        )}
+      </div>
+    );
+  }
+);
+
+FormTextarea.displayName = "FormTextarea";
+
+export default FormTextarea;
