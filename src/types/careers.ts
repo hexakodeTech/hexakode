@@ -16,6 +16,14 @@ export interface Job {
   tags?: string[];
   /** ISO date string — used for sorting and display */
   postedAt?: string;
+  
+  // Detailed role fields
+  experience: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  technologies: string[];
+  niceToHave: string[];
 }
 
 // ─── Culture / Why HexaKode ───────────────────────────────────────────────────

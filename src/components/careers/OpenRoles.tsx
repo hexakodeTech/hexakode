@@ -4,8 +4,9 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase } from "lucide-react";
 import { jobs } from "@/data/jobs";
-import { JobCategory } from "@/types/careers";
+import { JobCategory, Job } from "@/types/careers";
 import JobCard from "./JobCard";
+import JobDetailsModal from "./JobDetailsModal";
 
 const ALL = "All Roles";
 const CATEGORIES: (typeof ALL | JobCategory)[] = [
@@ -18,6 +19,7 @@ const CATEGORIES: (typeof ALL | JobCategory)[] = [
 
 export default function OpenRoles() {
   const [activeTab, setActiveTab] = useState<typeof ALL | JobCategory>(ALL);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -92,7 +94,7 @@ export default function OpenRoles() {
               className="space-y-4"
             >
               {filtered.map((job, i) => (
-                <JobCard key={job.id} job={job} index={i} />
+                <JobCard key={job.id} job={job} index={i} onSelect={setSelectedJob} />
               ))}
             </motion.div>
           ) : (
@@ -128,6 +130,9 @@ export default function OpenRoles() {
           Showing {filtered.length} of {jobs.length} positions
         </motion.p>
       </div>
+
+      {/* Details Modal overlay */}
+      <JobDetailsModal job={selectedJob} onClose={() => setSelectedJob(null)} />
     </section>
   );
 }

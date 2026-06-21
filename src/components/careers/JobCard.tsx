@@ -17,9 +17,10 @@ const categoryColors: Record<string, { bg: string; text: string }> = {
 interface JobCardProps {
   job: Job;
   index: number;
+  onSelect: (job: Job) => void;
 }
 
-export default function JobCard({ job, index }: JobCardProps) {
+export default function JobCard({ job, index, onSelect }: JobCardProps) {
   const color = categoryColors[job.category] ?? categoryColors.Engineering;
 
   return (
@@ -34,10 +35,10 @@ export default function JobCard({ job, index }: JobCardProps) {
       }}
       layout
     >
-      <Link
-        href={`/careers/${job.slug}`}
-        className="group block bg-white rounded-2xl border border-outline-variant/40 p-6 md:p-8 hover:border-secondary/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-300"
-        aria-label={`View ${job.title} role`}
+      <button
+        onClick={() => onSelect(job)}
+        className="w-full text-left group block bg-white rounded-2xl border border-outline-variant/40 p-6 md:p-8 hover:border-secondary/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:ring-offset-2"
+        aria-label={`View ${job.title} role details`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Left: title + meta */}
@@ -96,7 +97,7 @@ export default function JobCard({ job, index }: JobCardProps) {
             </span>
           </div>
         </div>
-      </Link>
+      </button>
     </motion.div>
   );
 }
