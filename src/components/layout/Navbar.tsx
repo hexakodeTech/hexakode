@@ -47,7 +47,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3 group select-none">
           <div className="relative w-10 h-10 transition-transform duration-300 group-hover:scale-105 shrink-0">
             <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_zrELXV2pEVyY_zQhDfkswqgdUPyuCrFoE01YX_eE_bufiCuL0pcc5UbjepicohvNODMBE_6NV-3POCl1MZo2hX7VEsXPPsQpQRuiXy8A5lW-NkT8mKT-rwTiVvDsU6ClUx-fz3YnDfoGwNmaFiRPqeOdMmCzyjleGPsJv3YVdwvcMoktRk1-PSwycodQTaUdVEZMNROJkbZUC2BnupDOCp2CnDQhAqbtYJ_69Jn_dPBndOu2Daq7JAzyfvIgPY81edfdATU1IKFa"
+              src="/logo-icon.png"
               alt="HexaKode Logo"
               fill
               sizes="40px"

@@ -10,22 +10,22 @@ export default function Footer() {
 
   return (
     <footer className="bg-primary-container text-on-primary-container relative w-full border-t border-outline-variant/10">
-      {/* Reorganized Grid Layout: 12-Column Grid on Desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+      {/* 4-Column Grid: Brand 50% | Company 25% | Legal 25% */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
         
-        {/* Branding & Socials - Spans 5 columns on desktop for dominant branding */}
-        <div className="flex flex-col items-start md:col-span-5">
+        {/* Branding & Socials — 50% of footer width */}
+        <div className="flex flex-col items-start md:col-span-2">
 
           {/* Brand Identity: Logo | HexaKode + Tagline (two-column) */}
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-5 mb-8">
             {/* Column 1: Logo mark */}
-            <div className="relative w-10 h-10 shrink-0 self-center">
+            <div className="relative w-12 h-12 shrink-0 self-center">
               <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_zrELXV2pEVyY_zQhDfkswqgdUPyuCrFoE01YX_eE_bufiCuL0pcc5UbjepicohvNODMBE_6NV-3POCl1MZo2hX7VEsXPPsQpQRuiXy8A5lW-NkT8mKT-rwTiVvDsU6ClUx-fz3YnDfoGwNmaFiRPqeOdMmCzyjleGPsJv3YVdwvcMoktRk1-PSwycodQTaUdVEZMNROJkbZUC2BnupDOCp2CnDQhAqbtYJ_69Jn_dPBndOu2Daq7JAzyfvIgPY81edfdATU1IKFa"
+                src="/logo-icon.png"
                 alt="HexaKode Logo"
                 fill
-                sizes="40px"
-                className="object-contain brightness-0 invert"
+                sizes="48px"
+                className="object-contain"
               />
             </div>
 
@@ -124,8 +124,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Company Links - Spans 3 columns (25% width) offset to start at column 7 */}
-        <div className="md:col-span-3 md:col-start-7">
+        {/* Company Links — 25% width */}
+        <div>
           <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
             Company
           </h5>
@@ -153,8 +153,8 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Legal Links - Spans 3 columns (25% width) */}
-        <div className="md:col-span-3">
+        {/* Legal Links — 25% width */}
+        <div>
           <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
             Legal
           </h5>
