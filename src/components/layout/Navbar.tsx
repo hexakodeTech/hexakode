@@ -54,7 +54,7 @@ export default function Navbar() {
               className="object-contain"
             />
           </div>
-          <span className="font-headline-md text-headline-md font-bold tracking-tight text-primary transition-colors hover:text-secondary">
+          <span className="brand-logo text-headline-md font-normal tracking-tight text-primary transition-colors hover:text-secondary">
             HexaKode
           </span>
         </Link>
