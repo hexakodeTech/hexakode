@@ -55,3 +55,19 @@ export interface FAQ {
   question: string;
   answer: string;
 }
+
+// ─── General Application ──────────────────────────────────────────────────────
+
+export interface GeneralApplication {
+  fullName: string;
+  email: string;
+  phone: string;
+  location?: string;
+  linkedin?: string;
+  portfolio?: string;
+  github?: string;
+  areaOfInterest: string;
+  experience: string;
+  resume?: File;
+  about: string;
+}

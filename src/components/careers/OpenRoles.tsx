@@ -8,6 +8,7 @@ import { jobs } from "@/data/jobs";
 import { JobCategory, Job } from "@/types/careers";
 import JobCard from "./JobCard";
 import JobDetailsModal from "./JobDetailsModal";
+import GeneralApplicationModal from "./GeneralApplicationModal";
 
 const ALL = "All Roles";
 const CATEGORIES: (typeof ALL | JobCategory)[] = [
@@ -21,6 +22,7 @@ const CATEGORIES: (typeof ALL | JobCategory)[] = [
 export default function OpenRoles() {
   const [activeTab, setActiveTab] = useState<typeof ALL | JobCategory>(ALL);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isGeneralModalOpen, setIsGeneralModalOpen] = useState(false);
 
   const filtered = useMemo(
     () =>
@@ -120,12 +122,12 @@ export default function OpenRoles() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <Link
-                href="/careers/apply"
+              <button
+                onClick={() => setIsGeneralModalOpen(true)}
                 className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 bg-secondary text-white px-8 py-3.5 rounded-full font-body-md font-semibold hover:bg-on-secondary-fixed-variant transition-all duration-300 shadow-md hover:shadow-secondary/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 Submit General Application
-              </Link>
+              </button>
               <a
                 href="https://www.linkedin.com/company/hexakodeteh"
                 target="_blank"
@@ -201,6 +203,9 @@ export default function OpenRoles() {
 
       {/* Details Modal overlay */}
       <JobDetailsModal job={selectedJob} onClose={() => setSelectedJob(null)} />
+
+      {/* General Application Modal overlay */}
+      <GeneralApplicationModal isOpen={isGeneralModalOpen} onClose={() => setIsGeneralModalOpen(false)} />
     </section>
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
+import GeneralApplicationModal from "./GeneralApplicationModal";
 
 export default function GeneralApplicationCTA() {
+  const [isGeneralModalOpen, setIsGeneralModalOpen] = useState(false);
+
   return (
     <section className="relative py-28 px-margin-mobile md:px-margin-desktop bg-primary-container overflow-hidden">
       {/* Background radial glow */}
@@ -49,19 +52,22 @@ export default function GeneralApplicationCTA() {
           profile and we&apos;ll reach out when a suitable opportunity arises.
         </p>
 
-        <Link
-          href="/careers/apply"
+        <button
+          onClick={() => setIsGeneralModalOpen(true)}
           className="group inline-flex items-center gap-3 bg-secondary text-white px-10 py-5 rounded-full font-headline-sm text-headline-sm hover:bg-on-secondary-fixed-variant transition-all duration-300 shadow-lg hover:shadow-secondary/25 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
         >
           <Send className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" aria-hidden="true" />
           Submit General Application
-        </Link>
+        </button>
 
         {/* Supporting note */}
         <p className="mt-6 font-body-sm text-body-sm text-on-primary-container/40">
           We review every submission. Profiles are kept on file for 12 months.
         </p>
       </motion.div>
+
+      {/* General Application Modal overlay */}
+      <GeneralApplicationModal isOpen={isGeneralModalOpen} onClose={() => setIsGeneralModalOpen(false)} />
     </section>
   );
 }
