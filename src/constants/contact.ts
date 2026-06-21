@@ -48,30 +48,35 @@ export const SOCIAL_LINKS: SocialLink[] = [
     platform: "LinkedIn",
     url: "https://in.linkedin.com/company/hexakodeteh",
     iconName: "linkedin",
+    color: "#0A66C2",
   },
   {
     id: "sl2",
     platform: "Instagram",
     url: "https://www.instagram.com/hexakode_tech/",
     iconName: "instagram",
+    color: "#E4405F",
   },
   {
     id: "sl3",
     platform: "Facebook",
     url: "https://www.facebook.com/profile.php?id=61589246312714",
     iconName: "facebook",
+    color: "#1877F2",
   },
   {
     id: "sl4",
     platform: "X (Twitter)",
     url: "https://x.com/HexaKode98190",
     iconName: "twitter",
+    color: "#FFFFFF",
   },
   {
     id: "sl5",
     platform: "GitHub",
     url: "https://github.com/hexakode",
     iconName: "github",
+    color: "#FFFFFF",
   },
 ];
 

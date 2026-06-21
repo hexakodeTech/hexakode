@@ -17,6 +17,7 @@ export interface SocialLink {
   platform: string;
   url: string;
   iconName: "linkedin" | "instagram" | "facebook" | "twitter" | "github";
+  color?: string;
 }
 
 export interface ContactFormData {
