@@ -9,11 +9,11 @@ export default function Footer() {
 
   return (
     <footer className="bg-primary-container text-on-primary-container relative w-full border-t border-outline-variant/10">
-      {/* 4-Column Layout */}
+      {/* Reorganized 3-Column Grid for a premium layout */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
         
-        {/* Branding & Socials */}
-        <div className="flex flex-col items-start">
+        {/* Branding & Socials - Spans 2 columns on desktop for SaaS-agency look */}
+        <div className="flex flex-col items-start md:col-span-2">
           <div className="flex items-center gap-3 mb-4">
             <div className="relative w-10 h-10 shrink-0">
               <Image
@@ -131,30 +131,6 @@ export default function Footer() {
             <li>
               <Link href="/#cookies" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
                 Cookie Policy
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Resources Links */}
-        <div>
-          <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
-            Resources
-          </h5>
-          <ul className="space-y-4 font-body-sm text-body-sm">
-            <li>
-              <Link href="/#docs" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                Documentation
-              </Link>
-            </li>
-            <li>
-              <Link href="/portfolio" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                Case Studies
-              </Link>
-            </li>
-            <li>
-              <Link href="/#blog" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                Blog
               </Link>
             </li>
           </ul>
