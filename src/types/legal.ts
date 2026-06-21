@@ -1,4 +1,4 @@
-export type PolicyItemType = "bullet" | "paragraph" | "email" | "link";
+export type PolicyItemType = "bullet" | "paragraph" | "email" | "link" | "internalLink";
 
 export interface PolicyItem {
   type: PolicyItemType;

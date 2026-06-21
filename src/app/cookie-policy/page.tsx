@@ -2,33 +2,33 @@ import React from "react";
 import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import TermsHero from "@/components/legal/TermsHero";
+import CookieHero from "@/components/legal/CookieHero";
 import LegalPageLayout from "@/components/legal/LegalPageLayout";
-import { termsMeta, termsSections } from "@/data/terms-of-service";
+import { cookieMeta, cookieSections } from "@/data/cookie-policy";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: "Terms of Service | HexaKode",
+  title: "Cookie Policy | HexaKode",
   description:
-    "Read the Terms of Service governing the use of HexaKode's website, services, software solutions, and digital platforms.",
+    "Learn how HexaKode uses cookies and similar technologies to improve website functionality, performance, security, and user experience.",
   alternates: {
-    canonical: "https://www.hexakode.in/terms-of-service",
+    canonical: "https://www.hexakode.in/cookie-policy",
   },
   openGraph: {
-    title: "Terms of Service | HexaKode",
+    title: "Cookie Policy | HexaKode",
     description:
-      "Read the Terms of Service governing the use of HexaKode's website, services, software solutions, and digital platforms.",
-    url: "https://www.hexakode.in/terms-of-service",
+      "Learn how HexaKode uses cookies and similar technologies to improve website functionality, performance, security, and user experience.",
+    url: "https://www.hexakode.in/cookie-policy",
     siteName: "HexaKode",
     locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Terms of Service | HexaKode",
+    title: "Cookie Policy | HexaKode",
     description:
-      "Read the Terms of Service governing the use of HexaKode's website and services.",
+      "Learn how HexaKode uses cookies and similar technologies on its website.",
   },
   robots: { index: true, follow: true },
 };
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  name: "Terms of Service — HexaKode",
+  name: "Cookie Policy — HexaKode",
   description:
-    "Terms of Service for HexaKode. Governs access to the website, products, services, and digital platforms.",
-  url: "https://www.hexakode.in/terms-of-service",
+    "Cookie Policy for HexaKode. Explains what cookies are, how they are used, and how to manage them.",
+  url: "https://www.hexakode.in/cookie-policy",
   publisher: {
     "@type": "Organization",
     name: "HexaKode",
@@ -55,7 +55,7 @@ const jsonLd = {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function TermsOfServicePage() {
+export default function CookiePolicyPage() {
   return (
     <>
       <script
@@ -65,29 +65,30 @@ export default function TermsOfServicePage() {
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1 pt-20">
-          <TermsHero meta={termsMeta} />
+          <CookieHero meta={cookieMeta} />
           <LegalPageLayout
-            meta={termsMeta}
-            sections={termsSections}
+            meta={cookieMeta}
+            sections={cookieSections}
             preamble={
               <>
-                Welcome to <strong className="text-on-surface">HexaKode</strong>. These
-                Terms of Service govern your access to and use of the HexaKode website,
-                products, services, applications, and related platforms. By accessing our
-                website, you agree to comply with these Terms. If you do not agree, please
-                do not use our website or services.
+                This Cookie Policy explains how{" "}
+                <strong className="text-on-surface">HexaKode</strong> uses cookies and
+                similar technologies when you visit our website — what they are, why we use
+                them, how they improve your experience, and how you can control them. By
+                continuing to use our website, you consent to the use of cookies as
+                described in this policy unless disabled through your browser settings.
               </>
             }
             footerNote={
               <>
-                These Terms were last updated in{" "}
-                <strong className="text-on-surface">{termsMeta.lastUpdated}</strong>.
+                This Cookie Policy was last updated in{" "}
+                <strong className="text-on-surface">{cookieMeta.lastUpdated}</strong>.
                 For questions, contact us at{" "}
                 <a
-                  href={`mailto:${termsMeta.email}`}
+                  href={`mailto:${cookieMeta.email}`}
                   className="text-secondary hover:underline underline-offset-2 transition-colors"
                 >
-                  {termsMeta.email}
+                  {cookieMeta.email}
                 </a>
                 . Also see our{" "}
                 <a
@@ -95,6 +96,13 @@ export default function TermsOfServicePage() {
                   className="text-secondary hover:underline underline-offset-2 transition-colors"
                 >
                   Privacy Policy
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/terms-of-service"
+                  className="text-secondary hover:underline underline-offset-2 transition-colors"
+                >
+                  Terms of Service
                 </a>
                 .
               </>

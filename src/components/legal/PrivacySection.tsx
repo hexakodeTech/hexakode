@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { PolicySection } from "@/types/legal";
 
@@ -93,6 +94,21 @@ export default function PrivacySection({ section }: PrivacySectionProps) {
                   >
                     {item.text}
                   </a>
+                </div>
+              );
+            }
+            if (item.type === "internalLink") {
+              return (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="font-label-mono text-xs text-outline uppercase tracking-wider">
+                    See:
+                  </span>
+                  <Link
+                    href={item.href ?? "/"}
+                    className="font-body-md text-body-md text-secondary hover:underline underline-offset-2 transition-colors"
+                  >
+                    {item.text}
+                  </Link>
                 </div>
               );
             }
