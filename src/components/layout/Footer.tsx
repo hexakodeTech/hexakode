@@ -160,7 +160,7 @@ export default function Footer() {
           </h5>
           <ul className="space-y-4 font-body-sm text-body-sm">
             <li>
-              <Link href="/#privacy" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
+              <Link href="/privacy-policy" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
                 Privacy Policy
               </Link>
             </li>
