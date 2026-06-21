@@ -83,7 +83,7 @@ export default function Navbar() {
         {/* Desktop CTA Button */}
         <div className="hidden md:flex items-center gap-4">
           <PrimaryButton
-            href="/contact"
+            href="/contact#contact-form"
             variant="primary"
             shimmer={true}
             magnetic={true}
@@ -129,7 +129,7 @@ export default function Navbar() {
           })}
         </nav>
         <PrimaryButton
-          href="/contact"
+          href="/contact#contact-form"
           variant="primary"
           onClick={() => setIsOpen(false)}
           className="w-full text-center"

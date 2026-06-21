@@ -70,6 +70,9 @@ export const metadata: Metadata = {
   },
 };
 
+import { DemoModalProvider } from "@/components/common/DemoModal";
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -81,7 +84,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${zenDots.variable} ${kalam.variable} ${hankenGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-background font-sans text-on-background antialiased">
-        {children}
+        <DemoModalProvider>
+          {children}
+        </DemoModalProvider>
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );

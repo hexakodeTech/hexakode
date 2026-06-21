@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import Container from "../common/Container";
 import PrimaryButton from "../common/PrimaryButton";
 import SecondaryButton from "../common/SecondaryButton";
+import { useDemoModal } from "../common/DemoModal";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function CTASection() {
+  const { openDemoModal } = useDemoModal();
   return (
     <section id="contact" className="bg-white py-16 md:py-24">
       <Container>
@@ -48,10 +50,10 @@ export default function CTASection() {
               variants={fadeUp}
               className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full sm:w-auto"
             >
-              <PrimaryButton href="#contact" variant="blue" className="btn-gradient-hover">
+              <PrimaryButton href="/contact#contact-form" variant="blue" className="btn-gradient-hover">
                 Start Your Project
               </PrimaryButton>
-              <SecondaryButton href="#contact" variant="dark">
+              <SecondaryButton onClick={openDemoModal} variant="dark">
                 Schedule a Demo
               </SecondaryButton>
             </motion.div>
