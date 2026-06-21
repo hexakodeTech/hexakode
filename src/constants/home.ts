@@ -137,12 +137,4 @@ export const FOOTER_SECTIONS: FooterSection[] = [
       { label: "Cookie Policy", href: "#cookies" },
     ],
   },
-  {
-    title: "RESOURCES",
-    links: [
-      { label: "Blog", href: "#blog" },
-      { label: "Documentation", href: "#docs" },
-      { label: "Help Center", href: "#help" },
-    ],
-  },
 ];

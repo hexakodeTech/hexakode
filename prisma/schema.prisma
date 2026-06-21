@@ -38,6 +38,14 @@ enum EnquiryStatus {
   ARCHIVED
 }
 
+enum DemoStatus {
+  NEW
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 // ─────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────
@@ -129,4 +137,23 @@ model SystemSetting {
   updatedAt   DateTime @updatedAt
 
   @@map("system_settings")
+}
+
+/// Demo scheduling requests.
+model DemoRequest {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  company     String
+  phone       String
+  email       String
+  status      DemoStatus  @default(NEW)
+  meetingLink String?
+  meetingTime DateTime?
+  notes       String?
+  createdAt   DateTime    @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@map("demo_requests")
 }

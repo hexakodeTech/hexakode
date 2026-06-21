@@ -720,3 +720,13 @@ body {
     display: none !important;
   }
 }
+
+/* Reusable Brand Typography Utilities */
+.brand-logo {
+  font-family: var(--font-zen-dots), "Zen Dots", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.brand-tagline {
+  font-family: var(--font-kalam), "Kalam", cursive;
+}

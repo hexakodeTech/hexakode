@@ -31,7 +31,7 @@ export default function PortfolioCTA() {
           {/* Right Action Button */}
           <motion.div variants={fadeUp} className="shrink-0 w-full sm:w-auto">
             <PrimaryButton
-              href="/contact"
+              href="/contact#contact-form"
               variant="secondary" // Under primary-container, variant secondary yields sky blue background
               size="lg"
               className="w-full sm:w-auto font-bold rounded-lg flex items-center justify-center gap-2 px-8 py-4 bg-secondary-container text-on-secondary-container hover:brightness-110 hover:shadow-glow-blue hover:scale-105 active:scale-95 transition-all duration-300"
