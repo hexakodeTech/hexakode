@@ -50,7 +50,7 @@ export default function HeroSection() {
             variants={fadeUp}
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
           >
-            <PrimaryButton href="#contact" variant="dark" showArrow className="btn-gradient-hover">
+            <PrimaryButton href="/contact#contact-form" variant="dark" showArrow className="btn-gradient-hover">
               Start Your Project
             </PrimaryButton>
             <SecondaryButton href="#portfolio" variant="light">

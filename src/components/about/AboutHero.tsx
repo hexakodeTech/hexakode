@@ -49,7 +49,7 @@ export default function AboutHero() {
 
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
           <PrimaryButton size="lg" href="/portfolio">View Our Work</PrimaryButton>
-          <SecondaryButton size="lg" href="/contact">Contact Sales</SecondaryButton>
+          <SecondaryButton size="lg" href="/contact#contact-form">Contact Sales</SecondaryButton>
         </motion.div>
       </motion.div>
 

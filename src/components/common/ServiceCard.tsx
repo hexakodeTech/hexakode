@@ -45,7 +45,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             ))}
           </div>
           <a
-            href="#contact"
+            href="/contact#contact-form"
             className="inline-flex items-center text-secondary hover:text-primary text-sm font-semibold transition-colors duration-200 group"
           >
             Learn More

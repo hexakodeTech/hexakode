@@ -36,8 +36,8 @@ export default function FinalCTA() {
           Whether you&apos;re scaling a startup or re-architecting an enterprise, let&apos;s engineer your success together.
         </motion.p>
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-6 justify-center">
-          <PrimaryButton size="lg" href="/contact">Join Our Journey</PrimaryButton>
-          <SecondaryButton size="lg" href="/contact">Schedule a Workshop</SecondaryButton>
+          <PrimaryButton size="lg" href="/contact#contact-form">Join Our Journey</PrimaryButton>
+          <SecondaryButton size="lg" href="/contact#contact-form">Schedule a Workshop</SecondaryButton>
         </motion.div>
       </motion.div>
 

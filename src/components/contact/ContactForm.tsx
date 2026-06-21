@@ -83,6 +83,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
 
   return (
     <div
+      id="contact-form"
       className={cn(
         "lg:col-span-8 p-8 md:p-12 rounded-xl transition-all duration-300 ease-out",
         isDark

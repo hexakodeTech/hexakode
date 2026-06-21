@@ -266,7 +266,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
                 </div>
 
                 <Link
-                  href="/contact"
+                  href="/contact#contact-form"
                   className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-primary text-on-primary font-label-mono text-label-mono rounded hover:bg-secondary transition-colors duration-300 mt-2"
                 >
                   Inquire About Similar <ExternalLink className="w-4 h-4" />

@@ -52,3 +52,16 @@ export interface DashboardStats {
   enquiriesCount: number;
   publishedCount: number;
 }
+
+export interface AdminDemoRequest {
+  id: string;
+  name: string;
+  company: string;
+  phone: string;
+  email: string;
+  date: string;
+  status: "NEW" | "CONTACTED" | "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  meetingLink?: string | null;
+  meetingTime?: string | null;
+  notes?: string | null;
+}
