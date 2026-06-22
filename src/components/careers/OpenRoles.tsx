@@ -37,7 +37,7 @@ export default function OpenRoles() {
   return (
     <section
       id="open-roles"
-      className="py-28 px-margin-mobile md:px-margin-desktop bg-surface-container-low"
+      className="pt-16 pb-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-12 px-margin-mobile md:px-margin-desktop bg-surface-container-low"
     >
       <div className="max-w-container-max mx-auto">
         {/* Header */}
