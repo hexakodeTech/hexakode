@@ -141,7 +141,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/#careers" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
+              <Link href="/careers" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
                 Careers
               </Link>
             </li>
