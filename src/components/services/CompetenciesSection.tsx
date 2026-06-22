@@ -45,7 +45,7 @@ const COMPETENCIES_DATA: CompetencyData[] = [
     description:
       "Native and cross-platform mobile experiences that feel seamless. We focus on low latency and fluid animations.",
     icon: Smartphone,
-    tags: ["FLUTTER", "SWIFT"],
+    tags: ["FLUTTER", "React Native"],
     href: "#mobile-service",
     largeLayout: false,
     featured: false,
@@ -59,17 +59,6 @@ const COMPETENCIES_DATA: CompetencyData[] = [
     href: "#ui-service",
     largeLayout: false,
     featured: false,
-  },
-  {
-    id: "cloud-api",
-    title: "Cloud & API Infrastructure",
-    description:
-      "Engineered for uptime. We design microservices and serverless architectures that handle millions of requests without breaking a sweat. Security-first integration for third-party ecosystems.",
-    icon: Cloud, // represented with Cloud and Cpu in FeaturedCard
-    href: "#cloud-service",
-    largeLayout: true,
-    featured: true,
-    bulletPoints: ["99.9% UPTIME SLAS", "AWS/AZURE EXPERTS"],
   },
 ];
 
