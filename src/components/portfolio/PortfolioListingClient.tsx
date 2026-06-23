@@ -22,7 +22,7 @@ export default function PortfolioListingClient() {
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-20">
+      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-[112px] md:pt-[100px]">
         <PortfolioHero />
         <PortfolioFilterBar
           currentFilter={activeFilter}

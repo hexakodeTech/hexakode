@@ -17,7 +17,7 @@ export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-[112px] md:pt-[100px]">
         <AboutHero />
         <CompanyStory />
         <CoreValues />

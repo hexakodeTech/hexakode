@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col pt-[32px] md:pt-[20px]">
         <HeroSection />
         <TechnologiesSection />
         <ServicesSection />
