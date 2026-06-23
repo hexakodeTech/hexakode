@@ -41,7 +41,7 @@ export default function CloudInfrastructureSection() {
     <Section id="cloud-service" variant="white" className="py-32">
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
-          
+
           {/* Left Column - Sticky Details Panel */}
           <div className="sticky top-32">
             <motion.div
@@ -74,30 +74,12 @@ export default function CloudInfrastructureSection() {
                   Reduced operational costs by up to 40% through serverless optimization and improved deployment frequency via automated CI/CD pipelines.
                 </p>
               </motion.div>
-
-              {/* Technologies list */}
-              <motion.div variants={fadeUp}>
-                <h4 className="text-headline-sm font-headline-sm text-[20px] mb-3 flex items-center gap-3 text-on-background">
-                  <Terminal className="w-5 h-5 text-secondary shrink-0" />
-                  Technologies
-                </h4>
-                <div className="flex flex-wrap gap-3 mt-4">
-                  {TECHS.map((tech) => (
-                    <span
-                      key={tech.name}
-                      className="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg font-label-mono text-label-mono hover:bg-secondary-container/20 transition-all duration-300 cursor-default select-none border border-outline-variant/10"
-                    >
-                      {tech.name}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
             </motion.div>
           </div>
 
           {/* Right Column - Overview, Benefits, Process Stack */}
           <div className="space-y-12">
-            
+
             {/* 01. Overview */}
             <motion.div
               initial="hidden"
