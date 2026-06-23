@@ -21,8 +21,13 @@ const demoSchema = z.object({
 
 type DemoFormFields = z.infer<typeof demoSchema>;
 
+interface DemoModalOptions {
+  source?: string;
+  inquiryType?: string;
+}
+
 interface DemoModalContextType {
-  openDemoModal: () => void;
+  openDemoModal: (options?: DemoModalOptions) => void;
   closeDemoModal: () => void;
 }
 
@@ -40,6 +45,7 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [modalOptions, setModalOptions] = useState<DemoModalOptions>({});
 
   const {
     register,
@@ -56,7 +62,8 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const openDemoModal = () => {
+  const openDemoModal = (options?: DemoModalOptions) => {
+    setModalOptions(options || {});
     setIsOpen(true);
     setIsSubmitted(false);
     reset();
@@ -74,6 +81,8 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
         company: data.company,
         phone: data.phone,
         email: data.email,
+        source: modalOptions.source || "Direct Website",
+        inquiryType: modalOptions.inquiryType || "General Demo",
       });
 
       if (!result.success) {
@@ -134,13 +143,15 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
                     <div className="mb-8 text-left">
                       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-4 bg-white/5 text-secondary border border-white/10">
                         <Calendar className="w-3.5 h-3.5 text-secondary" />
-                        Schedule a Demo
+                        {modalOptions.inquiryType || "Schedule a Demo"}
                       </span>
                       <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                        Experience HexaKode
+                        {modalOptions.inquiryType ? "Book a Session" : "Experience HexaKode"}
                       </h3>
                       <p className="text-slate-400 text-sm md:text-base mt-2">
-                        Fill out the details below, and our team will get in touch to schedule a personalized walkthrough.
+                        {modalOptions.inquiryType 
+                          ? "Fill out the details below, and our team will get in touch to schedule your technical discovery call."
+                          : "Fill out the details below, and our team will get in touch to schedule a personalized walkthrough."}
                       </p>
                     </div>
 
@@ -193,7 +204,7 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
                           disabled={isLoading}
                           className="w-full font-headline-sm py-4 shadow-md bg-secondary text-white hover:brightness-110"
                         >
-                          {isLoading ? "Submitting..." : "Schedule My Demo"}
+                          {isLoading ? "Submitting..." : modalOptions.inquiryType ? "Confirm Call" : "Schedule My Demo"}
                         </PrimaryButton>
                       </div>
                     </form>
@@ -225,7 +236,9 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
                       Request Received!
                     </h3>
                     <p className="font-body-lg text-slate-400 max-w-sm mb-8 leading-relaxed">
-                      Thank you for scheduling a demo. An engineering representative from HexaKode will reach out to confirm your scheduled walkthrough shortly.
+                      {modalOptions.inquiryType === "Technical Discovery Call"
+                        ? "Thank you for booking a session. An engineering representative from HexaKode will reach out to confirm your technical discovery call shortly."
+                        : "Thank you for scheduling a demo. An engineering representative from HexaKode will reach out to confirm your scheduled walkthrough shortly."}
                     </p>
                     <PrimaryButton
                       onClick={closeDemoModal}

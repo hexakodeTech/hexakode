@@ -150,6 +150,8 @@ model DemoRequest {
   meetingLink String?
   meetingTime DateTime?
   notes       String?
+  source      String?
+  inquiryType String?
   createdAt   DateTime    @default(now())
 
   @@index([status])
