@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import PrimaryButton from "../ui/PrimaryButton";
+import Brand from "../common/Brand";
 import { cn } from "../../lib/utils";
 
 const NAV_LINKS = [
@@ -54,9 +55,7 @@ export default function Navbar() {
               className="object-contain"
             />
           </div>
-          <span className="brand-logo text-headline-md font-normal tracking-tight text-primary transition-colors hover:text-secondary">
-            HexaKode
-          </span>
+          <Brand variant="navbar" />
         </Link>
 
         {/* Desktop Navigation Links */}
