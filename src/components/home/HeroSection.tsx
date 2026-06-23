@@ -66,12 +66,42 @@ export default function HeroSection() {
           initial="hidden"
           animate="visible"
         >
-          <div className="relative w-full max-w-[420px] aspect-square rounded-2xl bg-gradient-to-b from-slate-50/50 to-slate-100/50 p-4 border border-slate-100 shadow-premium">
+          {/* Concentric Ripple Background Animation */}
+          <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0 overflow-visible">
+            {/* Ripple 1 - Mobile & Up */}
+            <div 
+              className="absolute w-[80%] max-w-[340px] aspect-square rounded-full border border-[#00AEEF]/20 bg-[#00AEEF]/[0.01] animate-ripple-1 opacity-0"
+            />
+            {/* Ripple 2 - Tablet & Up */}
+            <div 
+              className="absolute hidden sm:block w-[80%] max-w-[340px] aspect-square rounded-full border border-[#0077CC]/20 bg-[#0077CC]/[0.01] animate-ripple-2 opacity-0"
+            />
+            {/* Ripple 3 - Desktop & Up */}
+            <div 
+              className="absolute hidden lg:block w-[80%] max-w-[340px] aspect-square rounded-full border border-[#00AEEF]/15 bg-[#00AEEF]/[0.005] animate-ripple-3 opacity-0"
+            />
+
+            {/* Subtle Pulse Points (Network Nodes) */}
+            <div className="absolute hidden lg:block w-[100%] max-w-[420px] aspect-square z-0">
+              {/* Pulse Node 1 */}
+              <div className="absolute top-[10%] left-[20%] w-2.5 h-2.5 rounded-full bg-[#00AEEF]/80 animate-pulse shadow-[0_0_10px_#00AEEF]" />
+              <div className="absolute top-[10%] left-[20%] w-2.5 h-2.5 rounded-full border border-[#00AEEF]/30 animate-ping" />
+              
+              {/* Pulse Node 2 */}
+              <div className="absolute bottom-[15%] right-[10%] w-2.5 h-2.5 rounded-full bg-[#0077CC]/80 animate-pulse shadow-[0_0_8px_#0077CC]" style={{ animationDelay: "1s" }} />
+              <div className="absolute bottom-[15%] right-[10%] w-2.5 h-2.5 rounded-full border border-[#0077CC]/30 animate-ping" style={{ animationDelay: "1s" }} />
+
+              {/* Pulse Node 3 */}
+              <div className="absolute top-[35%] right-[5%] w-2 h-2 rounded-full bg-[#00AEEF]/80 animate-pulse shadow-[0_0_8px_#00AEEF]" style={{ animationDelay: "2.5s" }} />
+            </div>
+          </div>
+
+          <div className="relative z-10 w-full max-w-[420px] aspect-square rounded-2xl bg-gradient-to-b from-slate-50/50 to-slate-100/50 p-4 border border-slate-100 shadow-premium">
             {/* Ambient shadow glow behind the graphic */}
             <div className="absolute inset-0 -m-6 bg-secondary/10 rounded-full filter blur-3xl opacity-60 pointer-events-none" />
             
-            {/* The Floating Graphic Box */}
-            <div className="relative w-full h-full rounded-xl overflow-hidden shadow-premium-hover animate-[bounce_6s_infinite_ease-in-out]">
+            {/* The Stable Graphic Box */}
+            <div className="relative w-full h-full rounded-xl overflow-hidden shadow-premium-hover">
               <Image
                 src="/hero-graphics.png"
                 alt="HexaKode Technological Precision abstract graphic"

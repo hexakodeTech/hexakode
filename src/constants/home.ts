@@ -58,15 +58,6 @@ export const SERVICES: Service[] = [
     href: "#services",
     iconName: "Code2",
   },
-  {
-    id: "api-cloud",
-    title: "API & Cloud",
-    description: "Scalable infrastructure and seamless integrations for the modern web.",
-    tags: ["AWS & Firebase", "REST / GraphQL"],
-    highlighted: false,
-    href: "#services",
-    iconName: "Cloud",
-  },
 ];
 
 export const PROJECTS: Project[] = [
