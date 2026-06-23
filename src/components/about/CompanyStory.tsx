@@ -40,8 +40,8 @@ export default function CompanyStory() {
               />
             </div>
             <div className="absolute -bottom-10 -right-10 hidden md:flex w-64 h-64 bg-primary-container rounded-xl p-8 text-on-primary-fixed shadow-2xl flex-col justify-center border border-outline-variant/10">
-              <span className="font-display-lg text-headline-lg block mb-2 text-white">12+</span>
-              <p className="font-label-mono text-label-mono uppercase text-on-primary-container leading-relaxed tracking-wider">Years of Engineered Excellence</p>
+              <span className="font-display-lg text-headline-lg block mb-2 text-white">2026</span>
+              <p className="font-label-mono text-label-mono uppercase text-on-primary-container leading-relaxed tracking-wider">Founded May 01</p>
             </div>
           </motion.div>
 
@@ -53,7 +53,7 @@ export default function CompanyStory() {
           >
             <motion.h2 variants={fadeUp} className="font-headline-md text-headline-md text-primary mb-6">Our Story</motion.h2>
             <motion.p variants={fadeUp} className="font-body-md text-body-md text-on-surface-variant mb-12 leading-relaxed">
-              Every successful business has a vision. Our role is to transform that vision into powerful digital experiences. HexaKode specializes in crafting websites, applications, and software solutions that are not only visually appealing but also engineered for performance, scalability, and growth. We partner with businesses to build technology that creates lasting impact.
+              Founded in May 2026, HexaKode was created with a simple vision: help businesses grow through thoughtful digital solutions. While we are at the beginning of our journey, we are committed to building websites, applications, and software products that create measurable value for our clients. We believe every successful company starts with a strong foundation, and we are building ours through quality, innovation, and client trust.
             </motion.p>
 
             <div className="space-y-10">

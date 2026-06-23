@@ -7,6 +7,7 @@ import { cn } from "../../lib/utils";
 import Container from "../ui/Container";
 import Section from "../ui/Section";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useDemoModal } from "../common/DemoModal";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 interface CTASectionProps {
@@ -15,7 +16,6 @@ interface CTASectionProps {
   primaryBtnText?: string;
   primaryBtnHref?: string;
   secondaryBtnText?: string;
-  secondaryBtnHref?: string;
   className?: string;
 }
 
@@ -25,9 +25,10 @@ export default function CTASection({
   primaryBtnText = "Start Your Project",
   primaryBtnHref = "/contact#contact-form",
   secondaryBtnText = "BOOK A TECHNICAL DISCOVERY CALL",
-  secondaryBtnHref = "/contact#contact-form",
   className,
 }: CTASectionProps) {
+  const { openDemoModal } = useDemoModal();
+
   return (
     <Section
       variant="surface-container-highest"
@@ -71,15 +72,21 @@ export default function CTASection({
               {primaryBtnText}
             </PrimaryButton>
 
-            <motion.a
-              href={secondaryBtnHref}
-              className="flex items-center gap-4 text-on-surface-variant font-label-mono text-label-mono group cursor-pointer transition-colors duration-300 hover:text-primary uppercase tracking-wider"
+            <motion.button
+              type="button"
+              onClick={() =>
+                openDemoModal({
+                  source: "Services Page",
+                  inquiryType: "Technical Discovery Call",
+                })
+              }
+              className="flex items-center gap-4 text-on-surface-variant font-label-mono text-label-mono group cursor-pointer transition-colors duration-300 hover:text-primary uppercase tracking-wider bg-transparent border-none outline-none"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <MessagesSquare className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12 group-hover:text-secondary" />
               {secondaryBtnText}
-            </motion.a>
+            </motion.button>
           </motion.div>
         </motion.div>
       </Container>

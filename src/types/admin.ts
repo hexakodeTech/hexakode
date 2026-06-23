@@ -29,6 +29,7 @@ export interface AdminEnquiry {
   phone?: string | null;
   company: string;
   projectType: string;
+  couponCode?: string | null;
   message: string;
   date: string;
   status: "New" | "Reviewed" | "Archived";
@@ -64,4 +65,16 @@ export interface AdminDemoRequest {
   meetingLink?: string | null;
   meetingTime?: string | null;
   notes?: string | null;
+}
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  activeDays: number;
+  maxLimit: number;
+  currentEnquiries: number;
+  remainingEnquiries: number;
+  status: "ACTIVE" | "EXPIRED" | "LIMIT REACHED";
+  createdDate: string;
+  expiryDate: string;
 }

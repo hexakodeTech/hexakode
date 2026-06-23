@@ -15,7 +15,7 @@ export default function ContactPage() {
     <div className="flex flex-col min-h-screen bg-background text-on-surface">
       <Navbar />
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-[112px] md:pt-[100px]">
         {/* Hero Area */}
         <ContactHero />
 

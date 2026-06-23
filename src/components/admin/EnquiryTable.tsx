@@ -12,6 +12,7 @@ export default function EnquiryTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [couponFilter, setCouponFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -92,9 +93,14 @@ export default function EnquiryTable() {
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.email.toLowerCase().includes(search.toLowerCase()) ||
       e.company.toLowerCase().includes(search.toLowerCase()) ||
-      e.message.toLowerCase().includes(search.toLowerCase());
+      e.message.toLowerCase().includes(search.toLowerCase()) ||
+      (e.couponCode && e.couponCode.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = statusFilter === "All" || e.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCoupon =
+      couponFilter === "All" ||
+      (couponFilter === "With" && e.couponCode) ||
+      (couponFilter === "Without" && !e.couponCode);
+    return matchesSearch && matchesStatus && matchesCoupon;
   });
 
   // Pagination Logic
@@ -119,25 +125,39 @@ export default function EnquiryTable() {
         totalPages={totalPages}
         onPageChange={(page) => setCurrentPage(page)}
         filterSlot={
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
-          >
-            <option value="All">All Inboxes</option>
-            <option value="New">New</option>
-            <option value="Reviewed">Reviewed</option>
-            <option value="Archived">Archived</option>
-          </select>
+          <div className="flex gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
+            >
+              <option value="All">All Inboxes</option>
+              <option value="New">New</option>
+              <option value="Reviewed">Reviewed</option>
+              <option value="Archived">Archived</option>
+            </select>
+            <select
+              value={couponFilter}
+              onChange={(e) => {
+                setCouponFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
+            >
+              <option value="All">All Coupons</option>
+              <option value="With">With Coupon</option>
+              <option value="Without">Without Coupon</option>
+            </select>
+          </div>
         }
-        headers={["Name", "Contact Info", "Company", "Project Type", "Date", "Status", "Actions"]}
+        headers={["Name", "Contact Info", "Company", "Project Type", "Coupon Code", "Date", "Status", "Actions"]}
       >
         {isLoading ? (
           <tr>
-            <td colSpan={7} className="text-center py-12">
+            <td colSpan={8} className="text-center py-12">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-secondary" />
                 <span className="text-xs text-on-surface-variant/70">Loading live enquiries...</span>
@@ -146,7 +166,7 @@ export default function EnquiryTable() {
           </tr>
         ) : displayedEnquiries.length === 0 ? (
           <tr>
-            <td colSpan={7} className="text-center py-8 text-xs text-on-surface-variant/50">
+            <td colSpan={8} className="text-center py-8 text-xs text-on-surface-variant/50">
               No enquiries found matching searches.
             </td>
           </tr>
@@ -168,6 +188,11 @@ export default function EnquiryTable() {
               </td>
               <td className="px-6 py-4">
                 <span className="text-xs text-on-surface">{e.projectType || "-"}</span>
+              </td>
+              <td className="px-6 py-4">
+                <span className="font-mono text-xs text-on-surface-variant">
+                  {e.couponCode || "-"}
+                </span>
               </td>
               <td className="px-6 py-4">
                 <span className="text-xs text-on-surface-variant/70 font-mono">{e.date}</span>

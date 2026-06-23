@@ -12,7 +12,8 @@ import {
   X,
   Database,
   Loader2,
-  Calendar
+  Calendar,
+  Ticket
 } from "lucide-react";
 
 interface SidebarProps {
@@ -28,6 +29,7 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Enquiries", path: "/admin/enquiries", icon: Inbox },
     { name: "Demo Requests", path: "/admin/demos", icon: Calendar },
+    { name: "Coupons", path: "/admin/coupons", icon: Ticket },
     { name: "CMS", path: "/admin/cms", icon: Database },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];

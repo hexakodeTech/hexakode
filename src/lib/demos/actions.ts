@@ -9,6 +9,8 @@ const demoRequestSchema = z.object({
   company: z.string().min(1, { message: "Company name is required" }),
   phone: z.string().min(6, { message: "Please enter a valid phone number" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  source: z.string().optional().nullable(),
+  inquiryType: z.string().optional().nullable(),
 });
 
 export type DemoRequestInput = z.infer<typeof demoRequestSchema>;
@@ -35,6 +37,8 @@ export async function submitDemoRequestAction(data: DemoRequestInput) {
         company: payload.company,
         phone: payload.phone,
         email: payload.email,
+        source: payload.source,
+        inquiryType: payload.inquiryType,
         status: 'NEW',
       },
     });
