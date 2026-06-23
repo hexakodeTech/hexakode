@@ -29,6 +29,7 @@ export interface AdminEnquiry {
   phone?: string | null;
   company: string;
   projectType: string;
+  couponCode?: string | null;
   message: string;
   date: string;
   status: "New" | "Reviewed" | "Archived";

@@ -21,6 +21,7 @@ const contactSchema = z.object({
   company: z.string().optional(),
   projectType: z.string().min(1, { message: "Please select a project type" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
+  couponCode: z.string().optional(),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
 });
 
@@ -44,6 +45,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
       company: "",
       projectType: "",
       budget: "",
+      couponCode: "",
       message: "",
     },
   });
@@ -58,6 +60,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
         company: data.company || null,
         service: data.projectType,
         budget: data.budget,
+        couponCode: data.couponCode || null,
         message: data.message,
       });
 
@@ -170,6 +173,27 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                 disabled={isLoading}
                 isDark={isDark}
               />
+            </div>
+
+            {/* Coupon Code */}
+            <div className="flex flex-col w-full">
+              <FormInput
+                label="Coupon Code"
+                id="couponCode"
+                placeholder="Enter coupon code (optional)"
+                error={errors.couponCode?.message}
+                {...register("couponCode")}
+                disabled={isLoading}
+                isDark={isDark}
+              />
+              <p
+                className={cn(
+                  "font-body-sm text-[12px] mt-1.5 transition-colors duration-500",
+                  isDark ? "text-slate-400/80" : "text-on-surface-variant/70"
+                )}
+              >
+                Have a promo code? Enter it here.
+              </p>
             </div>
 
             {/* Textarea */}

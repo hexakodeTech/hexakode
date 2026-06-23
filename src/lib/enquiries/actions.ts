@@ -11,6 +11,7 @@ const enquirySchema = z.object({
   company: z.string().optional().nullable(),
   service: z.string().min(1, { message: "Please select a project type" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
+  couponCode: z.string().optional().nullable(),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
 });
 
@@ -41,6 +42,7 @@ export async function submitEnquiryAction(data: EnquiryInput) {
         company: payload.company || null,
         service: payload.service,
         budget: payload.budget,
+        couponCode: payload.couponCode || null,
         message: payload.message,
         status: 'NEW',
       },
@@ -86,6 +88,7 @@ export async function getEnquiriesAction(): Promise<AdminEnquiry[]> {
       phone: e.phone || '',
       company: e.company || '',
       projectType: e.service || '',
+      couponCode: e.couponCode || '',
       message: e.message,
       date: e.createdAt.toISOString().split('T')[0],
       status: e.status === 'NEW' ? 'New' : e.status === 'ARCHIVED' ? 'Archived' : 'Reviewed',
