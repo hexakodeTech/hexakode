@@ -25,7 +25,7 @@ export default function ServicesPage() {
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden">
+      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-[32px] md:pt-[20px]">
         <ServicesHero />
         <CompetenciesSection />
         <CloudInfrastructureSection />

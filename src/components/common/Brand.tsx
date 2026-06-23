@@ -21,7 +21,7 @@ interface BrandProps {
 export default function Brand({ variant }: BrandProps) {
   if (variant === "navbar") {
     return (
-      <span className={cn(zenDots.className, "text-headline-md font-normal tracking-tight text-primary transition-colors hover:text-secondary")}>
+      <span className={cn(zenDots.className, "text-[1.35rem] md:text-[1.85rem] lg:text-[1.8rem] font-normal leading-none tracking-tight text-primary transition-colors hover:text-secondary")}>
         HexaKode
       </span>
     );
