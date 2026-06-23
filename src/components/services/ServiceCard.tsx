@@ -92,7 +92,7 @@ export default function ServiceCard({
             )}
 
             {/* Learn More Action Link */}
-            <Link
+            {/* <Link
               href={href}
               className="text-secondary font-label-mono text-label-mono inline-flex items-center gap-2 group/link transition-all duration-300 hover:text-primary-container"
             >
@@ -105,7 +105,7 @@ export default function ServiceCard({
               >
                 <ArrowRight className="w-4 h-4" />
               </motion.span>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </Card>

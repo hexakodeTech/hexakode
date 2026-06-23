@@ -55,6 +55,7 @@ const COMPETENCIES_DATA: CompetencyData[] = [
     description:
       "Scientific approach to interface design. We create systems that balance aesthetics with conversion-focused usability.",
     icon: Palette,
+    tags: ["Figma", "Google Stitch"],
     href: "#ui-service",
     imageSrc: "/service-design.png",
     imageAlt: "A creative designer workspace with wireframe templates on an iPad, color palettes, and sketches.",
