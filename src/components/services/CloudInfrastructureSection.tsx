@@ -2,24 +2,13 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, Terminal, ShieldCheck, Gauge } from "lucide-react";
+import { TrendingUp, ShieldCheck, Gauge } from "lucide-react";
 import Container from "../ui/Container";
 import Section from "../ui/Section";
 import Card from "../ui/Card";
 import BenefitsCard from "./BenefitsCard";
 import ProcessTimeline from "./ProcessTimeline";
 import { fadeUp, staggerContainer } from "@/lib/motion";
-
-interface TechBadge {
-  name: string;
-}
-
-const TECHS: TechBadge[] = [
-  { name: "Kubernetes" },
-  { name: "Terraform" },
-  { name: "GoLang" },
-  { name: "GraphQL" },
-];
 
 const PROCESS_STEPS = [
   {
@@ -38,35 +27,45 @@ const PROCESS_STEPS = [
 
 export default function CloudInfrastructureSection() {
   return (
-    <Section id="cloud-service" variant="white" className="py-32">
+    <Section id="cloud-service" variant="white" spacing="medium" className="py-16 md:py-24">
       <Container>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+        {/* Section Badge above the 2-column grid to allow title-card alignment */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeUp}
+          className="mb-8"
+        >
+          <span className="font-label-mono text-label-mono text-secondary tracking-widest uppercase">
+            Deep Dive
+          </span>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           
           {/* Left Column - Sticky Details Panel */}
-          <div className="sticky top-32">
+          <div className="lg:sticky lg:top-32">
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="space-y-8"
+              className="space-y-10"
             >
-              {/* Badge & Title */}
-              <motion.div variants={fadeUp} className="flex flex-col items-start">
-                <span className="font-label-mono text-label-mono text-secondary mb-4 tracking-widest uppercase">
-                  Deep Dive
-                </span>
-                <h2 className="text-headline-xl font-headline-xl mb-8 text-on-background">
+              {/* Title & Description */}
+              <motion.div variants={fadeUp} className="space-y-4">
+                <h2 className="text-[36px] md:text-[44px] lg:text-[48px] font-bold font-headline-xl tracking-tight leading-tight text-on-background">
                   Cloud Infrastructure &amp; API Systems
                 </h2>
-                <p className="text-on-surface-variant font-body-lg mb-2">
+                <p className="text-on-surface-variant font-body-lg leading-relaxed">
                   Modern business requires more than just a server; it requires an intelligent, self-healing ecosystem. HexaKode specializes in migrating legacy systems to modern cloud environments and building high-performance APIs from the ground up.
                 </p>
               </motion.div>
 
               {/* Expected Outcomes */}
-              <motion.div variants={fadeUp}>
-                <h4 className="text-headline-sm font-headline-sm text-[20px] mb-3 flex items-center gap-3 text-on-background">
+              <motion.div variants={fadeUp} className="pt-8 border-t border-outline-variant/20 space-y-3">
+                <h4 className="text-headline-sm font-headline-sm text-[20px] flex items-center gap-3 text-on-background">
                   <TrendingUp className="w-5 h-5 text-secondary shrink-0" />
                   Expected Outcomes
                 </h4>
@@ -74,29 +73,11 @@ export default function CloudInfrastructureSection() {
                   Reduced operational costs by up to 40% through serverless optimization and improved deployment frequency via automated CI/CD pipelines.
                 </p>
               </motion.div>
-
-              {/* Technologies list */}
-              <motion.div variants={fadeUp}>
-                <h4 className="text-headline-sm font-headline-sm text-[20px] mb-3 flex items-center gap-3 text-on-background">
-                  <Terminal className="w-5 h-5 text-secondary shrink-0" />
-                  Technologies
-                </h4>
-                <div className="flex flex-wrap gap-3 mt-4">
-                  {TECHS.map((tech) => (
-                    <span
-                      key={tech.name}
-                      className="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg font-label-mono text-label-mono hover:bg-secondary-container/20 transition-all duration-300 cursor-default select-none border border-outline-variant/10"
-                    >
-                      {tech.name}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
             </motion.div>
           </div>
 
           {/* Right Column - Overview, Benefits, Process Stack */}
-          <div className="space-y-12">
+          <div className="space-y-6">
             
             {/* 01. Overview */}
             <motion.div
@@ -150,7 +131,7 @@ export default function CloudInfrastructureSection() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeUp}
             >
-              <Card variant="gradient" className="p-8">
+              <Card variant="gradient" className="p-8 hover:shadow-glow-blue">
                 <h3 className="text-headline-sm font-headline-sm mb-6 text-white">
                   03. The Process
                 </h3>
