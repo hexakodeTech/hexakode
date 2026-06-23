@@ -45,7 +45,7 @@ export default function CloudInfrastructureSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           
           {/* Left Column - Sticky Details Panel */}
-          <div className="sticky top-32">
+          <div className="lg:sticky lg:top-32">
             <motion.div
               initial="hidden"
               whileInView="visible"
