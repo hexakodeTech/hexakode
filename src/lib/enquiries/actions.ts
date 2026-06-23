@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminEnquiry } from '@/types/admin';
+import { revalidatePath } from 'next/cache';
 
 const enquirySchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -33,19 +34,54 @@ export async function submitEnquiryAction(data: EnquiryInput) {
   const payload = parsed.data;
 
   try {
-    // Create new enquiry
-    const enquiry = await prisma.enquiry.create({
-      data: {
-        name: payload.name,
-        email: payload.email,
-        phone: payload.phone || null,
-        company: payload.company || null,
-        service: payload.service,
-        budget: payload.budget,
-        couponCode: payload.couponCode || null,
-        message: payload.message,
-        status: 'NEW',
-      },
+    let verifiedCouponCode: string | null = null;
+    if (payload.couponCode && payload.couponCode.trim().length > 0) {
+      const uppercased = payload.couponCode.trim().toUpperCase();
+
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: uppercased },
+      });
+
+      if (!coupon) {
+        return { success: false, error: 'Invalid coupon code entered.' };
+      }
+      if (new Date() >= coupon.expiryDate) {
+        return { success: false, error: 'This coupon has expired.' };
+      }
+      if (coupon.currentEnquiries >= coupon.maxLimit) {
+        return { success: false, error: 'This coupon has reached its maximum enquiry limit.' };
+      }
+
+      verifiedCouponCode = uppercased;
+    }
+
+    const enquiry = await prisma.$transaction(async (tx) => {
+      // Create new enquiry
+      const newEnquiry = await tx.enquiry.create({
+        data: {
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone || null,
+          company: payload.company || null,
+          service: payload.service,
+          budget: payload.budget,
+          couponCode: verifiedCouponCode,
+          message: payload.message,
+          status: 'NEW',
+        },
+      });
+
+      // Increment coupon count if used
+      if (verifiedCouponCode) {
+        await tx.coupon.update({
+          where: { code: verifiedCouponCode },
+          data: {
+            currentEnquiries: { increment: 1 },
+          },
+        });
+      }
+
+      return newEnquiry;
     });
 
     // Audit log link to first active user
@@ -63,6 +99,11 @@ export async function submitEnquiryAction(data: EnquiryInput) {
         },
       });
     }
+
+    // Revalidate paths to clear Next.js caches
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/enquiries');
+    revalidatePath('/admin/coupons');
 
     return { success: true };
   } catch (error: unknown) {
@@ -111,6 +152,11 @@ export async function updateEnquiryStatusAction(
       where: { id },
       data: { status },
     });
+
+    // Revalidate paths
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/enquiries');
+
     return { success: true };
   } catch (error) {
     console.error('Error updating enquiry status:', error);
@@ -123,9 +169,48 @@ export async function updateEnquiryStatusAction(
  */
 export async function deleteEnquiryAction(id: string) {
   try {
+    // 1. Fetch the enquiry to check if it had a coupon code
+    const enquiry = await prisma.enquiry.findUnique({
+      where: { id },
+      select: { couponCode: true },
+    });
+
+    if (!enquiry) {
+      return { success: false, error: 'Enquiry not found.' };
+    }
+
+    const { couponCode } = enquiry;
+
+    // 2. Delete the enquiry
     await prisma.enquiry.delete({
       where: { id },
     });
+
+    // 3. If a coupon was used, dynamically count and sync coupon stats
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode },
+      });
+
+      if (coupon) {
+        const count = await prisma.enquiry.count({
+          where: { couponCode },
+        });
+
+        await prisma.coupon.update({
+          where: { code: couponCode },
+          data: {
+            currentEnquiries: count,
+          },
+        });
+      }
+    }
+
+    // 4. Revalidate paths
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/enquiries');
+    revalidatePath('/admin/coupons');
+
     return { success: true };
   } catch (error) {
     console.error('Error deleting enquiry:', error);

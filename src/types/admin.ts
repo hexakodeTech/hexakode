@@ -66,3 +66,15 @@ export interface AdminDemoRequest {
   meetingTime?: string | null;
   notes?: string | null;
 }
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  activeDays: number;
+  maxLimit: number;
+  currentEnquiries: number;
+  remainingEnquiries: number;
+  status: "ACTIVE" | "EXPIRED" | "LIMIT REACHED";
+  createdDate: string;
+  expiryDate: string;
+}

@@ -129,6 +129,19 @@ model Enquiry {
   @@map("enquiries")
 }
 
+model Coupon {
+  id               String    @id @default(uuid()) @db.Uuid
+  code             String    @unique
+  activeDays       Int       @default(30)
+  maxLimit         Int       @default(5)
+  currentEnquiries Int       @default(0)
+  expiryDate       DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("coupons")
+}
+
 /// Key-value store for dynamic system configuration.
 model SystemSetting {
   id          String   @id @default(uuid()) @db.Uuid
