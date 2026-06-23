@@ -32,7 +32,7 @@ export default function TrustMetrics() {
             variants={staggerContainer}
           >
             <motion.h2 variants={fadeUp} className="font-headline-md text-headline-md mb-12 text-white tracking-tight">
-              Why Global Leaders Trust Us
+              Why Clients Partner with Us
             </motion.h2>
             
             <div className="space-y-12">

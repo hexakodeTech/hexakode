@@ -59,9 +59,9 @@ export const TRUST_POINTS: TrustPoint[] = [
   {
     id: "tp1",
     number: "01",
-    title: "Proven Track Record",
+    title: "Successful Delivery",
     description:
-      "We've successfully delivered over 3+ enterprise-grade projects across fintech, healthtech, and logistics.",
+      "We have successfully delivered production-ready systems including responsive web platforms and mobile applications.",
   },
   {
     id: "tp2",
@@ -82,22 +82,22 @@ export const TRUST_POINTS: TrustPoint[] = [
 export const TRUST_METRICS: TrustMetric[] = [
   {
     id: "tm1",
-    value: "98%",
-    label: "Client Retention",
+    value: "2",
+    label: "Projects Delivered",
   },
   {
     id: "tm2",
-    value: "24/7",
-    label: "Global Support",
+    value: "1",
+    label: "Trusted Client",
   },
   {
     id: "tm3",
-    value: "500k+",
-    label: "Daily Users",
+    value: "2026",
+    label: "Founded",
   },
   {
     id: "tm4",
-    value: "Zero",
-    label: "Critical Failures",
+    value: "100%",
+    label: "Commitment to Quality",
   },
 ];
