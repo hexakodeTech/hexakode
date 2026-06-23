@@ -111,21 +111,35 @@ model AuditLog {
 
 /// Contact form / project enquiry submissions.
 model Enquiry {
-  id        String        @id @default(uuid()) @db.Uuid
-  name      String
-  email     String
-  phone     String?
-  company   String?
-  service   String?
-  budget    String?
-  message   String
-  status    EnquiryStatus @default(NEW)
-  createdAt DateTime      @default(now())
+  id         String        @id @default(uuid()) @db.Uuid
+  name       String
+  email      String
+  phone      String?
+  company    String?
+  service    String?
+  budget     String?
+  couponCode String?
+  message    String
+  status     EnquiryStatus @default(NEW)
+  createdAt  DateTime      @default(now())
 
   @@index([status])
   @@index([createdAt])
   @@index([email])
   @@map("enquiries")
+}
+
+model Coupon {
+  id               String    @id @default(uuid()) @db.Uuid
+  code             String    @unique
+  activeDays       Int       @default(30)
+  maxLimit         Int       @default(5)
+  currentEnquiries Int       @default(0)
+  expiryDate       DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("coupons")
 }
 
 /// Key-value store for dynamic system configuration.

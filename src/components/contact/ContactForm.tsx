@@ -13,6 +13,8 @@ import FormTextarea from "../ui/FormTextarea";
 import PrimaryButton from "../ui/PrimaryButton";
 import { PROJECT_TYPES, BUDGET_RANGES } from "../../constants/contact";
 import { submitEnquiryAction } from "@/lib/enquiries/actions";
+import { validateCouponAction } from "@/lib/coupons/actions";
+import { Loader2 } from "lucide-react";
 
 const contactSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -21,6 +23,9 @@ const contactSchema = z.object({
   company: z.string().optional(),
   projectType: z.string().min(1, { message: "Please select a project type" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
+  couponCode: z.string().optional().refine((val) => !val || val.length >= 3, {
+    message: "Coupon code must have a minimum of 3 characters",
+  }),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
 });
 
@@ -29,11 +34,20 @@ type ContactFormFields = z.infer<typeof contactSchema>;
 export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [couponStatus, setCouponStatus] = useState<{
+    isValid: boolean;
+    message?: string;
+    error?: boolean;
+  } | null>(null);
+  const [isLoadingCoupon, setIsLoadingCoupon] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ContactFormFields>({
     resolver: zodResolver(contactSchema),
@@ -44,11 +58,55 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
       company: "",
       projectType: "",
       budget: "",
+      couponCode: "",
       message: "",
     },
   });
 
+  const handleCouponChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    val = val.trim();
+    setValue("couponCode", val, { shouldValidate: true });
+
+    if (val.length === 0) {
+      setCouponStatus(null);
+      clearErrors("couponCode");
+      return;
+    }
+
+    if (val.length < 3) {
+      setCouponStatus(null);
+      return;
+    }
+
+    setIsLoadingCoupon(true);
+    try {
+      const res = await validateCouponAction(val);
+      if (!res.success) {
+        setCouponStatus({ isValid: false, message: res.error, error: true });
+        setError("couponCode", { type: "custom", message: res.error });
+        toast.error(res.error);
+      } else {
+        setCouponStatus({ isValid: true, message: "✓ Coupon Applied" });
+        clearErrors("couponCode");
+        toast.success("✓ Coupon Applied");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingCoupon(false);
+    }
+  };
+
   const onSubmit = async (data: ContactFormFields) => {
+    if (data.couponCode && data.couponCode.trim().length > 0) {
+      if (!couponStatus || !couponStatus.isValid) {
+        toast.error(couponStatus?.message || "Invalid coupon code entered.");
+        setError("couponCode", { type: "custom", message: couponStatus?.message || "Invalid coupon code entered." });
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const result = await submitEnquiryAction({
@@ -58,6 +116,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
         company: data.company || null,
         service: data.projectType,
         budget: data.budget,
+        couponCode: data.couponCode || null,
         message: data.message,
       });
 
@@ -78,6 +137,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
 
   const handleReset = () => {
     reset();
+    setCouponStatus(null);
     setIsSubmitted(false);
   };
 
@@ -170,6 +230,43 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                 disabled={isLoading}
                 isDark={isDark}
               />
+            </div>
+
+            {/* Coupon Code */}
+            <div className="flex flex-col w-full">
+              <div className="relative">
+                <FormInput
+                  label="Coupon Code"
+                  id="couponCode"
+                  placeholder="Enter coupon code (optional)"
+                  error={errors.couponCode?.message}
+                  {...register("couponCode", {
+                    onChange: handleCouponChange
+                  })}
+                  disabled={isLoading}
+                  isDark={isDark}
+                />
+                {isLoadingCoupon && (
+                  <div className="absolute right-3 bottom-3 text-secondary">
+                    <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  </div>
+                )}
+              </div>
+              
+              {couponStatus?.isValid ? (
+                <p className="font-body-sm text-[12px] mt-1.5 text-emerald-500 font-semibold flex items-center gap-1">
+                  ✓ Coupon Applied
+                </p>
+              ) : (
+                <p
+                  className={cn(
+                    "font-body-sm text-[12px] mt-1.5 transition-colors duration-500",
+                    isDark ? "text-slate-400/80" : "text-on-surface-variant/70"
+                  )}
+                >
+                  Have a promo code? Enter it here.
+                </p>
+              )}
             </div>
 
             {/* Textarea */}

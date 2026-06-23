@@ -25,12 +25,12 @@ const staggerContainer: Variants = {
 
 export default function ContactHero() {
   return (
-    <section className="relative py-12 md:py-20 bg-background overflow-hidden">
+    <section className="relative py-16 md:py-24 lg:py-32 bg-background overflow-hidden">
       {/* Decorative Glow */}
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-secondary-container/5 rounded-full blur-[80px] pointer-events-none"></div>
 
       <motion.div
-        className="max-w-container-max mx-auto text-left z-10 relative"
+        className="max-w-container-max mx-auto text-left z-10 relative px-6 md:px-8 lg:px-20 w-full"
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
@@ -38,21 +38,21 @@ export default function ContactHero() {
       >
         <motion.span
           variants={fadeUp}
-          className="font-label-mono text-label-mono text-secondary tracking-widest uppercase mb-4 block"
+          className="font-label-mono text-label-mono text-secondary tracking-widest uppercase mb-6 block"
         >
           Connect with our team
         </motion.span>
         
         <motion.h1
           variants={fadeUp}
-          className="font-headline-lg text-headline-lg md:text-display-lg text-primary mb-6 max-w-4xl tracking-tight"
+          className="font-headline-lg text-headline-lg md:text-display-lg text-primary mb-8 max-w-4xl tracking-tight text-balance"
         >
           Let&apos;s Start a Conversation
         </motion.h1>
 
         <motion.p
           variants={fadeUp}
-          className="font-body-lg text-body-lg text-on-surface-variant max-w-3xl leading-relaxed"
+          className="font-body-lg text-body-lg text-on-surface-variant max-w-3xl leading-relaxed text-pretty"
         >
           Ready to engineer excellence? Whether you have a project in mind or just want to explore possibilities, our experts are here to help you navigate the next step of your digital journey.
         </motion.p>
