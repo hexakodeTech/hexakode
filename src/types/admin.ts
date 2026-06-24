@@ -86,3 +86,44 @@ export interface AdminCoupon {
   status: "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled";
   createdDate: string;
 }
+
+// ─────────────────────────────────────────────
+// Client Portal
+// ─────────────────────────────────────────────
+
+export interface AdminClient {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  websiteUrl?: string | null;
+  notes?: string | null;
+  projectCount: number;
+  createdDate: string;
+}
+
+export interface AdminPortalProject {
+  id: string;
+  name: string;
+  clientId?: string | null;
+  clientName?: string | null;
+  websiteUrl?: string | null;
+  adminUrl?: string | null;
+  status: string;
+  notes?: string | null;
+  logCount: number;
+  createdDate: string;
+}
+
+export interface AdminMaintenanceLog {
+  id: string;
+  projectId?: string | null;
+  projectName?: string | null;
+  projectWebsiteUrl?: string | null;
+  title: string;
+  description?: string | null;
+  logDate: string;
+  createdDate: string;
+}
+

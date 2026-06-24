@@ -1,0 +1,161 @@
+'use server';
+
+import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { AdminMaintenanceLog } from '@/types/admin';
+import { revalidatePath } from 'next/cache';
+
+const logSchema = z.object({
+  projectId: z.string().optional().or(z.literal('')),
+  title: z.string().min(1, { message: 'Title is required' }),
+  description: z.string().optional().or(z.literal('')),
+  logDate: z.string().min(1, { message: 'Log date is required' }),
+});
+
+export type MaintenanceLogInput = z.infer<typeof logSchema>;
+
+/**
+ * Returns all maintenance logs formatted for the admin table.
+ */
+export async function getMaintenanceLogsAction(): Promise<AdminMaintenanceLog[]> {
+  try {
+    const list = await prisma.maintenanceLog.findMany({
+      orderBy: { logDate: 'desc' },
+      include: {
+        project: { select: { name: true, websiteUrl: true } },
+      },
+    });
+
+    return list.map((l) => ({
+      id: l.id,
+      projectId: l.projectId,
+      projectName: l.project?.name || null,
+      projectWebsiteUrl: l.project?.websiteUrl || null,
+      title: l.title,
+      description: l.description,
+      logDate: l.logDate.toISOString().split('T')[0],
+      createdDate: l.createdAt.toISOString().split('T')[0],
+    }));
+  } catch (error) {
+    console.error('Error fetching maintenance logs:', error);
+    return [];
+  }
+}
+
+/**
+ * Returns a single maintenance log with project details.
+ */
+export async function getMaintenanceLogByIdAction(id: string) {
+  try {
+    const log = await prisma.maintenanceLog.findUnique({
+      where: { id },
+      include: {
+        project: { select: { id: true, name: true, websiteUrl: true, adminUrl: true } },
+      },
+    });
+
+    if (!log) return null;
+
+    return {
+      id: log.id,
+      projectId: log.projectId,
+      projectName: log.project?.name || null,
+      projectWebsiteUrl: log.project?.websiteUrl || null,
+      title: log.title,
+      description: log.description,
+      logDate: log.logDate.toISOString().split('T')[0],
+      createdDate: log.createdAt.toISOString().split('T')[0],
+    } as AdminMaintenanceLog;
+  } catch (error) {
+    console.error('Error fetching maintenance log:', error);
+    return null;
+  }
+}
+
+/**
+ * Creates a new maintenance log entry.
+ */
+export async function createMaintenanceLogAction(data: MaintenanceLogInput) {
+  const parsed = logSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
+  }
+
+  const payload = parsed.data;
+
+  try {
+    await prisma.maintenanceLog.create({
+      data: {
+        projectId: payload.projectId || null,
+        title: payload.title,
+        description: payload.description || null,
+        logDate: new Date(payload.logDate),
+      },
+    });
+
+    revalidatePath('/admin/maintenance-logs');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Maintenance log creation error:', error);
+    const msg = error instanceof Error ? error.message : 'Database error creating log.';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Updates an existing maintenance log.
+ */
+export async function updateMaintenanceLogAction(id: string, data: MaintenanceLogInput) {
+  const parsed = logSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
+  }
+
+  const payload = parsed.data;
+
+  try {
+    const existing = await prisma.maintenanceLog.findUnique({ where: { id } });
+    if (!existing) {
+      return { success: false, error: 'Maintenance log not found.' };
+    }
+
+    await prisma.maintenanceLog.update({
+      where: { id },
+      data: {
+        projectId: payload.projectId || null,
+        title: payload.title,
+        description: payload.description || null,
+        logDate: new Date(payload.logDate),
+      },
+    });
+
+    revalidatePath('/admin/maintenance-logs');
+    revalidatePath(`/admin/maintenance-logs/${id}`);
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Maintenance log update error:', error);
+    const msg = error instanceof Error ? error.message : 'Database error updating log.';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Deletes a maintenance log entry.
+ */
+export async function deleteMaintenanceLogAction(id: string) {
+  try {
+    const existing = await prisma.maintenanceLog.findUnique({ where: { id } });
+    if (!existing) {
+      return { success: false, error: 'Maintenance log not found.' };
+    }
+
+    await prisma.maintenanceLog.delete({ where: { id } });
+
+    revalidatePath('/admin/maintenance-logs');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Maintenance log deletion error:', error);
+    const msg = error instanceof Error ? error.message : 'Database error deleting log.';
+    return { success: false, error: msg };
+  }
+}
