@@ -24,7 +24,7 @@ const contactSchema = z.object({
   projectType: z.string().min(1, { message: "Please select a project type" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
   couponCode: z.string().optional().refine((val) => !val || val.length >= 3, {
-    message: "Coupon code must have a minimum of 3 characters",
+    message: "Referral code must have a minimum of 3 characters",
   }),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
 });
@@ -83,13 +83,13 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
     try {
       const res = await validateCouponAction(val);
       if (!res.success) {
-        setCouponStatus({ isValid: false, message: res.error, error: true });
-        setError("couponCode", { type: "custom", message: res.error });
-        toast.error(res.error);
+        setCouponStatus({ isValid: false, message: "Invalid referral code.", error: true });
+        setError("couponCode", { type: "custom", message: "Invalid referral code." });
+        toast.error("Invalid referral code.");
       } else {
-        setCouponStatus({ isValid: true, message: "✓ Coupon Applied" });
+        setCouponStatus({ isValid: true, message: "Referral code applied successfully." });
         clearErrors("couponCode");
-        toast.success("✓ Coupon Applied");
+        toast.success("Referral code applied successfully.");
       }
     } catch (err) {
       console.error(err);
@@ -101,8 +101,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   const onSubmit = async (data: ContactFormFields) => {
     if (data.couponCode && data.couponCode.trim().length > 0) {
       if (!couponStatus || !couponStatus.isValid) {
-        toast.error(couponStatus?.message || "Invalid coupon code entered.");
-        setError("couponCode", { type: "custom", message: couponStatus?.message || "Invalid coupon code entered." });
+        toast.error(couponStatus?.message || "Invalid referral code.");
+        setError("couponCode", { type: "custom", message: couponStatus?.message || "Invalid referral code." });
         return;
       }
     }
@@ -232,13 +232,13 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
               />
             </div>
 
-            {/* Coupon Code */}
+            {/* Referral Code */}
             <div className="flex flex-col w-full">
               <div className="relative">
                 <FormInput
-                  label="Coupon Code"
+                  label="Referral Code"
                   id="couponCode"
-                  placeholder="Enter coupon code (optional)"
+                  placeholder="Enter referral code (optional)"
                   error={errors.couponCode?.message}
                   {...register("couponCode", {
                     onChange: handleCouponChange
@@ -255,7 +255,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
               
               {couponStatus?.isValid ? (
                 <p className="font-body-sm text-[12px] mt-1.5 text-emerald-500 font-semibold flex items-center gap-1">
-                  ✓ Coupon Applied
+                  ✓ Referral code applied successfully.
                 </p>
               ) : (
                 <p
@@ -264,9 +264,18 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                     isDark ? "text-slate-400/80" : "text-on-surface-variant/70"
                   )}
                 >
-                  Have a promo code? Enter it here.
+                  Referred by a client or partner? Enter their referral code here.
                 </p>
               )}
+              
+              <p
+                className={cn(
+                  "font-body-sm text-[11px] mt-1 opacity-70 italic transition-colors duration-500",
+                  isDark ? "text-slate-500" : "text-on-surface-variant/50"
+                )}
+              >
+                Referral codes may unlock special pricing and consultation benefits.
+              </p>
             </div>
 
             {/* Textarea */}
