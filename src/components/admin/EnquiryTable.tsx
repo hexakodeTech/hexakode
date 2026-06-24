@@ -89,17 +89,20 @@ export default function EnquiryTable() {
 
   // Filter Logic
   const filteredEnquiries = enquiries.filter((e) => {
+    const code = e.referralCode || e.couponCode;
     const matchesSearch =
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.email.toLowerCase().includes(search.toLowerCase()) ||
       e.company.toLowerCase().includes(search.toLowerCase()) ||
       e.message.toLowerCase().includes(search.toLowerCase()) ||
-      (e.couponCode && e.couponCode.toLowerCase().includes(search.toLowerCase()));
+      (code && code.toLowerCase().includes(search.toLowerCase())) ||
+      (e.referredBy && e.referredBy.toLowerCase().includes(search.toLowerCase()));
+      
     const matchesStatus = statusFilter === "All" || e.status === statusFilter;
     const matchesCoupon =
       couponFilter === "All" ||
-      (couponFilter === "With" && e.couponCode) ||
-      (couponFilter === "Without" && !e.couponCode);
+      (couponFilter === "With" && code) ||
+      (couponFilter === "Without" && !code);
     return matchesSearch && matchesStatus && matchesCoupon;
   });
 
@@ -147,17 +150,17 @@ export default function EnquiryTable() {
               }}
               className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
             >
-              <option value="All">All Coupons</option>
-              <option value="With">With Coupon</option>
-              <option value="Without">Without Coupon</option>
+              <option value="All">All Referrals</option>
+              <option value="With">With Referral</option>
+              <option value="Without">Without Referral</option>
             </select>
           </div>
         }
-        headers={["Name", "Contact Info", "Company", "Project Type", "Coupon Code", "Date", "Status", "Actions"]}
+        headers={["Name", "Contact Info", "Company", "Project Type", "Referral Code", "Referred By", "Date", "Status", "Actions"]}
       >
         {isLoading ? (
           <tr>
-            <td colSpan={8} className="text-center py-12">
+            <td colSpan={9} className="text-center py-12">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-secondary" />
                 <span className="text-xs text-on-surface-variant/70">Loading live enquiries...</span>
@@ -166,7 +169,7 @@ export default function EnquiryTable() {
           </tr>
         ) : displayedEnquiries.length === 0 ? (
           <tr>
-            <td colSpan={8} className="text-center py-8 text-xs text-on-surface-variant/50">
+            <td colSpan={9} className="text-center py-8 text-xs text-on-surface-variant/50">
               No enquiries found matching searches.
             </td>
           </tr>
@@ -191,7 +194,12 @@ export default function EnquiryTable() {
               </td>
               <td className="px-6 py-4">
                 <span className="font-mono text-xs text-on-surface-variant">
-                  {e.couponCode || "-"}
+                  {e.referralCode || e.couponCode || "-"}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <span className="font-mono text-xs text-on-surface-variant">
+                  {e.referredBy || "-"}
                 </span>
               </td>
               <td className="px-6 py-4">
@@ -295,7 +303,7 @@ export default function EnquiryTable() {
                     </p>
                     {activeEnquiry.phone && (
                       <p className="text-[10px] text-on-surface-variant mt-1 flex items-center gap-1 font-mono">
-                        <Phone className="w-3 h-3 text-secondary" />
+                        <Phone className="w-3.5 h-3.5 text-secondary" />
                         {activeEnquiry.phone}
                       </p>
                     )}
@@ -324,21 +332,20 @@ export default function EnquiryTable() {
                 </div>
                 <div>
                   <span className="block font-label-mono text-[9px] uppercase text-on-surface-variant/60 mb-0.5">
-                    Current Status
+                    Referral Code Used
                   </span>
-                  <span
-                    className={`text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full inline-block ${
-                      activeEnquiry.status === "New"
-                        ? "bg-secondary-container/20 text-on-secondary-container"
-                        : activeEnquiry.status === "Reviewed"
-                        ? "bg-surface-container-high text-on-surface-variant"
-                        : "bg-surface-container text-on-surface-variant/55"
-                    }`}
-                  >
-                    {activeEnquiry.status}
-                  </span>
+                  <span className="font-mono font-semibold text-secondary">{activeEnquiry.referralCode || activeEnquiry.couponCode || "-"}</span>
                 </div>
               </div>
+
+              {activeEnquiry.referredBy && (
+                <div className="pt-2 text-xs">
+                  <span className="block font-label-mono text-[9px] uppercase text-on-surface-variant/60 mb-0.5">
+                    Referred By
+                  </span>
+                  <span className="font-semibold text-primary font-mono">{activeEnquiry.referredBy}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20 mt-6">
                 {activeEnquiry.status === "New" && (

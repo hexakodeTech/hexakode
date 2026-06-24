@@ -35,6 +35,8 @@ export async function submitEnquiryAction(data: EnquiryInput) {
 
   try {
     let verifiedCouponCode: string | null = null;
+    let referrerName: string | null = null;
+    
     if (payload.couponCode && payload.couponCode.trim().length > 0) {
       const uppercased = payload.couponCode.trim().toUpperCase();
 
@@ -43,16 +45,33 @@ export async function submitEnquiryAction(data: EnquiryInput) {
       });
 
       if (!coupon) {
-        return { success: false, error: 'Invalid coupon code entered.' };
+        return { success: false, error: 'Invalid referral code.' };
       }
-      if (new Date() >= coupon.expiryDate) {
-        return { success: false, error: 'This coupon has expired.' };
+      if (!coupon.enabled) {
+        return { success: false, error: 'Invalid referral code.' };
       }
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const start = new Date(coupon.startDate.getFullYear(), coupon.startDate.getMonth(), coupon.startDate.getDate());
+      
+      if (today < start) {
+        return { success: false, error: 'Referral code is not active yet.' };
+      }
+      
+      if (coupon.expiryType === 'custom' && coupon.expiryDate) {
+        const expiry = new Date(coupon.expiryDate.getFullYear(), coupon.expiryDate.getMonth(), coupon.expiryDate.getDate());
+        if (today > expiry) {
+          return { success: false, error: 'Invalid referral code.' };
+        }
+      }
+      
       if (coupon.currentEnquiries >= coupon.maxLimit) {
-        return { success: false, error: 'This coupon has reached its maximum enquiry limit.' };
+        return { success: false, error: 'Invalid referral code.' };
       }
 
       verifiedCouponCode = uppercased;
+      referrerName = coupon.referrerName;
     }
 
     const enquiry = await prisma.$transaction(async (tx) => {
@@ -66,6 +85,8 @@ export async function submitEnquiryAction(data: EnquiryInput) {
           service: payload.service,
           budget: payload.budget,
           couponCode: verifiedCouponCode,
+          referralCode: verifiedCouponCode,
+          referredBy: referrerName,
           message: payload.message,
           status: 'NEW',
         },
@@ -130,6 +151,8 @@ export async function getEnquiriesAction(): Promise<AdminEnquiry[]> {
       company: e.company || '',
       projectType: e.service || '',
       couponCode: e.couponCode || '',
+      referralCode: e.referralCode || e.couponCode || '',
+      referredBy: e.referredBy || '',
       message: e.message,
       date: e.createdAt.toISOString().split('T')[0],
       status: e.status === 'NEW' ? 'New' : e.status === 'ARCHIVED' ? 'Archived' : 'Reviewed',
@@ -169,36 +192,42 @@ export async function updateEnquiryStatusAction(
  */
 export async function deleteEnquiryAction(id: string) {
   try {
-    // 1. Fetch the enquiry to check if it had a coupon code
+    // 1. Fetch the enquiry to check if it had a referral/coupon code
     const enquiry = await prisma.enquiry.findUnique({
       where: { id },
-      select: { couponCode: true },
+      select: { couponCode: true, referralCode: true },
     });
 
     if (!enquiry) {
       return { success: false, error: 'Enquiry not found.' };
     }
 
-    const { couponCode } = enquiry;
+    const { couponCode, referralCode } = enquiry;
+    const codeToSync = referralCode || couponCode;
 
     // 2. Delete the enquiry
     await prisma.enquiry.delete({
       where: { id },
     });
 
-    // 3. If a coupon was used, dynamically count and sync coupon stats
-    if (couponCode) {
+    // 3. If a referral/coupon was used, dynamically count and sync stats
+    if (codeToSync) {
       const coupon = await prisma.coupon.findUnique({
-        where: { code: couponCode },
+        where: { code: codeToSync },
       });
 
       if (coupon) {
         const count = await prisma.enquiry.count({
-          where: { couponCode },
+          where: {
+            OR: [
+              { couponCode: codeToSync },
+              { referralCode: codeToSync }
+            ]
+          },
         });
 
         await prisma.coupon.update({
-          where: { code: couponCode },
+          where: { code: codeToSync },
           data: {
             currentEnquiries: count,
           },

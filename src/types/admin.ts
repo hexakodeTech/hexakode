@@ -30,6 +30,8 @@ export interface AdminEnquiry {
   company: string;
   projectType: string;
   couponCode?: string | null;
+  referralCode?: string | null;
+  referredBy?: string | null;
   message: string;
   date: string;
   status: "New" | "Reviewed" | "Archived";
@@ -70,11 +72,17 @@ export interface AdminDemoRequest {
 export interface AdminCoupon {
   id: string;
   code: string;
-  activeDays: number;
+  referrerName?: string | null;
+  rewardType?: string | null;
+  notes?: string | null;
+  startDate: string;
+  activeDays?: number | null;
   maxLimit: number;
   currentEnquiries: number;
   remainingEnquiries: number;
-  status: "ACTIVE" | "EXPIRED" | "LIMIT REACHED";
+  expiryType: string;
+  expiryDate?: string | null;
+  enabled: boolean;
+  status: "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled";
   createdDate: string;
-  expiryDate: string;
 }

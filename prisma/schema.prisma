@@ -111,17 +111,19 @@ model AuditLog {
 
 /// Contact form / project enquiry submissions.
 model Enquiry {
-  id         String        @id @default(uuid()) @db.Uuid
-  name       String
-  email      String
-  phone      String?
-  company    String?
-  service    String?
-  budget     String?
-  couponCode String?
-  message    String
-  status     EnquiryStatus @default(NEW)
-  createdAt  DateTime      @default(now())
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  email        String
+  phone        String?
+  company      String?
+  service      String?
+  budget       String?
+  couponCode   String?
+  referralCode String?
+  referredBy   String?
+  message      String
+  status       EnquiryStatus @default(NEW)
+  createdAt    DateTime      @default(now())
 
   @@index([status])
   @@index([createdAt])
@@ -132,10 +134,16 @@ model Enquiry {
 model Coupon {
   id               String    @id @default(uuid()) @db.Uuid
   code             String    @unique
-  activeDays       Int       @default(30)
+  referrerName     String?
+  rewardType       String?
+  notes            String?
+  startDate        DateTime  @default(now())
+  activeDays       Int?      @default(30)
   maxLimit         Int       @default(5)
   currentEnquiries Int       @default(0)
-  expiryDate       DateTime
+  expiryType       String    @default("custom")
+  expiryDate       DateTime?
+  enabled          Boolean   @default(true)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
