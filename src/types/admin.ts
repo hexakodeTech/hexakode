@@ -110,6 +110,7 @@ export interface AdminPortalProject {
   name: string;
   clientId: string;
   clientName: string;
+  clientCreditBalance?: number;
   websiteUrl?: string | null;
   adminUrl?: string | null;
   status: string;
@@ -137,6 +138,8 @@ export interface AdminInvoice {
   projectName?: string | null;
   invoiceNumber: string;
   amount: number;
+  creditApplied: number;
+  finalAmountDue: number;
   status: "Paid" | "Pending" | "Overdue";
   dueDate: string;
   issuedDate: string;

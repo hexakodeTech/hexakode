@@ -118,6 +118,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [invoiceFormError, setInvoiceFormError] = useState('');
   const [isDeleteInvoiceOpen, setIsDeleteInvoiceOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<AdminInvoice | null>(null);
+  const [applyCredits, setApplyCredits] = useState(false);
+  const [creditDeduction, setCreditDeduction] = useState('');
 
   // Credit adjustments form state
   const [creditAction, setCreditAction] = useState<'add' | 'deduct'>('add');
@@ -356,8 +358,34 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setInvoiceAmount('');
     setInvoiceDueDate('');
     setInvoiceStatus('Pending');
+    setApplyCredits(false);
+    setCreditDeduction('');
     setInvoiceFormError('');
     setIsInvoiceFormOpen(true);
+  };
+
+  const handleApplyCreditsToggle = (checked: boolean) => {
+    setApplyCredits(checked);
+    if (checked && data?.client) {
+      const amt = parseFloat(invoiceAmount) || 0;
+      const maxDeduct = Math.min(amt, data.client.creditBalance);
+      setCreditDeduction(maxDeduct.toString());
+    } else {
+      setCreditDeduction('');
+    }
+  };
+
+  const handleInvoiceAmountChange = (val: string) => {
+    setInvoiceAmount(val);
+    setInvoiceFormError('');
+    if (applyCredits && data?.client) {
+      const amt = parseFloat(val) || 0;
+      const maxDeduct = Math.min(amt, data.client.creditBalance);
+      const currentVal = parseFloat(creditDeduction) || 0;
+      if (currentVal > maxDeduct || !creditDeduction) {
+        setCreditDeduction(maxDeduct.toString());
+      }
+    }
   };
 
   const handleSubmitInvoice = async (e: React.FormEvent) => {
@@ -366,8 +394,36 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
     const amt = parseFloat(invoiceAmount);
     if (isNaN(amt) || amt <= 0) {
-      setInvoiceFormError('Amount must be a valid positive number');
+      setInvoiceFormError('Invoice amount must be greater than 0');
       return;
+    }
+
+    const amountParts = invoiceAmount.split('.');
+    if (amountParts.length > 1 && amountParts[1].length > 2) {
+      setInvoiceFormError('Invoice amount cannot have more than 2 decimal places');
+      return;
+    }
+
+    let deduction = 0;
+    if (applyCredits) {
+      deduction = parseFloat(creditDeduction) || 0;
+      if (isNaN(deduction) || deduction < 0) {
+        setInvoiceFormError('Credit deduction amount must be a valid non-negative number');
+        return;
+      }
+      const deductionParts = creditDeduction.split('.');
+      if (deductionParts.length > 1 && deductionParts[1].length > 2) {
+        setInvoiceFormError('Credit deduction amount cannot have more than 2 decimal places');
+        return;
+      }
+      if (data?.client && deduction > data.client.creditBalance) {
+        setInvoiceFormError(`Deduction cannot exceed available credit balance ($${data.client.creditBalance.toFixed(2)})`);
+        return;
+      }
+      if (deduction > amt) {
+        setInvoiceFormError('Deduction cannot exceed the total invoice amount');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -378,6 +434,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         amount: amt,
         dueDate: invoiceDueDate,
         status: invoiceStatus,
+        creditApplied: deduction,
+        finalAmountDue: amt - deduction,
       });
 
       if (!res.success) {
@@ -387,6 +445,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         toast.success('Invoice created successfully.');
         setIsInvoiceFormOpen(false);
         loadInvoices();
+        loadData(); // Reload client overview (for credit balance card)
       }
     } catch {
       setInvoiceFormError('An unexpected error occurred.');
@@ -430,16 +489,25 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         metadata.push({ label: 'Linked Project', value: inv.projectName });
       }
 
+      const summaryItems = (inv.creditApplied || 0) > 0 
+        ? [
+            { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Credit Applied', value: `$${(inv.creditApplied || 0).toFixed(2)}` },
+            { label: 'Amount Due', value: `$${(inv.finalAmountDue ?? inv.amount).toFixed(2)}` },
+            { label: 'Status', value: inv.status.toUpperCase() },
+          ]
+        : [
+            { label: 'Total Due', value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Status', value: inv.status.toUpperCase() },
+          ];
+
       await exportToPDF({
         filename: `Invoice-${inv.invoiceNumber}.pdf`,
         title: `INVOICE: ${inv.invoiceNumber}`,
         subtitle: 'HexaKode Billing System',
         metadata,
         summaryTitle: 'Invoice Summary',
-        summaryItems: [
-          { label: 'Total Due', value: `$${inv.amount.toFixed(2)}` },
-          { label: 'Status', value: inv.status.toUpperCase() },
-        ],
+        summaryItems,
         tableHeaders: ['Description', 'Qty', 'Unit Price', 'Total'],
         tableData: [
           [
@@ -902,11 +970,11 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 <span>Create Invoice</span>
               </button>
             }
-            headers={['Invoice #', 'Project', 'Amount', 'Due Date', 'Status', 'Actions']}
+            headers={['Invoice #', 'Project', 'Amount', 'Credit Applied', 'Amount Due', 'Due Date', 'Status', 'Actions']}
           >
             {isLoadingTab ? (
               <tr>
-                <td colSpan={6} className="text-center py-12">
+                <td colSpan={8} className="text-center py-12">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin text-secondary" />
                     <span className="text-xs text-on-surface-variant/70">Loading billing history...</span>
@@ -915,7 +983,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               </tr>
             ) : filteredInvoices.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-xs text-on-surface-variant/50">
+                <td colSpan={8} className="text-center py-8 text-xs text-on-surface-variant/50">
                   No invoices found.
                 </td>
               </tr>
@@ -932,6 +1000,12 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-mono text-xs font-semibold text-primary">${inv.amount.toFixed(2)}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-mono text-xs text-on-surface-variant">${(inv.creditApplied || 0).toFixed(2)}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-mono text-xs font-semibold text-primary">${(inv.finalAmountDue ?? inv.amount).toFixed(2)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-mono text-xs text-on-surface-variant">{inv.dueDate}</span>
@@ -1412,7 +1486,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmitInvoice} className="space-y-3">
+            <form onSubmit={handleSubmitInvoice} noValidate className="space-y-3">
               {invoiceFormError && (
                 <div className="text-xs text-error bg-error-container/10 p-2.5 rounded-lg border border-error/25">
                   {invoiceFormError}
@@ -1461,13 +1535,85 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   <input
                     type="number"
                     step="0.01"
-                    min="0.01"
+                    min="0"
                     required
                     value={invoiceAmount}
-                    onChange={(e) => { setInvoiceAmount(e.target.value); setInvoiceFormError(''); }}
+                    onChange={(e) => handleInvoiceAmountChange(e.target.value)}
                     placeholder="0.00"
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10"
+                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
                   />
+                </div>
+              </div>
+
+              {/* Credit Balance Adjustment */}
+              {data?.client && data.client.creditBalance > 0 && (
+                <div className="border border-outline-variant/30 rounded-lg p-3 bg-surface-container-low/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant">
+                      Credit Balance Adjustment
+                    </span>
+                    <span className="text-[10px] font-semibold text-secondary font-mono">
+                      Available: ${data.client.creditBalance.toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="applyCredits"
+                      checked={applyCredits}
+                      onChange={(e) => handleApplyCreditsToggle(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded border-outline-variant text-secondary focus:ring-secondary/20 transition-all cursor-pointer"
+                    />
+                    <label
+                      htmlFor="applyCredits"
+                      className="text-[10px] text-on-surface-variant cursor-pointer select-none"
+                    >
+                      Apply available credit balance to this invoice
+                    </label>
+                  </div>
+
+                  {applyCredits && (
+                    <div className="space-y-1">
+                      <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant">
+                        Credit Deduction Amount ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max={Math.min(parseFloat(invoiceAmount) || 0, data.client.creditBalance)}
+                          value={creditDeduction}
+                          onChange={(e) => setCreditDeduction(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Live Summary Panel */}
+              <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
+                <div className="flex justify-between items-center text-on-surface-variant">
+                  <span>Invoice Amount:</span>
+                  <span className="font-mono">${(parseFloat(invoiceAmount) || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-on-surface-variant">
+                  <span>Credit Applied:</span>
+                  <span className="font-mono">-${(applyCredits ? (parseFloat(creditDeduction) || 0) : 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold text-primary">
+                  <span>Amount Due:</span>
+                  <span className="font-mono">
+                    ${Math.max(
+                      0,
+                      (parseFloat(invoiceAmount) || 0) - (applyCredits ? (parseFloat(creditDeduction) || 0) : 0)
+                    ).toFixed(2)}
+                  </span>
                 </div>
               </div>
 

@@ -62,7 +62,7 @@ export async function getProjectByIdAction(id: string) {
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
-        client: { select: { id: true, name: true } },
+        client: { select: { id: true, name: true, creditBalance: true } },
         maintenanceLogs: {
           orderBy: { logDate: 'desc' },
         },
@@ -77,6 +77,7 @@ export async function getProjectByIdAction(id: string) {
         name: project.name,
         clientId: project.clientId,
         clientName: project.client.name,
+        clientCreditBalance: project.client.creditBalance,
         websiteUrl: project.websiteUrl,
         adminUrl: project.adminUrl,
         status: project.status,

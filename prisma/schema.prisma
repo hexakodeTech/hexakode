@@ -249,6 +249,8 @@ model Invoice {
   projectId     String?  @db.Uuid
   invoiceNumber String   @unique
   amount        Float
+  creditApplied  Float    @default(0)
+  finalAmountDue Float    @default(0)
   status        String   @default("Pending") // "Paid", "Pending", "Overdue"
   dueDate       DateTime
   issuedDate    DateTime @default(now())
