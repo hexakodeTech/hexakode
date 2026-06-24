@@ -197,6 +197,8 @@ export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
               className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase mt-2 inline-block ${
                 coupon.status === 'Active'
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : coupon.status === 'Scheduled'
+                  ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
                   : coupon.status === 'Expired'
                   ? 'bg-error-container/20 text-on-error-container'
                   : coupon.status === 'Exhausted'
@@ -241,6 +243,9 @@ export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
               Validity
             </span>
             <p className="text-xs font-semibold text-primary mt-1">
+              Starts: <span className="font-mono">{coupon.startDate}</span>
+            </p>
+            <p className="text-xs font-semibold text-primary mt-0.5">
               Expires: <span className="font-mono">{coupon.expiryType === 'infinite' ? 'Never' : (coupon.expiryDate || 'Never')}</span>
             </p>
             <span className="text-[9px] text-on-surface-variant/60 block mt-1">

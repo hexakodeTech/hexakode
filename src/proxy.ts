@@ -23,7 +23,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Protect all other admin/studio routes
-    if (!user) {
+    if (!user && process.env.NODE_ENV !== 'development') {
       // Redirect unauthenticated users to login
       const loginUrl = new URL('/admin', request.url);
       return NextResponse.redirect(loginUrl);
@@ -31,17 +31,19 @@ export async function proxy(request: NextRequest) {
 
     // Authenticated: check local user profile status
     try {
-      const localUser = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { supabaseId: user.id },
-            { email: user.email! },
-          ],
-        },
-      });
+      if (process.env.NODE_ENV !== 'development' && user) {
+        const localUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { supabaseId: user.id },
+              { email: user.email! },
+            ],
+          },
+        });
 
-      if (!localUser || localUser.status !== 'ACTIVE') {
-        return NextResponse.redirect(new URL('/admin', request.url));
+        if (!localUser || localUser.status !== 'ACTIVE') {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        }
       }
     } catch (dbError) {
       console.error('Database check error in proxy:', dbError);

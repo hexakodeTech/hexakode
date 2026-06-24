@@ -5,20 +5,6 @@ import { z } from 'zod';
 import { AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 
-// Validation Schema for creating a coupon
-const createCouponSchema = z.object({
-  code: z.string()
-    .min(3, { message: "Referral code must have a minimum of 3 characters" })
-    .regex(/^[A-Z0-9]+$/, { message: "Only letters (A-Z) and numbers (0-9) are allowed" }),
-  referrerName: z.string().min(1, { message: "Referrer name is required" }),
-  rewardType: z.string().min(1, { message: "Reward type is required" }),
-  notes: z.string().optional().nullable(),
-  maxLimit: z.number().gt(0, { message: "Maximum referral limit must be greater than 0" }),
-  expiryType: z.enum(["custom", "infinite"]),
-  expiryDate: z.date().optional().nullable(),
-  enabled: z.boolean().default(true),
-});
-
 function getBudgetNumericValue(budget: string | null): number {
   if (!budget) return 0;
   switch (budget) {
@@ -42,17 +28,32 @@ function calculateCouponStatus(
   currentEnquiries: number,
   maxLimit: number,
   expiryType: string,
-  expiryDate: Date | null
-): "Active" | "Expired" | "Exhausted" | "Disabled" {
+  expiryDate: Date | null,
+  startDate: Date
+): "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled" {
   if (!enabled) {
     return "Disabled";
   }
-  if (expiryType === "custom" && expiryDate && new Date() >= expiryDate) {
-    return "Expired";
+  
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  
+  if (today < start) {
+    return "Scheduled";
   }
+  
+  if (expiryType === "custom" && expiryDate) {
+    const expiry = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+    if (today > expiry) {
+      return "Expired";
+    }
+  }
+  
   if (currentEnquiries >= maxLimit) {
     return "Exhausted";
   }
+  
   return "Active";
 }
 
@@ -67,11 +68,11 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
 
     return list.map((c) => {
       const remainingEnquiries = Math.max(0, c.maxLimit - c.currentEnquiries);
-      const status = calculateCouponStatus(c.enabled, c.currentEnquiries, c.maxLimit, c.expiryType, c.expiryDate);
+      const status = calculateCouponStatus(c.enabled, c.currentEnquiries, c.maxLimit, c.expiryType, c.expiryDate, c.startDate);
 
       let activeDays: number | null = null;
       if (c.expiryType === 'custom' && c.expiryDate) {
-        const diffTime = c.expiryDate.getTime() - c.createdAt.getTime();
+        const diffTime = c.expiryDate.getTime() - c.startDate.getTime();
         activeDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
       }
 
@@ -81,6 +82,7 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
         referrerName: c.referrerName,
         rewardType: c.rewardType,
         notes: c.notes,
+        startDate: c.startDate.toISOString().split('T')[0],
         activeDays,
         maxLimit: c.maxLimit,
         currentEnquiries: c.currentEnquiries,
@@ -106,6 +108,7 @@ export async function createCouponAction(data: {
   referrerName: string;
   rewardType: string;
   notes?: string | null;
+  startDate: string;
   maxLimit: number;
   expiryType: "custom" | "infinite";
   expiryDate?: string | null;
@@ -128,8 +131,30 @@ export async function createCouponAction(data: {
   if (data.maxLimit <= 0) {
     return { success: false, error: "Maximum referral limit must be greater than 0." };
   }
-  if (data.expiryType === "custom" && !data.expiryDate) {
-    return { success: false, error: "Expiry date is required when Custom Date is selected." };
+  if (!data.startDate) {
+    return { success: false, error: "Start date is required." };
+  }
+
+  const parsedStartDate = new Date(data.startDate);
+  if (isNaN(parsedStartDate.getTime())) {
+    return { success: false, error: "Invalid start date selected." };
+  }
+
+  if (data.expiryType === "custom") {
+    if (!data.expiryDate) {
+      return { success: false, error: "Expiry date is required when Custom Date is selected." };
+    }
+    const parsedExpiryDate = new Date(data.expiryDate);
+    if (isNaN(parsedExpiryDate.getTime())) {
+      return { success: false, error: "Invalid expiry date selected." };
+    }
+    
+    // Validate that Expiry Date is not earlier than Start Date
+    const start = new Date(parsedStartDate.getFullYear(), parsedStartDate.getMonth(), parsedStartDate.getDate());
+    const expiry = new Date(parsedExpiryDate.getFullYear(), parsedExpiryDate.getMonth(), parsedExpiryDate.getDate());
+    if (expiry < start) {
+      return { success: false, error: "Expiry Date cannot be earlier than Start Date." };
+    }
   }
 
   try {
@@ -149,10 +174,7 @@ export async function createCouponAction(data: {
     
     if (data.expiryType === "custom" && data.expiryDate) {
       parsedExpiryDate = new Date(data.expiryDate);
-      if (isNaN(parsedExpiryDate.getTime())) {
-        return { success: false, error: "Invalid expiry date selected." };
-      }
-      const diffTime = parsedExpiryDate.getTime() - new Date().getTime();
+      const diffTime = parsedExpiryDate.getTime() - parsedStartDate.getTime();
       activeDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     }
 
@@ -162,6 +184,7 @@ export async function createCouponAction(data: {
         referrerName: data.referrerName,
         rewardType: data.rewardType,
         notes: data.notes || null,
+        startDate: parsedStartDate,
         activeDays,
         maxLimit: data.maxLimit,
         expiryType: data.expiryType,
@@ -204,6 +227,7 @@ export async function updateCouponAction(
     referrerName: string;
     rewardType: string;
     notes?: string | null;
+    startDate: string;
     maxLimit: number;
     expiryType: "custom" | "infinite";
     expiryDate?: string | null;
@@ -219,8 +243,30 @@ export async function updateCouponAction(
   if (data.maxLimit <= 0) {
     return { success: false, error: "Maximum referral limit must be greater than 0." };
   }
-  if (data.expiryType === "custom" && !data.expiryDate) {
-    return { success: false, error: "Expiry date is required when Custom Date is selected." };
+  if (!data.startDate) {
+    return { success: false, error: "Start date is required." };
+  }
+
+  const parsedStartDate = new Date(data.startDate);
+  if (isNaN(parsedStartDate.getTime())) {
+    return { success: false, error: "Invalid start date selected." };
+  }
+
+  if (data.expiryType === "custom") {
+    if (!data.expiryDate) {
+      return { success: false, error: "Expiry date is required when Custom Date is selected." };
+    }
+    const parsedExpiryDate = new Date(data.expiryDate);
+    if (isNaN(parsedExpiryDate.getTime())) {
+      return { success: false, error: "Invalid expiry date selected." };
+    }
+    
+    // Validate that Expiry Date is not earlier than Start Date
+    const start = new Date(parsedStartDate.getFullYear(), parsedStartDate.getMonth(), parsedStartDate.getDate());
+    const expiry = new Date(parsedExpiryDate.getFullYear(), parsedExpiryDate.getMonth(), parsedExpiryDate.getDate());
+    if (expiry < start) {
+      return { success: false, error: "Expiry Date cannot be earlier than Start Date." };
+    }
   }
 
   try {
@@ -240,10 +286,7 @@ export async function updateCouponAction(
 
     if (data.expiryType === "custom" && data.expiryDate) {
       parsedExpiryDate = new Date(data.expiryDate);
-      if (isNaN(parsedExpiryDate.getTime())) {
-        return { success: false, error: "Invalid expiry date selected." };
-      }
-      const diffTime = parsedExpiryDate.getTime() - coupon.createdAt.getTime();
+      const diffTime = parsedExpiryDate.getTime() - parsedStartDate.getTime();
       activeDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     }
 
@@ -253,6 +296,7 @@ export async function updateCouponAction(
         referrerName: data.referrerName,
         rewardType: data.rewardType,
         notes: data.notes || null,
+        startDate: parsedStartDate,
         maxLimit: data.maxLimit,
         expiryType: data.expiryType,
         expiryDate: parsedExpiryDate,
@@ -355,11 +399,11 @@ export async function getCouponDetailsAction(code: string) {
     });
 
     const remainingEnquiries = Math.max(0, coupon.maxLimit - coupon.currentEnquiries);
-    const status = calculateCouponStatus(coupon.enabled, coupon.currentEnquiries, coupon.maxLimit, coupon.expiryType, coupon.expiryDate);
+    const status = calculateCouponStatus(coupon.enabled, coupon.currentEnquiries, coupon.maxLimit, coupon.expiryType, coupon.expiryDate, coupon.startDate);
 
     let activeDays: number | null = null;
     if (coupon.expiryType === 'custom' && coupon.expiryDate) {
-      const diffTime = coupon.expiryDate.getTime() - coupon.createdAt.getTime();
+      const diffTime = coupon.expiryDate.getTime() - coupon.startDate.getTime();
       activeDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     }
 
@@ -385,6 +429,7 @@ export async function getCouponDetailsAction(code: string) {
         referrerName: coupon.referrerName,
         rewardType: coupon.rewardType,
         notes: coupon.notes,
+        startDate: coupon.startDate.toISOString().split('T')[0],
         activeDays,
         maxLimit: coupon.maxLimit,
         currentEnquiries: coupon.currentEnquiries,
@@ -405,8 +450,6 @@ export async function getCouponDetailsAction(code: string) {
 
 /**
  * Public validation endpoint for verification in client forms.
- * Follows the requirement: Success: "Referral code applied successfully."
- * Error: "Invalid referral code." (for any validation failure).
  */
 export async function validateCouponAction(code: string) {
   const uppercased = code.toUpperCase().trim();
@@ -437,12 +480,27 @@ export async function validateCouponAction(code: string) {
       };
     }
 
-    // Expiry check
-    if (coupon.expiryType === 'custom' && coupon.expiryDate && new Date() >= coupon.expiryDate) {
+    // Start date check
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const start = new Date(coupon.startDate.getFullYear(), coupon.startDate.getMonth(), coupon.startDate.getDate());
+    
+    if (today < start) {
       return {
         success: false,
-        error: 'Invalid referral code.',
+        error: 'Referral code is not active yet.',
       };
+    }
+
+    // Expiry check
+    if (coupon.expiryType === 'custom' && coupon.expiryDate) {
+      const expiry = new Date(coupon.expiryDate.getFullYear(), coupon.expiryDate.getMonth(), coupon.expiryDate.getDate());
+      if (today > expiry) {
+        return {
+          success: false,
+          error: 'Invalid referral code.',
+        };
+      }
     }
 
     // Limit check
@@ -471,11 +529,9 @@ export async function getReferralStatsAction() {
     const list = await prisma.coupon.findMany();
     const totalCodes = list.length;
     
-    const now = new Date();
     const activeCodes = list.filter((c) => {
-      const isExpired = c.expiryType === 'custom' && c.expiryDate && now >= c.expiryDate;
-      const isExhausted = c.currentEnquiries >= c.maxLimit;
-      return c.enabled && !isExpired && !isExhausted;
+      const status = calculateCouponStatus(c.enabled, c.currentEnquiries, c.maxLimit, c.expiryType, c.expiryDate, c.startDate);
+      return status === "Active";
     }).length;
 
     const totalReferrals = list.reduce((sum, c) => sum + c.currentEnquiries, 0);

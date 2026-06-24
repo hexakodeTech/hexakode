@@ -75,6 +75,7 @@ export interface AdminCoupon {
   referrerName?: string | null;
   rewardType?: string | null;
   notes?: string | null;
+  startDate: string;
   activeDays?: number | null;
   maxLimit: number;
   currentEnquiries: number;
@@ -82,6 +83,6 @@ export interface AdminCoupon {
   expiryType: string;
   expiryDate?: string | null;
   enabled: boolean;
-  status: "Active" | "Expired" | "Exhausted" | "Disabled";
+  status: "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled";
   createdDate: string;
 }

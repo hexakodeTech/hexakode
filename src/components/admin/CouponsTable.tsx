@@ -47,6 +47,7 @@ export default function CouponsTable() {
   const [maxLimit, setMaxLimit] = useState(5);
   const [enabled, setEnabled] = useState(true);
   const [expiryType, setExpiryType] = useState<'custom' | 'infinite'>('custom');
+  const [startDate, setStartDate] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -66,6 +67,10 @@ export default function CouponsTable() {
     setIsLoading(false);
   }
 
+  const getTodayDateString = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
   const getDefaultExpiryDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
@@ -80,6 +85,7 @@ export default function CouponsTable() {
     setMaxLimit(5);
     setEnabled(true);
     setExpiryType('custom');
+    setStartDate(getTodayDateString());
     setExpiryDate(getDefaultExpiryDate());
     setFormError('');
     setIsEditing(false);
@@ -94,6 +100,7 @@ export default function CouponsTable() {
     setMaxLimit(coupon.maxLimit);
     setEnabled(coupon.enabled);
     setExpiryType((coupon.expiryType as 'custom' | 'infinite') || 'custom');
+    setStartDate(coupon.startDate);
     
     if (coupon.expiryDate) {
       setExpiryDate(coupon.expiryDate);
@@ -176,9 +183,27 @@ export default function CouponsTable() {
       setFormError('Maximum referrals must be greater than 0.');
       return;
     }
-    if (expiryType === 'custom' && !expiryDate) {
-      setFormError('Expiry date is required.');
+    if (!startDate) {
+      setFormError('Start date is required.');
       return;
+    }
+
+    if (expiryType === 'custom') {
+      if (!expiryDate) {
+        setFormError('Expiry date is required.');
+        return;
+      }
+      
+      // Prevent Expiry Date from being earlier than Start Date
+      const start = new Date(startDate);
+      const expiry = new Date(expiryDate);
+      start.setHours(0,0,0,0);
+      expiry.setHours(0,0,0,0);
+      
+      if (expiry < start) {
+        setFormError('Expiry Date cannot be earlier than Start Date.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -188,6 +213,7 @@ export default function CouponsTable() {
           referrerName,
           rewardType,
           notes,
+          startDate,
           maxLimit,
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
@@ -207,6 +233,7 @@ export default function CouponsTable() {
           referrerName,
           rewardType,
           notes,
+          startDate,
           maxLimit,
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
@@ -243,6 +270,26 @@ export default function CouponsTable() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Helper to format start date
+  const formatStartDateUI = (dateString: string) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const parts = dateString.split('-');
+    const start = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    
+    const diffTime = start.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return <span className="text-secondary font-semibold">Starts Today</span>;
+    } else if (diffDays > 0) {
+      return <span className="text-blue-500 font-semibold">Starts in {diffDays} {diffDays === 1 ? 'day' : 'days'}</span>;
+    } else {
+      return <span className="text-on-surface-variant/75">{dateString}</span>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -297,6 +344,7 @@ export default function CouponsTable() {
           >
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
+            <option value="Scheduled">Scheduled</option>
             <option value="Expired">Expired</option>
             <option value="Exhausted">Exhausted</option>
             <option value="Disabled">Disabled</option>
@@ -314,20 +362,19 @@ export default function CouponsTable() {
         headers={[
           'Referral Code',
           'Referrer Name',
-          'Reward Type',
-          'Validity',
+          'Start Date',
+          'Expiry Date',
           'Max Referrals',
           'Referrals Used',
           'Remaining Referrals',
           'Status',
           'Created Date',
-          'Expiry Date',
           'Actions'
         ]}
       >
         {isLoading ? (
           <tr>
-            <td colSpan={11} className="text-center py-12">
+            <td colSpan={10} className="text-center py-12">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-secondary" />
                 <span className="text-xs text-on-surface-variant/70">Loading referral codes...</span>
@@ -336,7 +383,7 @@ export default function CouponsTable() {
           </tr>
         ) : displayedCoupons.length === 0 ? (
           <tr>
-            <td colSpan={11} className="text-center py-8 text-xs text-on-surface-variant/50">
+            <td colSpan={10} className="text-center py-8 text-xs text-on-surface-variant/50">
               No referral codes found.
             </td>
           </tr>
@@ -349,11 +396,11 @@ export default function CouponsTable() {
               <td className="px-6 py-4 text-xs font-medium text-on-surface">
                 {c.referrerName || '-'}
               </td>
-              <td className="px-6 py-4 text-xs text-on-surface">
-                {c.rewardType || '-'}
+              <td className="px-6 py-4 text-xs font-semibold font-mono">
+                {formatStartDateUI(c.startDate)}
               </td>
-              <td className="px-6 py-4 text-xs text-on-surface">
-                {c.expiryType === 'infinite' ? 'Never Expires' : (c.activeDays ? `${c.activeDays} days` : '-')}
+              <td className="px-6 py-4 text-xs text-on-surface-variant/70 font-mono">
+                {c.expiryType === 'infinite' ? 'Never' : (c.expiryDate || 'Never')}
               </td>
               <td className="px-6 py-4 text-xs text-on-surface font-mono">
                 {c.maxLimit}
@@ -369,6 +416,8 @@ export default function CouponsTable() {
                   className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase ${
                     c.status === 'Active'
                       ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                      : c.status === 'Scheduled'
+                      ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
                       : c.status === 'Expired'
                       ? 'bg-error-container/20 text-on-error-container'
                       : c.status === 'Exhausted'
@@ -381,9 +430,6 @@ export default function CouponsTable() {
               </td>
               <td className="px-6 py-4 text-xs text-on-surface-variant/70 font-mono">
                 {c.createdDate}
-              </td>
-              <td className="px-6 py-4 text-xs text-on-surface-variant/70 font-mono">
-                {c.expiryDate || 'Never'}
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-1.5">
@@ -568,10 +614,10 @@ export default function CouponsTable() {
                 </div>
               </div>
 
-              {/* Section: Expiry Settings */}
+              {/* Section: Expiry & Scheduling Settings */}
               <div className="space-y-3 pt-3 border-t border-outline-variant/10">
                 <h4 className="text-[10px] font-label-mono uppercase tracking-wider text-secondary font-semibold">
-                  Expiry Settings
+                  Expiry & Scheduling Settings
                 </h4>
                 
                 <div>
@@ -589,6 +635,22 @@ export default function CouponsTable() {
                     <option value="custom">Custom Date</option>
                     <option value="infinite">Never Expires</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setFormError('');
+                    }}
+                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
+                  />
                 </div>
 
                 {expiryType === 'custom' && (

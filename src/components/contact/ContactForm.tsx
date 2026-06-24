@@ -83,9 +83,10 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
     try {
       const res = await validateCouponAction(val);
       if (!res.success) {
-        setCouponStatus({ isValid: false, message: "Invalid referral code.", error: true });
-        setError("couponCode", { type: "custom", message: "Invalid referral code." });
-        toast.error("Invalid referral code.");
+        const errorMsg = res.error || "Invalid referral code.";
+        setCouponStatus({ isValid: false, message: errorMsg, error: true });
+        setError("couponCode", { type: "custom", message: errorMsg });
+        toast.error(errorMsg);
       } else {
         setCouponStatus({ isValid: true, message: "Referral code applied successfully." });
         clearErrors("couponCode");

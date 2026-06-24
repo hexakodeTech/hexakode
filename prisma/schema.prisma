@@ -137,6 +137,7 @@ model Coupon {
   referrerName     String?
   rewardType       String?
   notes            String?
+  startDate        DateTime  @default(now())
   activeDays       Int?      @default(30)
   maxLimit         Int       @default(5)
   currentEnquiries Int       @default(0)

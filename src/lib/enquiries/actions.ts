@@ -50,9 +50,22 @@ export async function submitEnquiryAction(data: EnquiryInput) {
       if (!coupon.enabled) {
         return { success: false, error: 'Invalid referral code.' };
       }
-      if (coupon.expiryType === 'custom' && coupon.expiryDate && new Date() >= coupon.expiryDate) {
-        return { success: false, error: 'Invalid referral code.' };
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const start = new Date(coupon.startDate.getFullYear(), coupon.startDate.getMonth(), coupon.startDate.getDate());
+      
+      if (today < start) {
+        return { success: false, error: 'Referral code is not active yet.' };
       }
+      
+      if (coupon.expiryType === 'custom' && coupon.expiryDate) {
+        const expiry = new Date(coupon.expiryDate.getFullYear(), coupon.expiryDate.getMonth(), coupon.expiryDate.getDate());
+        if (today > expiry) {
+          return { success: false, error: 'Invalid referral code.' };
+        }
+      }
+      
       if (coupon.currentEnquiries >= coupon.maxLimit) {
         return { success: false, error: 'Invalid referral code.' };
       }
