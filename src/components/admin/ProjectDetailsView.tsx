@@ -438,17 +438,45 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const handleDownloadInvoicePDF = async (inv: AdminInvoice) => {
     try {
       toast.info('Generating PDF...');
-      const summaryItems = (inv.creditApplied || 0) > 0
+
+      const creditApplied = inv.creditApplied || 0;
+      const finalDue = inv.finalAmountDue ?? inv.amount;
+      const hasCredit = creditApplied > 0;
+
+      // Determine payment method label
+      const paymentMethod = hasCredit
+        ? (finalDue > 0 ? 'Credit Balance + Direct Payment' : 'Credit Balance')
+        : 'Direct Payment';
+
+      // Build Invoice Summary items
+      const summaryItems = hasCredit
         ? [
-            { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Credit Applied', value: `$${(inv.creditApplied || 0).toFixed(2)}` },
-            { label: 'Amount Due', value: `$${(inv.finalAmountDue ?? inv.amount).toFixed(2)}` },
-            { label: 'Status', value: inv.status.toUpperCase() },
+            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Credit Deducted', value: `$${creditApplied.toFixed(2)}` },
+            { label: 'Amount Due',      value: `$${finalDue.toFixed(2)}` },
+            { label: 'Payment Status',  value: inv.status.toUpperCase() },
+            { label: 'Payment Method',  value: paymentMethod },
           ]
         : [
-            { label: 'Total Due', value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Status', value: inv.status.toUpperCase() },
+            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Amount Due',      value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Payment Status',  value: inv.status.toUpperCase() },
+            { label: 'Payment Method',  value: paymentMethod },
           ];
+
+      // Build Credit Balance Usage section (only when credits were applied)
+      let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
+      if (hasCredit && inv.startingCreditBalance != null) {
+        const startingBal = inv.startingCreditBalance;
+        const remainingBal = startingBal - creditApplied;
+        creditSection = {
+          startingBalance:  `$${startingBal.toFixed(2)}`,
+          creditsUsed:      `$${creditApplied.toFixed(2)}`,
+          remainingBalance: `$${remainingBal.toFixed(2)}`,
+          paymentMethod,
+          transactionId:    inv.creditTransactionId ?? undefined,
+        };
+      }
 
       await exportToPDF({
         filename: `Invoice-${inv.invoiceNumber}.pdf`,
@@ -463,6 +491,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         ],
         summaryTitle: 'Invoice Summary',
         summaryItems,
+        creditSection,
         tableHeaders: ['Description', 'Qty', 'Unit Price', 'Total'],
         tableData: [
           [
@@ -479,6 +508,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       toast.error('Failed to generate PDF.');
     }
   };
+
 
   // ─── Rendering ─────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -1012,7 +1042,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
                 <button type="button" disabled={isSubmitting} onClick={() => setIsInvoiceFormOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
-                <button type="submit" disabled={isSubmitting || !invoiceAmount || !invoiceDueDate} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
+                <button type="submit" disabled={isSubmitting || !invoiceAmount || isNaN(parseFloat(invoiceAmount)) || parseFloat(invoiceAmount) <= 0 || !invoiceDueDate} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Link Invoice</span>
                 </button>

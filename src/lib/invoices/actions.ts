@@ -82,6 +82,8 @@ export async function getInvoicesAction(
       amount: inv.amount,
       creditApplied: inv.creditApplied ?? 0,
       finalAmountDue: inv.finalAmountDue ?? inv.amount,
+      startingCreditBalance: inv.startingCreditBalance ?? null,
+      creditTransactionId: inv.creditTransactionId ?? null,
       status: inv.status as AdminInvoice['status'],
       dueDate: inv.dueDate.toISOString().split('T')[0],
       issuedDate: inv.issuedDate.toISOString().split('T')[0],
@@ -108,6 +110,9 @@ export async function createInvoiceAction(data: InvoiceInput) {
     const invoiceNumber = await generateInvoiceNumber();
     const finalAmount = payload.finalAmountDue ?? (payload.amount - (payload.creditApplied || 0));
 
+    let startingCreditBalance: number | null = null;
+    let creditTransactionId: string | null = null;
+
     // 1. If credit balance applied, check availability and deduct
     if (payload.creditApplied && payload.creditApplied > 0) {
       const client = await prisma.client.findUnique({
@@ -123,6 +128,9 @@ export async function createInvoiceAction(data: InvoiceInput) {
         return { success: false, error: `Insufficient credit balance. Available: $${client.creditBalance.toFixed(2)}` };
       }
 
+      // Capture starting balance BEFORE deduction (for PDF audit trail)
+      startingCreditBalance = client.creditBalance;
+
       // Deduct balance from Client profile
       await prisma.client.update({
         where: { id: payload.clientId },
@@ -133,17 +141,19 @@ export async function createInvoiceAction(data: InvoiceInput) {
         },
       });
 
-      // Record a negative transaction in Prepaid Credits Ledger
-      await prisma.creditTransaction.create({
+      // Record a negative transaction in Prepaid Credits Ledger and capture its ID
+      const creditTx = await prisma.creditTransaction.create({
         data: {
           clientId: payload.clientId,
           amount: -payload.creditApplied,
           description: `Applied credits to invoice ${invoiceNumber}`,
         },
       });
+
+      creditTransactionId = creditTx.id;
     }
 
-    // 2. Insert Invoice record
+    // 2. Insert Invoice record (including credit audit fields)
     await prisma.invoice.create({
       data: {
         clientId: payload.clientId,
@@ -152,6 +162,8 @@ export async function createInvoiceAction(data: InvoiceInput) {
         amount: payload.amount,
         creditApplied: payload.creditApplied || 0,
         finalAmountDue: finalAmount,
+        startingCreditBalance,
+        creditTransactionId,
         status: payload.status,
         dueDate: new Date(payload.dueDate),
       },

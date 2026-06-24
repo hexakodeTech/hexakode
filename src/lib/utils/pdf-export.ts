@@ -8,6 +8,15 @@ interface PDFMetadataItem {
   value: string;
 }
 
+/** Data for the dedicated "CREDIT BALANCE USAGE" block shown when credits are applied */
+interface PDFCreditSection {
+  startingBalance: string;  // formatted, e.g. "$800.00"
+  creditsUsed: string;      // formatted, e.g. "$123.00"
+  remainingBalance: string; // formatted, e.g. "$677.00"
+  paymentMethod: string;    // e.g. "Credit Balance" | "Direct Payment" | "Credit Balance + Direct Payment"
+  transactionId?: string;   // CreditTransaction UUID — shown in the PDF footer
+}
+
 interface PDFExportOptions {
   filename: string;
   title: string;
@@ -15,6 +24,7 @@ interface PDFExportOptions {
   metadata?: PDFMetadataItem[];
   summaryTitle?: string;
   summaryItems?: PDFSummaryItem[];
+  creditSection?: PDFCreditSection; // optional credit balance block
   tableHeaders: string[];
   tableData: any[][];
   emptyMessage?: string;
@@ -43,6 +53,7 @@ export async function exportToPDF({
   metadata = [],
   summaryTitle = 'Report Summary',
   summaryItems = [],
+  creditSection,
   tableHeaders,
   tableData,
   emptyMessage = 'No records found.'
@@ -109,7 +120,7 @@ export async function exportToPDF({
   // Move Y down past the header block
   currentY += logoHeight + 8;
 
-  // Title (Referral Code Report)
+  // Title
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(15, 23, 42);
@@ -135,38 +146,36 @@ export async function exportToPDF({
   doc.line(margin, currentY, pageWidth - margin, currentY);
   currentY += 10;
 
-  // 3. Draw Summary Section (as a modern card with a left colored bar)
+  // ── Invoice Summary card (2-column grid layout) ──────────────────────────────
   if (summaryItems.length > 0) {
-    // Calculate heights & layout
     const itemHeight = 6;
     const padding = 6;
     const numRows = Math.ceil(summaryItems.length / 2);
     const cardHeight = 10 + (numRows * itemHeight) + (padding * 2);
     
-    // Draw card background
-    doc.setFillColor(248, 250, 252); // Slate 50: #f8fafc
+    // Card background
+    doc.setFillColor(248, 250, 252); // Slate 50
     doc.rect(margin, currentY, pageWidth - (margin * 2), cardHeight, 'F');
     
-    // Draw card left accent border
+    // Left accent bar
     doc.setFillColor(13, 148, 136); // Teal 600
     doc.rect(margin, currentY, 3, cardHeight, 'F');
 
     let summaryY = currentY + padding;
     
-    // Draw Summary Title inside card
+    // Summary Title inside card
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
     doc.text(summaryTitle.toUpperCase(), margin + 8, summaryY + 3);
     summaryY += 8;
 
-    // Draw Items in a 2-column grid
+    // Items in a 2-column grid
     doc.setFontSize(9);
     const col1X = margin + 8;
     const col2X = pageWidth / 2 + 10;
 
     for (let i = 0; i < summaryItems.length; i += 2) {
-      // Column 1
       const item1 = summaryItems[i];
       doc.setFont('Helvetica', 'bold');
       doc.setTextColor(71, 85, 105); // Slate 600
@@ -177,7 +186,6 @@ export async function exportToPDF({
       const val1X = col1X + doc.getTextWidth(`${item1.label}: `) + 1;
       doc.text(item1.value, val1X, summaryY);
 
-      // Column 2 (if present)
       if (i + 1 < summaryItems.length) {
         const item2 = summaryItems[i + 1];
         doc.setFont('Helvetica', 'bold');
@@ -193,19 +201,68 @@ export async function exportToPDF({
       summaryY += itemHeight;
     }
 
-    currentY += cardHeight + 10;
+    currentY += cardHeight + 8;
   }
 
-  // 4. Draw Enquiries Section Header
+  // ── Credit Balance Usage card (only when credits were applied) ───────────────
+  if (creditSection) {
+    const creditRows = [
+      { label: 'Starting Credit Balance', value: creditSection.startingBalance },
+      { label: 'Credits Used',             value: creditSection.creditsUsed },
+      { label: 'Remaining Credit Balance', value: creditSection.remainingBalance },
+      { label: 'Payment Method',           value: creditSection.paymentMethod },
+    ];
+
+    const itemHeight = 6;
+    const padding = 6;
+    const cardHeight = 10 + (creditRows.length * itemHeight) + (padding * 2);
+
+    // Card background (slightly green tint to distinguish from Invoice Summary)
+    doc.setFillColor(240, 253, 250); // Teal 50
+    doc.rect(margin, currentY, pageWidth - (margin * 2), cardHeight, 'F');
+
+    // Left accent bar (darker teal to differentiate)
+    doc.setFillColor(15, 118, 110); // Teal 700
+    doc.rect(margin, currentY, 3, cardHeight, 'F');
+
+    let creditY = currentY + padding;
+
+    // Section title
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('CREDIT BALANCE USAGE', margin + 8, creditY + 3);
+    creditY += 8;
+
+    // Single-column list for clarity
+    doc.setFontSize(9);
+    const labelX = margin + 8;
+    const valueX = margin + 90; // right-aligned value column
+
+    creditRows.forEach((row) => {
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text(`${row.label}:`, labelX, creditY);
+
+      doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      doc.text(row.value, valueX, creditY);
+
+      creditY += itemHeight;
+    });
+
+    currentY += cardHeight + 8;
+  }
+
+  // ── Line-item table section header ───────────────────────────────────────────
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(15, 23, 42);
   doc.text('ASSOCIATED ENQUIRIES', margin, currentY);
   currentY += 6;
 
-  // 5. Draw Table
+  // ── Line-item table ───────────────────────────────────────────────────────────
   if (tableData.length === 0) {
-    // Empty state table using jspdf-autotable
     autoTable(doc, {
       startY: currentY,
       head: [tableHeaders],
@@ -222,7 +279,6 @@ export async function exportToPDF({
       margin: { left: margin, right: margin }
     });
   } else {
-    // Normal table using jspdf-autotable
     autoTable(doc, {
       startY: currentY,
       head: [tableHeaders],
@@ -236,21 +292,33 @@ export async function exportToPDF({
     });
   }
 
-  // 6. Draw Footer & Page Numbers
+  // ── Footer & Page Numbers ─────────────────────────────────────────────────────
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFont('Helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184); // Slate 400: #94a3b8
-    
-    // Left footer text (Official HexaKode branding info)
-    doc.text('Generated by HexaKode Engineering | www.hexakode.in', margin, pageHeight - 10);
-    
-    // Right footer text (Page X of Y)
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+    doc.setTextColor(148, 163, 184); // Slate 400
+
+    // Left footer — branding
+    doc.text('Generated by HexaKode Engineering | www.hexakode.in', margin, pageHeight - 14);
+
+    // Credit transaction audit note (only on last page, below main footer line)
+    if (i === totalPages && creditSection?.transactionId) {
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Credit Balance Transaction ID: ${creditSection.transactionId}`,
+        margin,
+        pageHeight - 10
+      );
+    }
+
+    // Right footer — page numbers
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 14, { align: 'right' });
   }
 
   // Save/Download PDF
   doc.save(filename);
 }
+

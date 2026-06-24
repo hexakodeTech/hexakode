@@ -140,6 +140,8 @@ export interface AdminInvoice {
   amount: number;
   creditApplied: number;
   finalAmountDue: number;
+  startingCreditBalance?: number | null; // Client balance BEFORE deduction
+  creditTransactionId?: string | null;   // ID of the CreditTransaction ledger entry
   status: "Paid" | "Pending" | "Overdue";
   dueDate: string;
   issuedDate: string;

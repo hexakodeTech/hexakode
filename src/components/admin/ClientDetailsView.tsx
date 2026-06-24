@@ -527,17 +527,44 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         metadata.push({ label: 'Linked Project', value: inv.projectName });
       }
 
-      const summaryItems = (inv.creditApplied || 0) > 0 
+      const creditApplied = inv.creditApplied || 0;
+      const finalDue = inv.finalAmountDue ?? inv.amount;
+      const hasCredit = creditApplied > 0;
+
+      // Determine payment method label
+      const paymentMethod = hasCredit
+        ? (finalDue > 0 ? 'Credit Balance + Direct Payment' : 'Credit Balance')
+        : 'Direct Payment';
+
+      // Build Invoice Summary items
+      const summaryItems = hasCredit
         ? [
-            { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Credit Applied', value: `$${(inv.creditApplied || 0).toFixed(2)}` },
-            { label: 'Amount Due', value: `$${(inv.finalAmountDue ?? inv.amount).toFixed(2)}` },
-            { label: 'Status', value: inv.status.toUpperCase() },
+            { label: 'Invoice Amount',   value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Credit Deducted',  value: `$${creditApplied.toFixed(2)}` },
+            { label: 'Amount Due',        value: `$${finalDue.toFixed(2)}` },
+            { label: 'Payment Status',    value: inv.status.toUpperCase() },
+            { label: 'Payment Method',    value: paymentMethod },
           ]
         : [
-            { label: 'Total Due', value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Status', value: inv.status.toUpperCase() },
+            { label: 'Invoice Amount',   value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Amount Due',        value: `$${inv.amount.toFixed(2)}` },
+            { label: 'Payment Status',    value: inv.status.toUpperCase() },
+            { label: 'Payment Method',    value: paymentMethod },
           ];
+
+      // Build Credit Balance Usage section (only when credits were applied)
+      let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
+      if (hasCredit && inv.startingCreditBalance != null) {
+        const startingBal = inv.startingCreditBalance;
+        const remainingBal = startingBal - creditApplied;
+        creditSection = {
+          startingBalance:  `$${startingBal.toFixed(2)}`,
+          creditsUsed:      `$${creditApplied.toFixed(2)}`,
+          remainingBalance: `$${remainingBal.toFixed(2)}`,
+          paymentMethod,
+          transactionId:    inv.creditTransactionId ?? undefined,
+        };
+      }
 
       await exportToPDF({
         filename: `Invoice-${inv.invoiceNumber}.pdf`,
@@ -546,6 +573,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         metadata,
         summaryTitle: 'Invoice Summary',
         summaryItems,
+        creditSection,
         tableHeaders: ['Description', 'Qty', 'Unit Price', 'Total'],
         tableData: [
           [
@@ -562,6 +590,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
       toast.error('Failed to generate PDF.');
     }
   };
+
 
   // ─── Credit Tab Actions ────────────────────────────────────────────────────
   const handleSubmitCredit = async (e: React.FormEvent) => {
@@ -1712,7 +1741,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !invoiceAmount || !invoiceDueDate}
+                  disabled={isSubmitting || !invoiceAmount || isNaN(parseFloat(invoiceAmount)) || parseFloat(invoiceAmount) <= 0 || !invoiceDueDate}
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
