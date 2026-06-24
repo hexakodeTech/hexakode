@@ -86,3 +86,73 @@ export interface AdminCoupon {
   status: "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled";
   createdDate: string;
 }
+
+// ─────────────────────────────────────────────
+// Client Portal
+// ─────────────────────────────────────────────
+
+export interface AdminClient {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  websiteUrl?: string | null;
+  status: string;
+  creditBalance: number;
+  notes?: string | null;
+  projectCount: number;
+  createdDate: string;
+}
+
+export interface AdminPortalProject {
+  id: string;
+  name: string;
+  clientId: string;
+  clientName: string;
+  clientCreditBalance?: number;
+  websiteUrl?: string | null;
+  adminUrl?: string | null;
+  status: string;
+  notes?: string | null;
+  logCount: number;
+  createdDate: string;
+}
+
+export interface AdminMaintenanceLog {
+  id: string;
+  projectId: string;
+  projectName: string;
+  projectWebsiteUrl?: string | null;
+  title: string;
+  description?: string | null;
+  logDate: string;
+  createdDate: string;
+}
+
+export interface AdminInvoice {
+  id: string;
+  clientId: string;
+  clientName: string;
+  projectId?: string | null;
+  projectName?: string | null;
+  invoiceNumber: string;
+  amount: number;
+  creditApplied: number;
+  finalAmountDue: number;
+  startingCreditBalance?: number | null; // Client balance BEFORE deduction
+  creditTransactionId?: string | null;   // ID of the CreditTransaction ledger entry
+  status: "Paid" | "Pending" | "Overdue";
+  dueDate: string;
+  issuedDate: string;
+  createdAt: string;
+}
+
+export interface AdminCreditTransaction {
+  id: string;
+  clientId: string;
+  amount: number;
+  description?: string | null;
+  createdAt: string;
+}
+
