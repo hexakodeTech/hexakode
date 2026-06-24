@@ -21,6 +21,18 @@ interface PDFExportOptions {
 }
 
 /**
+ * Loads an image from a URL asynchronously.
+ */
+function loadImg(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(e);
+  });
+}
+
+/**
  * Reusable utility to generate and download a professional PDF report.
  * Uses dynamic imports internally to remain fully safe for Next.js SSR.
  */
@@ -53,33 +65,71 @@ export async function exportToPDF({
   const margin = 20;
   let currentY = 20;
 
-  // 1. Draw Document Header
-  // Subtitle (HexaKode Engineering)
-  doc.setFont('Helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(13, 148, 136); // HexaKode Teal: #0d9488
-  doc.text(subtitle.toUpperCase(), margin, currentY);
-  currentY += 6;
-
-  // Title (e.g. Referral Code Report)
-  doc.setFont('Helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(15, 23, 42); // Slate 900: #0f172a
-  doc.text(title, margin, currentY);
-  currentY += 8;
-
-  // 2. Draw Metadata (e.g. Generated On)
-  if (metadata.length > 0) {
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139); // Slate 500: #64748b
-
-    const metaStrings = metadata.map(item => `${item.label}: ${item.value}`);
-    doc.text(metaStrings.join('   |   '), margin, currentY);
-    currentY += 6;
+  // Load Logo Image
+  let img: HTMLImageElement | null = null;
+  try {
+    img = await loadImg('/logo.png');
+  } catch (err) {
+    console.error('Failed to load primary logo, trying fallback...', err);
+    try {
+      img = await loadImg('/logo-icon.png');
+    } catch (fallbackErr) {
+      console.error('Failed to load fallback logo', fallbackErr);
+    }
   }
 
-  // Horizontal Brand Separator Line
+  // Draw Logo (height approx 10mm -> 38px)
+  const logoHeight = 10;
+  let logoWidth = 10;
+  if (img) {
+    const aspectRatio = img.width / img.height;
+    logoWidth = logoHeight * aspectRatio;
+    doc.addImage(img, 'PNG', margin, currentY, logoWidth, logoHeight);
+  }
+
+  // Draw Brand Name next to the logo
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(15, 23, 42); // Slate 900
+  const textX = img ? margin + logoWidth + 4 : margin;
+  doc.text(subtitle, textX, currentY + 6.25);
+
+  // Draw Website URL on the right
+  const linkText = 'www.hexakode.in';
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(13, 148, 136); // Teal 600: #0d9488
+  const linkY = currentY + 6.25;
+  doc.text(linkText, pageWidth - margin, linkY, { align: 'right' });
+  
+  // Add clickable hyperlink bounding box over the right text
+  const linkWidth = doc.getTextWidth(linkText);
+  doc.link(pageWidth - margin - linkWidth, linkY - 3.5, linkWidth, 5, { url: 'https://www.hexakode.in' });
+
+  // Move Y down past the header block
+  currentY += logoHeight + 8;
+
+  // Title (Referral Code Report)
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15, 23, 42);
+  doc.text(title, margin, currentY);
+  currentY += 6;
+
+  // Metadata items printed line-by-line
+  if (metadata.length > 0) {
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139); // Slate 500
+    
+    metadata.forEach((item) => {
+      doc.text(`${item.label}: ${item.value}`, margin, currentY);
+      currentY += 4.5;
+    });
+  }
+  currentY += 2;
+
+  // Divider line using HexaKode brand blue (Teal #0d9488)
   doc.setDrawColor(13, 148, 136);
   doc.setLineWidth(0.8);
   doc.line(margin, currentY, pageWidth - margin, currentY);
@@ -92,17 +142,17 @@ export async function exportToPDF({
     const padding = 6;
     const numRows = Math.ceil(summaryItems.length / 2);
     const cardHeight = 10 + (numRows * itemHeight) + (padding * 2);
-
+    
     // Draw card background
     doc.setFillColor(248, 250, 252); // Slate 50: #f8fafc
     doc.rect(margin, currentY, pageWidth - (margin * 2), cardHeight, 'F');
-
+    
     // Draw card left accent border
     doc.setFillColor(13, 148, 136); // Teal 600
     doc.rect(margin, currentY, 3, cardHeight, 'F');
 
     let summaryY = currentY + padding;
-
+    
     // Draw Summary Title inside card
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(10);
@@ -121,7 +171,7 @@ export async function exportToPDF({
       doc.setFont('Helvetica', 'bold');
       doc.setTextColor(71, 85, 105); // Slate 600
       doc.text(`${item1.label}:`, col1X, summaryY);
-
+      
       doc.setFont('Helvetica', 'normal');
       doc.setTextColor(15, 23, 42);
       const val1X = col1X + doc.getTextWidth(`${item1.label}: `) + 1;
@@ -160,10 +210,10 @@ export async function exportToPDF({
       startY: currentY,
       head: [tableHeaders],
       body: [
-        [{
-          content: emptyMessage,
-          colSpan: tableHeaders.length,
-          styles: { halign: 'center', textColor: [100, 116, 139], fontStyle: 'italic', cellPadding: 12 }
+        [{ 
+          content: emptyMessage, 
+          colSpan: tableHeaders.length, 
+          styles: { halign: 'center', textColor: [100, 116, 139], fontStyle: 'italic', cellPadding: 12 } 
         }]
       ],
       theme: 'plain',
@@ -193,10 +243,10 @@ export async function exportToPDF({
     doc.setFont('Helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184); // Slate 400: #94a3b8
-
-    // Left footer text
-    doc.text('CONFIDENTIAL - FOR INTERNAL USE ONLY', margin, pageHeight - 10);
-
+    
+    // Left footer text (Official HexaKode branding info)
+    doc.text('Generated by HexaKode Engineering | www.hexakode.in', margin, pageHeight - 10);
+    
     // Right footer text (Page X of Y)
     doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
   }
