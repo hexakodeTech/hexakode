@@ -1,0 +1,175 @@
+<USER_REQUEST>
+Refactor the Client Portal architecture to use a hierarchical Client → Project → Maintenance structure.
+
+OBJECTIVE
+
+The current structure has separate sidebar items:
+
+Client Portal
+├─ Clients
+├─ Projects
+├─ Maintenance Logs
+
+This should be simplified and reorganized into:
+
+Dashboard
+Enquiries
+Demo Requests
+Referral Codes
+
+Clients
+
+CMS
+Settings
+
+Projects and Maintenance Logs should no longer appear as standalone sidebar menu items.
+
+====================================================
+NEW DATA HIERARCHY
+====================================================
+
+Client
+ └── Projects
+        └── Maintenance Logs
+
+Every Project belongs to a Client.
+Every Maintenance Log belongs to a Project.
+
+Projects cannot exist without a Client.
+Maintenance Logs cannot exist without a Project.
+
+====================================================
+CLIENTS PAGE
+====================================================
+
+The Clients page becomes the main entry point.
+
+Display:
+
+- Client Name
+- Company Name
+- Email
+- Phone
+- Website URL (if available)
+- Number of Projects
+- Status
+- Actions
+
+Actions:
+
+- View Client
+- Edit Client
+- Delete Client
+
+Add Client button remains available.
+
+====================================================
+CLIENT DETAILS PAGE
+====================================================
+
+When opening a client, navigate to:
+
+/clients/[id]
+
+Create a client detail page with tabs.
+
+Tabs:
+
+1. Overview
+2. Projects
+3. Invoices
+4. Credits
+
+Top summary cards:
+
+- Total Projects
+- Active Projects
+- Credit Balance
+- Total Maintenance Logs
+- Pending Invoices
+
+Overview tab shows:
+
+- Client Information
+- Contact Details
+- Website URL
+- Client Since
+- Status
+
+====================================================
+PROJECTS TAB
+====================================================
+
+Projects are now managed inside a Client.
+
+Example:
+
+Revopz Engineering
+ ├─ Revopz Website
+ ├─ Admin Dashboard
+ └─ Warranty Portal
+
+Add:
+
++ Add Project
+
+Project Fields:
+
+- Project Name
+- Website URL
+- Admin URL
+- S
+<truncated 1710 bytes>
+s
+
+Actions:
+
+- Generate PDF
+- Download PDF
+- Mark Paid
+
+====================================================
+MIGRATION REQUIREMENTS
+====================================================
+
+- Preserve all existing client data.
+- Preserve all existing project data.
+- Preserve all existing maintenance log data.
+- Re-link maintenance logs to their projects.
+- Re-link projects to their clients.
+- Do not lose any existing records.
+
+====================================================
+UI REQUIREMENTS
+====================================================
+
+- Reuse existing table components.
+- Reuse existing form components.
+- Reuse existing modal components.
+- Reuse existing card components.
+- Maintain current HexaKode Admin Console design system.
+- Maintain current typography, spacing, and styling.
+- Keep the interface responsive.
+
+The final experience should feel like:
+
+Client → Open Client → Manage Projects → Open Project → Manage Maintenance Logs
+
+instead of separate Clients, Projects, and Maintenance menu sections.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-24T14:09:44+05:30.
+
+The user's current state is as follows:
+Active Document: /home/navaneeth/Documents/Projects/hexakode/src/app/admin/maintenance-logs/page.tsx (LANGUAGE_TSX)
+Cursor is on line: 13
+Other open documents:
+- /home/navaneeth/Documents/Projects/hexakode/src/app/admin/maintenance-logs/[id]/page.tsx (LANGUAGE_TSX)
+- /home/navaneeth/Documents/Projects/hexakode/src/components/admin/MaintenanceLogDetailsView.tsx (LANGUAGE_TSX)
+- /home/navaneeth/Documents/Projects/hexakode/src/app/admin/projects/[id]/page.tsx (LANGUAGE_TSX)
+- /home/navaneeth/Documents/Projects/hexakode/src/lib/maintenance-logs/actions.ts (LANGUAGE_TYPESCRIPT)
+- /home/navaneeth/Documents/Projects/hexakode/src/app/admin/projects/page.tsx (LANGUAGE_TSX)
+Browser State:
+  Page D13E29C19A3056AB3AFB007BDE5252A2 (HexaKode | Code that powers growth) - http://localhost:3000/admin/maintenance-logs [ACTIVE]
+    Viewport: 1366x646, Page Height: 646
+</ADDITIONAL_METADATA>

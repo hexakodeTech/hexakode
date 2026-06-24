@@ -14,7 +14,7 @@ const urlSchema = z
 
 const projectSchema = z.object({
   name: z.string().min(1, { message: 'Project name is required' }),
-  clientId: z.string().optional().or(z.literal('')),
+  clientId: z.string().uuid({ message: 'Client ID is required' }),
   websiteUrl: urlSchema.optional().or(z.literal('')),
   adminUrl: urlSchema.optional().or(z.literal('')),
   status: z.string().default('Active'),
@@ -40,7 +40,7 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
       id: p.id,
       name: p.name,
       clientId: p.clientId,
-      clientName: p.client?.name || null,
+      clientName: p.client.name,
       websiteUrl: p.websiteUrl,
       adminUrl: p.adminUrl,
       status: p.status,
@@ -76,7 +76,7 @@ export async function getProjectByIdAction(id: string) {
         id: project.id,
         name: project.name,
         clientId: project.clientId,
-        clientName: project.client?.name || null,
+        clientName: project.client.name,
         websiteUrl: project.websiteUrl,
         adminUrl: project.adminUrl,
         status: project.status,
@@ -116,7 +116,7 @@ export async function createProjectAction(data: ProjectInput) {
     await prisma.project.create({
       data: {
         name: payload.name,
-        clientId: payload.clientId || null,
+        clientId: payload.clientId,
         websiteUrl: payload.websiteUrl || null,
         adminUrl: payload.adminUrl || null,
         status: payload.status || 'Active',
@@ -124,8 +124,8 @@ export async function createProjectAction(data: ProjectInput) {
       },
     });
 
-    revalidatePath('/admin/projects');
-    revalidatePath('/admin/maintenance-logs');
+    revalidatePath('/admin/clients');
+    revalidatePath(`/admin/clients/${payload.clientId}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Project creation error:', error);
@@ -155,7 +155,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
       where: { id },
       data: {
         name: payload.name,
-        clientId: payload.clientId || null,
+        clientId: payload.clientId,
         websiteUrl: payload.websiteUrl || null,
         adminUrl: payload.adminUrl || null,
         status: payload.status || 'Active',
@@ -163,9 +163,9 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
       },
     });
 
-    revalidatePath('/admin/projects');
-    revalidatePath(`/admin/projects/${id}`);
-    revalidatePath('/admin/maintenance-logs');
+    revalidatePath('/admin/clients');
+    revalidatePath(`/admin/clients/${payload.clientId}`);
+    revalidatePath(`/admin/clients/${payload.clientId}/projects/${id}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Project update error:', error);
@@ -186,8 +186,8 @@ export async function deleteProjectAction(id: string) {
 
     await prisma.project.delete({ where: { id } });
 
-    revalidatePath('/admin/projects');
-    revalidatePath('/admin/maintenance-logs');
+    revalidatePath('/admin/clients');
+    revalidatePath(`/admin/clients/${existing.clientId}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Project deletion error:', error);

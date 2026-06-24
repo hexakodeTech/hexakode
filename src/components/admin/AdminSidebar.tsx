@@ -33,14 +33,9 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Enquiries", path: "/admin/enquiries", icon: Inbox },
     { name: "Demo Requests", path: "/admin/demos", icon: Calendar },
     { name: "Referral Codes", path: "/admin/coupons", icon: Ticket },
+    { name: "Clients", path: "/admin/clients", icon: Building2 },
     { name: "CMS", path: "/admin/cms", icon: Database },
     { name: "Settings", path: "/admin/settings", icon: Settings },
-  ];
-
-  const clientPortalItems = [
-    { name: "Clients", path: "/admin/clients", icon: Building2 },
-    { name: "Projects", path: "/admin/projects", icon: FolderKanban },
-    { name: "Maintenance Logs", path: "/admin/maintenance-logs", icon: Wrench },
   ];
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -107,7 +102,7 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation Menu */}
         <nav className="flex-1 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive = pathname === item.path || (item.path === "/admin/clients" && pathname.startsWith("/admin/clients"));
             const Icon = item.icon;
 
             return (
@@ -125,44 +120,6 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
                 {isActive && (
                   <motion.div
                     layoutId="active-indicator"
-                    className="absolute inset-0 bg-surface-container rounded-lg border-l-2 border-secondary z-0"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <Icon
-                  className={`relative z-10 w-4 h-4 transition-transform group-hover:scale-110 ${
-                    isActive ? "text-secondary" : "text-on-surface-variant/70"
-                  }`}
-                />
-                <span className="relative z-10 font-body-sm text-[13px]">{item.name}</span>
-              </Link>
-            );
-          })}
-
-          {/* Client Portal Section */}
-          <div className="pt-3 pb-1">
-            <span className="px-3 font-label-mono text-[8px] uppercase tracking-widest text-on-surface-variant/40 font-semibold">
-              Client Portal
-            </span>
-          </div>
-          {clientPortalItems.map((item) => {
-            const isActive = pathname.startsWith(item.path);
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                onClick={onClose}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group cursor-pointer ${
-                  isActive
-                    ? "text-primary font-medium"
-                    : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-                }`}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-indicator-portal"
                     className="absolute inset-0 bg-surface-container rounded-lg border-l-2 border-secondary z-0"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />

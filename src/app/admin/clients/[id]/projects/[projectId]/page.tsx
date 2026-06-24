@@ -5,18 +5,18 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Project Details | HexaKode Console',
-  description: 'View and manage project details, website URLs, and maintenance history.',
+  description: 'View and manage project details, website URLs, maintenance logs, and invoices.',
 };
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; projectId: string }>;
 }
 
 export default async function AdminProjectDetailsPage({ params }: Props) {
-  const { id } = await params;
+  const { id: clientId, projectId } = await params;
   return (
     <AdminLayout>
-      <ProjectDetailsView id={id} />
+      <ProjectDetailsView clientId={clientId} projectId={projectId} />
     </AdminLayout>
   );
 }

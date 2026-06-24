@@ -6,7 +6,7 @@ import { AdminMaintenanceLog } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 
 const logSchema = z.object({
-  projectId: z.string().optional().or(z.literal('')),
+  projectId: z.string().uuid({ message: 'Project ID is required' }),
   title: z.string().min(1, { message: 'Title is required' }),
   description: z.string().optional().or(z.literal('')),
   logDate: z.string().min(1, { message: 'Log date is required' }),
@@ -29,8 +29,8 @@ export async function getMaintenanceLogsAction(): Promise<AdminMaintenanceLog[]>
     return list.map((l) => ({
       id: l.id,
       projectId: l.projectId,
-      projectName: l.project?.name || null,
-      projectWebsiteUrl: l.project?.websiteUrl || null,
+      projectName: l.project.name,
+      projectWebsiteUrl: l.project.websiteUrl,
       title: l.title,
       description: l.description,
       logDate: l.logDate.toISOString().split('T')[0],
@@ -50,7 +50,7 @@ export async function getMaintenanceLogByIdAction(id: string) {
     const log = await prisma.maintenanceLog.findUnique({
       where: { id },
       include: {
-        project: { select: { id: true, name: true, websiteUrl: true, adminUrl: true } },
+        project: { select: { id: true, name: true, websiteUrl: true, adminUrl: true, clientId: true } },
       },
     });
 
@@ -59,8 +59,8 @@ export async function getMaintenanceLogByIdAction(id: string) {
     return {
       id: log.id,
       projectId: log.projectId,
-      projectName: log.project?.name || null,
-      projectWebsiteUrl: log.project?.websiteUrl || null,
+      projectName: log.project.name,
+      projectWebsiteUrl: log.project.websiteUrl,
       title: log.title,
       description: log.description,
       logDate: log.logDate.toISOString().split('T')[0],
@@ -84,16 +84,26 @@ export async function createMaintenanceLogAction(data: MaintenanceLogInput) {
   const payload = parsed.data;
 
   try {
+    const project = await prisma.project.findUnique({
+      where: { id: payload.projectId },
+      select: { clientId: true },
+    });
+
+    if (!project) {
+      return { success: false, error: 'Linked project not found.' };
+    }
+
     await prisma.maintenanceLog.create({
       data: {
-        projectId: payload.projectId || null,
+        projectId: payload.projectId,
         title: payload.title,
         description: payload.description || null,
         logDate: new Date(payload.logDate),
       },
     });
 
-    revalidatePath('/admin/maintenance-logs');
+    revalidatePath(`/admin/clients/${project.clientId}`);
+    revalidatePath(`/admin/clients/${project.clientId}/projects/${payload.projectId}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Maintenance log creation error:', error);
@@ -114,7 +124,13 @@ export async function updateMaintenanceLogAction(id: string, data: MaintenanceLo
   const payload = parsed.data;
 
   try {
-    const existing = await prisma.maintenanceLog.findUnique({ where: { id } });
+    const existing = await prisma.maintenanceLog.findUnique({
+      where: { id },
+      include: {
+        project: { select: { clientId: true } },
+      },
+    });
+
     if (!existing) {
       return { success: false, error: 'Maintenance log not found.' };
     }
@@ -122,15 +138,15 @@ export async function updateMaintenanceLogAction(id: string, data: MaintenanceLo
     await prisma.maintenanceLog.update({
       where: { id },
       data: {
-        projectId: payload.projectId || null,
+        projectId: payload.projectId,
         title: payload.title,
         description: payload.description || null,
         logDate: new Date(payload.logDate),
       },
     });
 
-    revalidatePath('/admin/maintenance-logs');
-    revalidatePath(`/admin/maintenance-logs/${id}`);
+    revalidatePath(`/admin/clients/${existing.project.clientId}`);
+    revalidatePath(`/admin/clients/${existing.project.clientId}/projects/${payload.projectId}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Maintenance log update error:', error);
@@ -144,14 +160,21 @@ export async function updateMaintenanceLogAction(id: string, data: MaintenanceLo
  */
 export async function deleteMaintenanceLogAction(id: string) {
   try {
-    const existing = await prisma.maintenanceLog.findUnique({ where: { id } });
+    const existing = await prisma.maintenanceLog.findUnique({
+      where: { id },
+      include: {
+        project: { select: { clientId: true } },
+      },
+    });
+
     if (!existing) {
       return { success: false, error: 'Maintenance log not found.' };
     }
 
     await prisma.maintenanceLog.delete({ where: { id } });
 
-    revalidatePath('/admin/maintenance-logs');
+    revalidatePath(`/admin/clients/${existing.project.clientId}`);
+    revalidatePath(`/admin/clients/${existing.project.clientId}/projects/${existing.projectId}`);
     return { success: true };
   } catch (error: unknown) {
     console.error('Maintenance log deletion error:', error);

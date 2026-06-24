@@ -98,6 +98,8 @@ export interface AdminClient {
   phone?: string | null;
   company?: string | null;
   websiteUrl?: string | null;
+  status: string;
+  creditBalance: number;
   notes?: string | null;
   projectCount: number;
   createdDate: string;
@@ -106,8 +108,8 @@ export interface AdminClient {
 export interface AdminPortalProject {
   id: string;
   name: string;
-  clientId?: string | null;
-  clientName?: string | null;
+  clientId: string;
+  clientName: string;
   websiteUrl?: string | null;
   adminUrl?: string | null;
   status: string;
@@ -118,12 +120,34 @@ export interface AdminPortalProject {
 
 export interface AdminMaintenanceLog {
   id: string;
-  projectId?: string | null;
-  projectName?: string | null;
+  projectId: string;
+  projectName: string;
   projectWebsiteUrl?: string | null;
   title: string;
   description?: string | null;
   logDate: string;
   createdDate: string;
+}
+
+export interface AdminInvoice {
+  id: string;
+  clientId: string;
+  clientName: string;
+  projectId?: string | null;
+  projectName?: string | null;
+  invoiceNumber: string;
+  amount: number;
+  status: "Paid" | "Pending" | "Overdue";
+  dueDate: string;
+  issuedDate: string;
+  createdAt: string;
+}
+
+export interface AdminCreditTransaction {
+  id: string;
+  clientId: string;
+  amount: number;
+  description?: string | null;
+  createdAt: string;
 }
 

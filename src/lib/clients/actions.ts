@@ -18,6 +18,8 @@ const clientSchema = z.object({
   phone: z.string().optional().or(z.literal('')),
   company: z.string().optional().or(z.literal('')),
   websiteUrl: urlSchema.optional().or(z.literal('')),
+  status: z.string().default('Active').optional(),
+  creditBalance: z.number().default(0).optional(),
   notes: z.string().optional().or(z.literal('')),
 });
 
@@ -42,6 +44,8 @@ export async function getClientsAction(): Promise<AdminClient[]> {
       phone: c.phone,
       company: c.company,
       websiteUrl: c.websiteUrl,
+      status: c.status,
+      creditBalance: c.creditBalance,
       notes: c.notes,
       projectCount: c._count.projects,
       createdDate: c.createdAt.toISOString().split('T')[0],
@@ -79,6 +83,8 @@ export async function getClientByIdAction(id: string) {
         phone: client.phone,
         company: client.company,
         websiteUrl: client.websiteUrl,
+        status: client.status,
+        creditBalance: client.creditBalance,
         notes: client.notes,
         projectCount: client.projects.length,
         createdDate: client.createdAt.toISOString().split('T')[0],
@@ -121,6 +127,8 @@ export async function createClientAction(data: ClientInput) {
         phone: payload.phone || null,
         company: payload.company || null,
         websiteUrl: payload.websiteUrl || null,
+        status: payload.status || 'Active',
+        creditBalance: payload.creditBalance ?? 0,
         notes: payload.notes || null,
       },
     });
@@ -159,6 +167,8 @@ export async function updateClientAction(id: string, data: ClientInput) {
         phone: payload.phone || null,
         company: payload.company || null,
         websiteUrl: payload.websiteUrl || null,
+        status: payload.status || 'Active',
+        creditBalance: payload.creditBalance ?? 0,
         notes: payload.notes || null,
       },
     });

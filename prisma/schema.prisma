@@ -188,17 +188,20 @@ model DemoRequest {
 
 /// Client accounts managed in the admin portal.
 model Client {
-  id         String   @id @default(uuid()) @db.Uuid
-  name       String
-  email      String?
-  phone      String?
-  company    String?
-  websiteUrl String?
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  projects Project[]
+  id                String              @id @default(uuid()) @db.Uuid
+  name              String
+  email             String?
+  phone             String?
+  company           String?
+  websiteUrl        String?
+  status            String              @default("Active")
+  creditBalance     Float               @default(0.0)
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  projects          Project[]
+  invoices          Invoice[]
+  creditTransactions CreditTransaction[]
 
   @@index([name])
   @@map("clients")
@@ -206,18 +209,18 @@ model Client {
 
 /// Projects associated with clients.
 model Project {
-  id         String   @id @default(uuid()) @db.Uuid
-  name       String
-  clientId   String?  @db.Uuid
-  websiteUrl String?
-  adminUrl   String?
-  status     String   @default("Active")
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  client          Client?          @relation(fields: [clientId], references: [id])
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  clientId        String           @db.Uuid
+  websiteUrl      String?
+  adminUrl        String?
+  status          String           @default("Active")
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
   maintenanceLogs MaintenanceLog[]
+  invoices        Invoice[]
 
   @@index([clientId])
   @@index([status])
@@ -227,16 +230,46 @@ model Project {
 /// Maintenance log entries for projects.
 model MaintenanceLog {
   id          String   @id @default(uuid()) @db.Uuid
-  projectId   String?  @db.Uuid
+  projectId   String   @db.Uuid
   title       String
   description String?
   logDate     DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  project Project? @relation(fields: [projectId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([logDate])
   @@map("maintenance_logs")
+}
+
+model Invoice {
+  id            String   @id @default(uuid()) @db.Uuid
+  clientId      String   @db.Uuid
+  projectId     String?  @db.Uuid
+  invoiceNumber String   @unique
+  amount        Float
+  status        String   @default("Pending") // "Paid", "Pending", "Overdue"
+  dueDate       DateTime
+  issuedDate    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([projectId])
+  @@map("invoices")
+}
+
+model CreditTransaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  clientId    String   @db.Uuid
+  amount      Float
+  description String?
+  createdAt   DateTime @default(now())
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("credit_transactions")
 }

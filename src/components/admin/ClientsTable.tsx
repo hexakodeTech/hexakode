@@ -71,6 +71,7 @@ export default function ClientsTable() {
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [status, setStatus] = useState('Active');
   const [notes, setNotes] = useState('');
   const [formError, setFormError] = useState('');
   const [urlError, setUrlError] = useState('');
@@ -97,6 +98,7 @@ export default function ClientsTable() {
     setPhone('');
     setCompany('');
     setWebsiteUrl('');
+    setStatus('Active');
     setNotes('');
     setFormError('');
     setUrlError('');
@@ -115,6 +117,7 @@ export default function ClientsTable() {
     setPhone(client.phone || '');
     setCompany(client.company || '');
     setWebsiteUrl(client.websiteUrl || '');
+    setStatus(client.status || 'Active');
     setNotes(client.notes || '');
     setFormError('');
     setUrlError('');
@@ -147,7 +150,7 @@ export default function ClientsTable() {
 
     setIsSubmitting(true);
     try {
-      const payload = { name, email, phone, company, websiteUrl, notes };
+      const payload = { name, email, phone, company, websiteUrl, status, notes };
 
       if (isEditing && editingId) {
         const res = await updateClientAction(editingId, payload);
@@ -241,7 +244,7 @@ export default function ClientsTable() {
             <span>Add Client</span>
           </button>
         }
-        headers={['Client Name', 'Company', 'Contact', 'Website', 'Projects', 'Created', 'Actions']}
+        headers={['Client Name', 'Company', 'Contact', 'Website', 'Projects', 'Status', 'Actions']}
       >
         {isLoading ? (
           <tr>
@@ -315,7 +318,15 @@ export default function ClientsTable() {
                 <span className="font-mono text-xs text-on-surface-variant">{c.projectCount}</span>
               </td>
               <td className="px-6 py-4">
-                <span className="font-mono text-xs text-on-surface-variant/70">{c.createdDate}</span>
+                <span
+                  className={`text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full inline-block ${
+                    c.status === 'Active'
+                      ? 'bg-emerald-500/10 text-emerald-500'
+                      : 'bg-secondary-container/20 text-on-secondary-container'
+                  }`}
+                >
+                  {c.status}
+                </span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-1.5">
@@ -460,6 +471,21 @@ export default function ClientsTable() {
                 </p>
               </div>
 
+              {/* Status Select */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
               {/* Notes */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
@@ -508,8 +534,8 @@ export default function ClientsTable() {
               Are you sure you want to delete{' '}
               <span className="font-semibold text-primary">{clientToDelete.name}</span>?
             </p>
-            <p className="text-[10px] text-on-surface-variant/60 mb-6">
-              Associated projects will not be deleted but will be unlinked.
+            <p className="text-[10px] text-error font-medium mb-6">
+              Associated projects, maintenance logs, invoices, and credit history will also be permanently deleted.
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
