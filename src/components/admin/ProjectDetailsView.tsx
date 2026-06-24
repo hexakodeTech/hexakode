@@ -23,6 +23,7 @@ import {
   Calendar,
   DollarSign,
   Download,
+  CheckCircle2,
 } from 'lucide-react';
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
@@ -285,28 +286,69 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setIsInvoiceFormOpen(true);
   };
 
+  const updateInvoiceStatusAutomatically = (amtStr: string, deductStr: string, checked: boolean) => {
+    const amt = parseFloat(amtStr) || 0;
+    if (amt <= 0) {
+      setInvoiceStatus('Pending');
+      return;
+    }
+    let deduct = 0;
+    if (checked && data?.project) {
+      const rawDeduct = parseFloat(deductStr) || 0;
+      const maxDeduct = Math.min(amt, data.project.clientCreditBalance || 0);
+      deduct = Math.min(rawDeduct, maxDeduct);
+    }
+    const due = Math.max(0, amt - deduct);
+    if (due === 0) {
+      setInvoiceStatus('Paid');
+    } else {
+      setInvoiceStatus('Pending');
+    }
+  };
+
   const handleApplyCreditsToggle = (checked: boolean) => {
     setApplyCredits(checked);
+    let deductionStr = '';
     if (checked && data?.project) {
       const amt = parseFloat(invoiceAmount) || 0;
       const maxDeduct = Math.min(amt, data.project.clientCreditBalance || 0);
-      setCreditDeduction(maxDeduct.toString());
+      deductionStr = maxDeduct.toString();
+      setCreditDeduction(deductionStr);
     } else {
       setCreditDeduction('');
     }
+    updateInvoiceStatusAutomatically(invoiceAmount, deductionStr, checked);
   };
 
   const handleInvoiceAmountChange = (val: string) => {
     setInvoiceAmount(val);
     setInvoiceFormError('');
+    let currentDeductionStr = creditDeduction;
     if (applyCredits && data?.project) {
       const amt = parseFloat(val) || 0;
       const maxDeduct = Math.min(amt, data.project.clientCreditBalance || 0);
       const currentVal = parseFloat(creditDeduction) || 0;
       if (currentVal > maxDeduct || !creditDeduction) {
-        setCreditDeduction(maxDeduct.toString());
+        currentDeductionStr = maxDeduct.toString();
+        setCreditDeduction(currentDeductionStr);
       }
     }
+    updateInvoiceStatusAutomatically(val, currentDeductionStr, applyCredits);
+  };
+
+  const handleCreditDeductionChange = (val: string) => {
+    setCreditDeduction(val);
+    let finalVal = val;
+    if (data?.project) {
+      const amt = parseFloat(invoiceAmount) || 0;
+      const maxDeduct = Math.min(amt, data.project.clientCreditBalance || 0);
+      const inputVal = parseFloat(val) || 0;
+      if (inputVal > maxDeduct) {
+        finalVal = maxDeduct.toString();
+        setCreditDeduction(finalVal);
+      }
+    }
+    updateInvoiceStatusAutomatically(invoiceAmount, finalVal, applyCredits);
   };
 
   const handleSubmitInvoice = async (e: React.FormEvent) => {
@@ -327,22 +369,18 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
     let deduction = 0;
     if (applyCredits) {
-      deduction = parseFloat(creditDeduction) || 0;
-      if (isNaN(deduction) || deduction < 0) {
+      const rawDeduction = parseFloat(creditDeduction) || 0;
+      if (isNaN(rawDeduction) || rawDeduction < 0) {
         setInvoiceFormError('Credit deduction amount must be a valid non-negative number.');
         return;
       }
-      const deductionParts = creditDeduction.split('.');
+      
+      const maxAllowed = data?.project ? Math.min(amt, data.project.clientCreditBalance || 0) : amt;
+      deduction = Math.min(rawDeduction, maxAllowed);
+
+      const deductionParts = deduction.toString().split('.');
       if (deductionParts.length > 1 && deductionParts[1].length > 2) {
         setInvoiceFormError('Credit deduction amount cannot have more than 2 decimal places');
-        return;
-      }
-      if (data?.project && deduction > (data.project.clientCreditBalance || 0)) {
-        setInvoiceFormError(`Deduction cannot exceed available client credit balance ($${(data.project.clientCreditBalance || 0).toFixed(2)})`);
-        return;
-      }
-      if (deduction > amt) {
-        setInvoiceFormError('Deduction cannot exceed the total invoice amount.');
         return;
       }
     }
@@ -914,7 +952,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                           min="0"
                           max={Math.min(parseFloat(invoiceAmount) || 0, data.project.clientCreditBalance)}
                           value={creditDeduction}
-                          onChange={(e) => setCreditDeduction(e.target.value)}
+                          onChange={(e) => handleCreditDeductionChange(e.target.value)}
                           placeholder="0.00"
                           className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
                         />
@@ -925,25 +963,41 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
               )}
 
               {/* Live Summary Panel */}
-              <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
-                <div className="flex justify-between items-center text-on-surface-variant">
-                  <span>Invoice Amount:</span>
-                  <span className="font-mono">${(parseFloat(invoiceAmount) || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-on-surface-variant">
-                  <span>Credit Applied:</span>
-                  <span className="font-mono">-${(applyCredits ? (parseFloat(creditDeduction) || 0) : 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold text-primary">
-                  <span>Amount Due:</span>
-                  <span className="font-mono">
-                    ${Math.max(
-                      0,
-                      (parseFloat(invoiceAmount) || 0) - (applyCredits ? (parseFloat(creditDeduction) || 0) : 0)
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const amt = parseFloat(invoiceAmount) || 0;
+                const deduct = applyCredits ? (parseFloat(creditDeduction) || 0) : 0;
+                const due = Math.max(0, amt - deduct);
+                const isFullyCovered = amt > 0 && due === 0;
+
+                return (
+                  <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
+                    <div className="flex justify-between items-center text-on-surface-variant">
+                      <span>Invoice Amount:</span>
+                      <span className="font-mono">${amt.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-on-surface-variant">
+                      <span>Credit Applied:</span>
+                      <span className="font-mono">-${deduct.toFixed(2)}</span>
+                    </div>
+                    <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${
+                      isFullyCovered 
+                        ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1' 
+                        : 'text-primary'
+                    }`}>
+                      <span>Amount Due:</span>
+                      <span className="font-mono">
+                        ${due.toFixed(2)}
+                      </span>
+                    </div>
+                    {isFullyCovered && (
+                      <div className="text-[10px] text-emerald-500 font-semibold flex items-center justify-end gap-1 pt-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Fully covered by credit balance</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Due Date *</label>
                 <input type="date" required value={invoiceDueDate} onChange={(e) => setInvoiceDueDate(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary text-on-surface" />
