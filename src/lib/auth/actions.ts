@@ -224,3 +224,16 @@ export async function getCurrentUser() {
     localUser,
   };
 }
+
+export async function getAdminUserProfile() {
+  const result = await getCurrentUser();
+  if (!result) return null;
+
+  const { localUser } = result;
+
+  return {
+    name: localUser.name,
+    email: localUser.email,
+    status: localUser.status,
+  };
+}
