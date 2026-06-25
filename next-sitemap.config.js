@@ -1,13 +1,15 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-    siteUrl: 'https://www.hexakode.in',
+    siteUrl: "https://www.hexakode.in",
     generateRobotsTxt: true,
     sitemapSize: 7000,
-    changefreq: 'weekly',
+    changefreq: "weekly",
     priority: 0.7,
     exclude: [
-        '/admin',
-        '/studio',
-        '/api/*'
+        "/admin",
+        "/admin/*",
+        "/studio",
+        "/studio/*",
+        "/api/*",
     ],
 };
