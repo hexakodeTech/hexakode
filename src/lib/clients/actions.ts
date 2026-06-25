@@ -2,8 +2,9 @@
 
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
-import { AdminClient } from '@/types/admin';
+import { AdminClient, AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { calculateCouponStatus } from '@/lib/coupons/utils';
 
 const urlSchema = z
   .string()
@@ -70,6 +71,9 @@ export async function getClientByIdAction(id: string) {
             _count: { select: { maintenanceLogs: true } },
           },
         },
+        coupons: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -101,6 +105,43 @@ export async function getClientByIdAction(id: string) {
         logCount: p._count.maintenanceLogs,
         createdDate: p.createdAt.toISOString().split('T')[0],
       })),
+      coupons: client.coupons.map((c) => {
+        const remainingEnquiries = Math.max(0, c.maxLimit - c.currentEnquiries);
+        const status = calculateCouponStatus(
+          c.enabled,
+          c.currentEnquiries,
+          c.maxLimit,
+          c.expiryType,
+          c.expiryDate,
+          c.startDate
+        );
+
+        let activeDays: number | null = null;
+        if (c.expiryType === 'custom' && c.expiryDate) {
+          const diffTime = c.expiryDate.getTime() - c.startDate.getTime();
+          activeDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        }
+
+        return {
+          id: c.id,
+          code: c.code,
+          referrerName: c.referrerName,
+          rewardType: c.rewardType,
+          notes: c.notes,
+          startDate: c.startDate.toISOString().split('T')[0],
+          activeDays,
+          maxLimit: c.maxLimit,
+          currentEnquiries: c.currentEnquiries,
+          remainingEnquiries,
+          expiryType: c.expiryType,
+          expiryDate: c.expiryDate ? c.expiryDate.toISOString().split('T')[0] : null,
+          enabled: c.enabled,
+          status,
+          createdDate: c.createdAt.toISOString().split('T')[0],
+          clientId: c.clientId,
+          clientName: c.clientName,
+        } as AdminCoupon;
+      }),
     };
   } catch (error) {
     console.error('Error fetching client by id:', error);

@@ -85,6 +85,8 @@ export interface AdminCoupon {
   enabled: boolean;
   status: "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled";
   createdDate: string;
+  clientId?: string | null;
+  clientName?: string | null;
 }
 
 // ─────────────────────────────────────────────
