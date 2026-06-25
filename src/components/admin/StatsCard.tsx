@@ -10,11 +10,17 @@ interface StatsCardProps {
     value: string;
     type: "positive" | "negative" | "neutral";
   };
+  onClick?: () => void;
 }
 
-export default function StatsCard({ title, value, subtext, icon: Icon, trend }: StatsCardProps) {
+export default function StatsCard({ title, value, subtext, icon: Icon, trend, onClick }: StatsCardProps) {
   return (
-    <div className="relative overflow-hidden bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-card hover:shadow-premium hover:border-outline-variant/60 transition-all duration-300 group">
+    <div
+      onClick={onClick}
+      className={`relative overflow-hidden bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-card hover:shadow-premium hover:border-outline-variant/60 transition-all duration-300 group ${
+        onClick ? "cursor-pointer hover:shadow-lg hover:shadow-secondary/5 hover:bg-surface-container-low/20 active:scale-[0.99]" : ""
+      }`}
+    >
       {/* Background Subtle Icon Accent */}
       <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-[0.02] text-primary group-hover:scale-110 transition-transform duration-500 pointer-events-none">
         <Icon className="w-32 h-32" />
