@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { AdminCoupon } from '@/types/admin';
 import DataTable from './DataTable';
 import StatsCard from './StatsCard';
-import { Eye, Edit2, Trash2, Plus, X, Loader2, Ticket, ShieldCheck, Users, IndianRupee, Sparkles } from 'lucide-react';
+import { Eye, Edit2, Trash2, Plus, X, Loader2, Ticket, ShieldCheck, Users, IndianRupee, Sparkles, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getCouponsAction,
   createCouponAction,
   updateCouponAction,
   deleteCouponAction,
-  getReferralStatsAction
+  getReferralStatsAction,
+  getClientsForSelectorAction
 } from '@/lib/coupons/actions';
 
 export default function CouponsTable() {
@@ -51,6 +52,32 @@ export default function CouponsTable() {
   const [expiryDate, setExpiryDate] = useState('');
   const [formError, setFormError] = useState('');
 
+  // Client Selection Fields
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedClientName, setSelectedClientName] = useState('');
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [clientsList, setClientsList] = useState<{ id: string; name: string; email: string | null; company: string | null }[]>([]);
+  const [isClientsLoading, setIsClientsLoading] = useState(false);
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+
+  // Fetch active clients when the modal opens
+  useEffect(() => {
+    if (isFormOpen) {
+      loadClientsForSelector();
+    }
+  }, [isFormOpen]);
+
+  async function loadClientsForSelector() {
+    setIsClientsLoading(true);
+    const res = await getClientsForSelectorAction();
+    if (res.success && res.data) {
+      setClientsList(res.data);
+    } else {
+      toast.error(res.error || 'Failed to load active clients.');
+    }
+    setIsClientsLoading(false);
+  }
+
   // Fetch coupons on mount
   useEffect(() => {
     loadCoupons();
@@ -88,6 +115,10 @@ export default function CouponsTable() {
     setStartDate(getTodayDateString());
     setExpiryDate(getDefaultExpiryDate());
     setFormError('');
+    setSelectedClientId('');
+    setSelectedClientName('');
+    setClientSearchQuery('');
+    setIsClientDropdownOpen(false);
     setIsEditing(false);
     setIsFormOpen(true);
   };
@@ -108,6 +139,10 @@ export default function CouponsTable() {
       setExpiryDate(getDefaultExpiryDate());
     }
     
+    setSelectedClientId(coupon.clientId || '');
+    setSelectedClientName(coupon.clientName || '');
+    setClientSearchQuery('');
+    setIsClientDropdownOpen(false);
     setFormError('');
     setIsEditing(true);
     setIsFormOpen(true);
@@ -188,6 +223,13 @@ export default function CouponsTable() {
       return;
     }
 
+    if (rewardType === 'Service Credit') {
+      if (!selectedClientId) {
+        setFormError('Please select a client for this service credit referral.');
+        return;
+      }
+    }
+
     if (expiryType === 'custom') {
       if (!expiryDate) {
         setFormError('Expiry date is required.');
@@ -217,7 +259,9 @@ export default function CouponsTable() {
           maxLimit,
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
-          enabled
+          enabled,
+          clientId: rewardType === 'Service Credit' ? selectedClientId : null,
+          clientName: rewardType === 'Service Credit' ? selectedClientName : null,
         });
         if (!res.success) {
           setFormError(res.error || 'Failed to update referral code.');
@@ -237,7 +281,9 @@ export default function CouponsTable() {
           maxLimit,
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
-          enabled
+          enabled,
+          clientId: rewardType === 'Service Credit' ? selectedClientId : null,
+          clientName: rewardType === 'Service Credit' ? selectedClientName : null,
         });
         if (!res.success) {
           setFormError(res.error || 'Failed to create referral code.');
@@ -263,6 +309,15 @@ export default function CouponsTable() {
       (c.rewardType && c.rewardType.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const filteredClients = clientsList.filter((client) => {
+    const q = clientSearchQuery.toLowerCase();
+    return (
+      client.name.toLowerCase().includes(q) ||
+      (client.email && client.email.toLowerCase().includes(q)) ||
+      (client.company && client.company.toLowerCase().includes(q))
+    );
   });
 
   const totalPages = Math.ceil(filteredCoupons.length / itemsPerPage);
@@ -547,8 +602,15 @@ export default function CouponsTable() {
                   <select
                     value={rewardType}
                     onChange={(e) => {
-                      setRewardType(e.target.value);
+                      const newType = e.target.value;
+                      setRewardType(newType);
                       setFormError('');
+                      if (newType !== 'Service Credit') {
+                        setSelectedClientId('');
+                        setSelectedClientName('');
+                        setClientSearchQuery('');
+                        setIsClientDropdownOpen(false);
+                      }
                     }}
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
                   >
@@ -559,6 +621,106 @@ export default function CouponsTable() {
                     <option value="Custom Reward">Custom Reward</option>
                   </select>
                 </div>
+
+                {rewardType === 'Service Credit' && (
+                  <div className="relative">
+                    <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                      Client Profile <span className="text-error">*</span>
+                    </label>
+                    <div className="relative">
+                      {isClientDropdownOpen && (
+                        <div 
+                          className="fixed inset-0 z-40 bg-transparent" 
+                          onClick={() => setIsClientDropdownOpen(false)}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                        className="w-full text-left bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 flex items-center justify-between min-h-[38px] relative z-50 text-on-surface"
+                      >
+                        {selectedClientId ? (
+                          <div className="flex flex-col text-left">
+                            <span className="font-semibold">{selectedClientName}</span>
+                            <span className="text-[9px] text-on-surface-variant/75 font-mono">
+                              {(() => {
+                                const c = clientsList.find(cl => cl.id === selectedClientId);
+                                if (!c) return '';
+                                return c.email ? `${c.email}${c.company ? ' • ' + c.company : ''}` : c.company || '';
+                              })()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-on-surface-variant/50">Select client...</span>
+                        )}
+                        <span className="text-[10px] text-on-surface-variant/50">▼</span>
+                      </button>
+
+                      {isClientDropdownOpen && (
+                        <div className="absolute left-0 right-0 z-50 mt-1 bg-surface-container-lowest border border-outline-variant/40 rounded-lg shadow-premium p-2 space-y-2 max-h-60 overflow-y-auto">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+                            <input
+                              type="text"
+                              placeholder="Search by name, email, or company..."
+                              value={clientSearchQuery}
+                              onChange={(e) => setClientSearchQuery(e.target.value)}
+                              className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary"
+                            />
+                          </div>
+
+                          <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                            {isClientsLoading ? (
+                              <div className="flex items-center justify-center py-4 gap-2 text-xs text-on-surface-variant/70">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary" />
+                                <span>Loading clients...</span>
+                              </div>
+                            ) : filteredClients.length === 0 ? (
+                              <div className="p-3 text-center space-y-2">
+                                <p className="text-xs text-on-surface-variant/60 leading-relaxed">
+                                  No clients available. Please create a client first.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsFormOpen(false);
+                                    router.push('/admin/clients');
+                                  }}
+                                  className="mx-auto flex items-center justify-center gap-1 bg-primary text-on-primary text-[10px] font-semibold px-2.5 py-1 rounded hover:shadow-md transition-all cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                  <span>Create Client</span>
+                                </button>
+                              </div>
+                            ) : (
+                              filteredClients.map((client) => (
+                                <button
+                                  key={client.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedClientId(client.id);
+                                    setSelectedClientName(client.name);
+                                    setIsClientDropdownOpen(false);
+                                    setClientSearchQuery('');
+                                    setFormError('');
+                                  }}
+                                  className={`w-full text-left px-2.5 py-2 rounded-md hover:bg-surface-container-low transition-colors flex flex-col gap-0.5 cursor-pointer ${
+                                    selectedClientId === client.id ? 'bg-secondary-container/10 border-l-2 border-secondary' : ''
+                                  }`}
+                                >
+                                  <span className="text-xs font-semibold text-on-surface">{client.name}</span>
+                                  <span className="text-[9px] text-on-surface-variant/70 font-mono">
+                                    {client.email ? `${client.email}${client.company ? ' • ' + client.company : ''}` : client.company || '-'}
+                                  </span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">

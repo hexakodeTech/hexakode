@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { calculateCouponStatus } from './utils';
 
 function getBudgetNumericValue(budget: string | null): number {
   if (!budget) return 0;
@@ -20,41 +21,6 @@ function getBudgetNumericValue(budget: string | null): number {
     default:
       return 0;
   }
-}
-
-// Helper to determine status
-function calculateCouponStatus(
-  enabled: boolean,
-  currentEnquiries: number,
-  maxLimit: number,
-  expiryType: string,
-  expiryDate: Date | null,
-  startDate: Date
-): "Active" | "Expired" | "Exhausted" | "Disabled" | "Scheduled" {
-  if (!enabled) {
-    return "Disabled";
-  }
-  
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  
-  if (today < start) {
-    return "Scheduled";
-  }
-  
-  if (expiryType === "custom" && expiryDate) {
-    const expiry = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-    if (today > expiry) {
-      return "Expired";
-    }
-  }
-  
-  if (currentEnquiries >= maxLimit) {
-    return "Exhausted";
-  }
-  
-  return "Active";
 }
 
 /**
@@ -92,6 +58,8 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
         enabled: c.enabled,
         status,
         createdDate: c.createdAt.toISOString().split('T')[0],
+        clientId: c.clientId,
+        clientName: c.clientName,
       };
     });
   } catch (error) {
@@ -113,6 +81,8 @@ export async function createCouponAction(data: {
   expiryType: "custom" | "infinite";
   expiryDate?: string | null;
   enabled: boolean;
+  clientId?: string | null;
+  clientName?: string | null;
 }) {
   const uppercasedCode = data.code.toUpperCase().trim();
   
@@ -127,6 +97,11 @@ export async function createCouponAction(data: {
   }
   if (!data.rewardType || data.rewardType.trim().length === 0) {
     return { success: false, error: "Reward type is required." };
+  }
+  if (data.rewardType === "Service Credit") {
+    if (!data.clientId) {
+      return { success: false, error: "Please select a client for this service credit referral." };
+    }
   }
   if (data.maxLimit <= 0) {
     return { success: false, error: "Maximum referral limit must be greater than 0." };
@@ -190,6 +165,8 @@ export async function createCouponAction(data: {
         expiryType: data.expiryType,
         expiryDate: parsedExpiryDate,
         enabled: data.enabled,
+        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
+        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
       },
     });
 
@@ -232,6 +209,8 @@ export async function updateCouponAction(
     expiryType: "custom" | "infinite";
     expiryDate?: string | null;
     enabled: boolean;
+    clientId?: string | null;
+    clientName?: string | null;
   }
 ) {
   if (!data.referrerName || data.referrerName.trim().length === 0) {
@@ -239,6 +218,11 @@ export async function updateCouponAction(
   }
   if (!data.rewardType || data.rewardType.trim().length === 0) {
     return { success: false, error: "Reward type is required." };
+  }
+  if (data.rewardType === "Service Credit") {
+    if (!data.clientId) {
+      return { success: false, error: "Please select a client for this service credit referral." };
+    }
   }
   if (data.maxLimit <= 0) {
     return { success: false, error: "Maximum referral limit must be greater than 0." };
@@ -302,6 +286,8 @@ export async function updateCouponAction(
         expiryDate: parsedExpiryDate,
         activeDays,
         enabled: data.enabled,
+        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
+        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
       },
     });
 
@@ -382,6 +368,7 @@ export async function getCouponDetailsAction(code: string) {
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
+      include: { client: true },
     });
 
     if (!coupon) {
@@ -439,7 +426,15 @@ export async function getCouponDetailsAction(code: string) {
         enabled: coupon.enabled,
         status,
         createdDate: coupon.createdAt.toISOString().split('T')[0],
+        clientId: coupon.clientId,
+        clientName: coupon.clientName,
       },
+      client: coupon.client ? {
+        id: coupon.client.id,
+        name: coupon.client.name,
+        email: coupon.client.email || '',
+        company: coupon.client.company || '',
+      } : null,
       enquiries: mappedEnquiries,
     };
   } catch (error) {
@@ -568,3 +563,26 @@ export async function getReferralStatsAction() {
     };
   }
 }
+
+/**
+ * Fetches all active clients for dropdown selector.
+ */
+export async function getClientsForSelectorAction() {
+  try {
+    const clients = await prisma.client.findMany({
+      where: { status: 'Active' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        company: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+    return { success: true, data: clients };
+  } catch (error) {
+    console.error('Error fetching clients for selector:', error);
+    return { success: false, error: 'Failed to load clients.' };
+  }
+}
+

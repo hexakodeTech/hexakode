@@ -18,3 +18,4 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
+// Trigger next.js dev reload to update prisma client metadata

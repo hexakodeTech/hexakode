@@ -20,7 +20,8 @@ import {
   Archive,
   Trash2,
   Users,
-  Download
+  Download,
+  User
 } from 'lucide-react';
 import { getCouponDetailsAction } from '@/lib/coupons/actions';
 import { updateEnquiryStatusAction, deleteEnquiryAction } from '@/lib/enquiries/actions';
@@ -32,7 +33,11 @@ interface CouponDetailsViewProps {
 }
 
 export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
-  const [data, setData] = useState<{ coupon: AdminCoupon; enquiries: AdminEnquiry[] } | null>(null);
+  const [data, setData] = useState<{
+    coupon: AdminCoupon;
+    client?: { id: string; name: string; email?: string | null; company?: string | null } | null;
+    enquiries: AdminEnquiry[];
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -226,7 +231,7 @@ export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
       </div>
 
       {/* Coupon Information Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${coupon.rewardType === 'Service Credit' && data.client ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-6`}>
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary mt-0.5">
             <Ticket className="w-5 h-5" />
@@ -255,6 +260,40 @@ export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
             </span>
           </div>
         </div>
+
+        {coupon.rewardType === 'Service Credit' && data.client && (
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+              <User className="w-5 h-5" />
+            </div>
+            <div className="space-y-2 flex-1 min-w-0">
+              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">
+                Client Profile
+              </span>
+              <div>
+                <p className="text-[10px] text-on-surface-variant/50 font-medium leading-none">Client Profile</p>
+                <Link
+                  href={`/admin/clients/${data.client.id}`}
+                  className="font-semibold text-xs text-primary hover:underline hover:text-primary-high transition-all truncate block mt-1"
+                >
+                  {data.client.name}
+                </Link>
+              </div>
+              {data.client.company && (
+                <div>
+                  <p className="text-[10px] text-on-surface-variant/50 font-medium leading-none">Company</p>
+                  <p className="text-xs text-on-surface font-semibold truncate mt-1">{data.client.company}</p>
+                </div>
+              )}
+              {data.client.email && (
+                <div>
+                  <p className="text-[10px] text-on-surface-variant/50 font-medium leading-none">Email</p>
+                  <p className="text-xs text-on-surface font-semibold truncate font-mono mt-1">{data.client.email}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
