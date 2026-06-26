@@ -9,7 +9,10 @@ import Footer from "@/components/layout/Footer";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-import { PORTFOLIO_PROJECTS } from "@/constants/portfolio";
+import { getPublishedProjects, getPublishedProjectBySlug } from "@/modules/portfolio/services/portfolio.service";
+import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
+import PortfolioGallery from "@/modules/portfolio/components/public/PortfolioGallery";
+
 
 // Type definition for detailed project specification
 interface CaseStudyDetails {
@@ -81,14 +84,15 @@ const CASE_STUDY_METADATA: Record<string, CaseStudyDetails> = {
 };
 
 export async function generateStaticParams() {
-  return PORTFOLIO_PROJECTS.map((project) => ({
+  const dbProjects = await getPublishedProjects();
+  return dbProjects.map((project) => ({
     slug: project.slug,
   }));
 }
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
-  const project = PORTFOLIO_PROJECTS.find((p) => p.slug === params.slug);
+  const project = await getPublishedProjectBySlug(params.slug);
   
   if (!project) {
     return {
@@ -98,27 +102,71 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
   return {
     title: `${project.title} | HexaKode Portfolio`,
-    description: project.description,
+    description: project.shortDescription,
   };
 }
 
 export default async function ProjectDetailPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const project = PORTFOLIO_PROJECTS.find((p) => p.slug === params.slug);
+  const dbProject = await getPublishedProjectBySlug(params.slug);
 
-  if (!project) {
+  if (!dbProject) {
     notFound();
   }
 
-  const details = CASE_STUDY_METADATA[project.slug] || {
-    client: "Internal Project",
-    year: "2025",
-    role: "Core Contributor",
-    techStack: ["React", "TypeScript", "Tailwind CSS"],
-    challenge: project.description,
-    approach: "Iterative testing, performance measurement, and visual styling alignments.",
-    results: "Successfully integrated with standard system benchmarks.",
+  const publicCategory = mapDbCategoryToPublic(dbProject.category);
+  const defaultPlaceholder = "https://lh3.googleusercontent.com/aida-public/AB6AXuB2YxLvd3x5jPAxgZFL6XMO5u3FKnZOqm3Sw5jiYFwt6C_1rbby046caqliXpWGTpjLpPwnIvaeaOmdE4lDZVyZ_sdZvktvMtR48G9PDwq9PdT4z5dmEyDZmvTGdtk0tGLYG3aND_F-CKnXlxCnvDioVyszWJ-5hrLBoAQmefvVnmK51ys89hcKnm770jq6SVjM3Pg-onRL9YM_DO5PLioIGZ3Onw3JrHAYxnPC4ePN8pVa9SN1k4ErAvN0hneQVUTOK8JkgL9fql8e";
+  const displayImage = dbProject.coverImage && dbProject.coverImage.trim() !== "" ? dbProject.coverImage.trim() : defaultPlaceholder;
+  const isSupabase = displayImage.includes("supabase.co") || displayImage.includes("/storage/v1/object/");
+
+  const project = {
+    id: dbProject.id,
+    title: dbProject.title,
+    category: publicCategory,
+    description: dbProject.shortDescription,
+    image: displayImage,
+    slug: dbProject.slug,
   };
+
+  const mockDetails = CASE_STUDY_METADATA[dbProject.slug];
+  const details = {
+    client: dbProject.clientName || mockDetails?.client || "Internal Project",
+    year: dbProject.publishedAt 
+      ? new Date(dbProject.publishedAt).getFullYear().toString()
+      : dbProject.createdAt
+        ? new Date(dbProject.createdAt).getFullYear().toString()
+        : mockDetails?.year || new Date().getFullYear().toString(),
+    role: dbProject.category ? `${publicCategory} Architecture & Engineering` : mockDetails?.role || `${publicCategory} Architecture & Design`,
+    techStack: dbProject.technologies.length > 0
+      ? dbProject.technologies.map((t) => t.name)
+      : mockDetails?.techStack || [],
+    challenge: dbProject.shortDescription || mockDetails?.challenge || "",
+    approach: dbProject.fullDescription || mockDetails?.approach || "Designed and implemented robust technical architecture using modern development standards.",
+    results: mockDetails?.results || (dbProject.features.length > 0 ? dbProject.features.map(f => `${f.title}: ${f.description}`).join(". ") : "Successfully integrated with standard system benchmarks."),
+  };
+
+  const rawGallery = dbProject.gallery || [];
+  const galleryImages = rawGallery
+    .map((img: any, idx: number) => {
+      if (typeof img === "string") {
+        return {
+          url: img,
+          alt: `Gallery image ${idx + 1}`,
+          order: idx,
+        };
+      }
+      const url = img.imageUrl || img.url || "";
+      const alt = img.alt || `Gallery image ${idx + 1}`;
+      const order =
+        typeof img.displayOrder === "number"
+          ? img.displayOrder
+          : typeof img.order === "number"
+          ? img.order
+          : idx;
+      return { url, alt, order };
+    })
+    .filter((img) => img.url && img.url.trim() !== "")
+    .sort((a, b) => a.order - b.order);
 
   return (
     <>
@@ -168,6 +216,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
                   alt={project.title}
                   fill
                   priority
+                  unoptimized={isSupabase}
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="object-cover"
                 />
@@ -203,7 +252,10 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
                 </div>
               </div>
 
+              {/* Gallery Section */}
+              <PortfolioGallery images={galleryImages} />
             </div>
+
 
             {/* Right: Info panel (4 columns on lg) */}
             <div className="lg:col-span-4">

@@ -1,37 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Navbar from "@/components/layout/Navbar";
 import PortfolioHero from "@/components/portfolio/PortfolioHero";
-import PortfolioFilterBar from "@/components/portfolio/PortfolioFilterBar";
-import PortfolioGrid from "@/components/portfolio/PortfolioGrid";
+import PortfolioFilters from "@/modules/portfolio/components/public/PortfolioFilters";
+import PortfolioGrid from "@/modules/portfolio/components/public/PortfolioGrid";
+import PortfolioSkeleton from "@/modules/portfolio/components/public/PortfolioSkeleton";
+import EmptyPortfolio from "@/modules/portfolio/components/public/EmptyPortfolio";
+import ErrorState from "@/modules/portfolio/components/public/ErrorState";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
 import Footer from "@/components/layout/Footer";
-import { PORTFOLIO_PROJECTS } from "@/constants/portfolio";
+import { usePortfolioProjects } from "@/modules/portfolio/hooks/usePortfolioProjects";
 
 export default function PortfolioListingClient() {
-  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const {
+    projects,
+    isLoading,
+    error,
+    activeFilter,
+    setActiveFilter,
+    retry,
+  } = usePortfolioProjects();
 
-  // Filter project lists dynamically based on selected active chip category
-  const filteredProjects = PORTFOLIO_PROJECTS.filter((project) => {
+  // Filter projects dynamically based on active filter category
+  const filteredProjects = projects.filter((project) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "ui-ux") return project.category.toLowerCase() === "ui/ux";
     return project.category.toLowerCase() === activeFilter;
   });
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <PortfolioSkeleton />;
+    }
+
+    if (error) {
+      return <ErrorState onRetry={retry} />;
+    }
+
+    if (filteredProjects.length === 0) {
+      return <EmptyPortfolio />;
+    }
+
+    return <PortfolioGrid projects={filteredProjects} />;
+  };
 
   return (
     <>
       <Navbar />
       <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-[112px] md:pt-[100px]">
         <PortfolioHero />
-        <PortfolioFilterBar
+        <PortfolioFilters
           currentFilter={activeFilter}
           onFilterChange={setActiveFilter}
         />
-        <PortfolioGrid projects={filteredProjects} />
+        {renderContent()}
         <PortfolioCTA />
       </main>
       <Footer />
     </>
   );
 }
+
