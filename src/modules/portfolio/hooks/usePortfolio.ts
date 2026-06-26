@@ -1,20 +1,26 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Portfolio CMS Module — State Management Hook
-// All state lives here. Swap mock data for API calls without touching any UI.
+// Portfolio CMS Module — State Management Hook (Connected to Backend Actions)
+// All state lives here. Swapped mock data for API calls without touching any UI.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   PortfolioProject,
   PortfolioFilters,
   PortfolioFormData,
   ModalMode,
-  SortOption,
 } from "../types";
-import { PORTFOLIO_MOCK_DATA } from "../mock/data";
-import { generateId, nowISO, slugify } from "../utils";
+import { slugify } from "../utils";
+import {
+  getPortfolioListAction,
+  createPortfolioAction,
+  updatePortfolioAction,
+  deletePortfolioAction,
+  duplicatePortfolioAction,
+} from "../actions";
+import { toast } from "sonner";
 
 const EMPTY_FORM: PortfolioFormData = {
   title: "",
@@ -36,7 +42,8 @@ const EMPTY_FORM: PortfolioFormData = {
 
 export function usePortfolio() {
   // ── Data State ──────────────────────────────────────────────────────────────
-  const [projects, setProjects] = useState<PortfolioProject[]>(PORTFOLIO_MOCK_DATA);
+  const [projects, setProjects] = useState<PortfolioProject[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // ── Filter State ────────────────────────────────────────────────────────────
   const [filters, setFilters] = useState<PortfolioFilters>({
@@ -59,55 +66,31 @@ export function usePortfolio() {
     [projects, activeProjectId]
   );
 
-  // ── Derived: filtered + sorted list ─────────────────────────────────────────
-  const filteredProjects = useMemo(() => {
-    let result = [...projects];
-
-    // Search
-    if (filters.search.trim()) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.shortDescription.toLowerCase().includes(q) ||
-          p.clientName.toLowerCase().includes(q) ||
-          p.technologies.some((t) => t.toLowerCase().includes(q))
-      );
+  // ── Fetch / Load projects ────────────────────────────────────────────────────
+  const loadProjects = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await getPortfolioListAction(filters);
+      if (res.success && res.projects) {
+        setProjects(res.projects);
+      } else {
+        toast.error(res.error || "Failed to load projects.");
+      }
+    } catch (err: any) {
+      console.error("loadProjects error:", err);
+      toast.error("Failed to load portfolio database records.");
+    } finally {
+      setIsLoading(false);
     }
+  }, [filters]);
 
-    // Category filter
-    if (filters.category !== "All") {
-      result = result.filter((p) => p.category === filters.category);
-    }
+  // Load projects on filter change
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
-    // Status filter
-    if (filters.status !== "All") {
-      result = result.filter((p) => p.status === filters.status);
-    }
-
-    // Sort
-    switch (filters.sort as SortOption) {
-      case "oldest":
-        result.sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-        break;
-      case "featured":
-        result.sort((a, b) => {
-          if (a.settings.featured === b.settings.featured) return 0;
-          return a.settings.featured ? -1 : 1;
-        });
-        break;
-      case "newest":
-      default:
-        result.sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-    }
-
-    return result;
-  }, [projects, filters]);
+  // For the UI, we can just return the filtered database list directly as filteredProjects
+  const filteredProjects = projects;
 
   // ── Filter updaters ─────────────────────────────────────────────────────────
   const updateFilter = useCallback(
@@ -175,89 +158,112 @@ export function usePortfolio() {
 
   // ── CRUD operations ─────────────────────────────────────────────────────────
 
-  /** Save as Draft — sets status=Draft, no publishedAt update */
-  const saveDraft = useCallback(() => {
-    const now = nowISO();
-    if (modalMode === "edit" && activeProjectId) {
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === activeProjectId
-            ? { ...p, ...formData, status: "Draft", updatedAt: now }
-            : p
-        )
-      );
-    } else {
-      const newProject: PortfolioProject = {
+  /** Save as Draft — sets status=Draft */
+  const saveDraft = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const payload: PortfolioFormData = {
         ...formData,
-        id: generateId("pf"),
         status: "Draft",
-        publishedAt: null,
-        createdAt: now,
-        updatedAt: now,
       };
-      setProjects((prev) => [newProject, ...prev]);
-    }
-    closeModal();
-  }, [formData, modalMode, activeProjectId, closeModal]);
 
-  /** Publish — sets status=Published and publishedAt */
-  const publishProject = useCallback(() => {
-    const now = nowISO();
-    if (modalMode === "edit" && activeProjectId) {
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === activeProjectId
-            ? {
-                ...p,
-                ...formData,
-                status: "Published",
-                publishedAt: p.publishedAt ?? now,
-                updatedAt: now,
-              }
-            : p
-        )
-      );
-    } else {
-      const newProject: PortfolioProject = {
-        ...formData,
-        id: generateId("pf"),
-        status: "Published",
-        publishedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setProjects((prev) => [newProject, ...prev]);
+      let res;
+      if (modalMode === "edit" && activeProjectId) {
+        res = await updatePortfolioAction(activeProjectId, payload);
+      } else {
+        res = await createPortfolioAction(payload);
+      }
+
+      if (res.success) {
+        toast.success(
+          modalMode === "edit" ? "Project updated successfully!" : "Draft created successfully!"
+        );
+        await loadProjects();
+        closeModal();
+      } else {
+        toast.error(res.error || "Failed to save project.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An unexpected error occurred while saving.");
+    } finally {
+      setIsLoading(false);
     }
-    closeModal();
-  }, [formData, modalMode, activeProjectId, closeModal]);
+  }, [formData, modalMode, activeProjectId, loadProjects, closeModal]);
+
+  /** Publish — sets status=Published and sets/updates publishedAt */
+  const publishProject = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const payload: PortfolioFormData = {
+        ...formData,
+        status: "Published",
+      };
+
+      let res;
+      if (modalMode === "edit" && activeProjectId) {
+        res = await updatePortfolioAction(activeProjectId, payload);
+      } else {
+        res = await createPortfolioAction(payload);
+      }
+
+      if (res.success) {
+        toast.success(
+          modalMode === "edit"
+            ? "Project updated and published successfully!"
+            : "Project published successfully!"
+        );
+        await loadProjects();
+        closeModal();
+      } else {
+        toast.error(res.error || "Failed to publish project.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An unexpected error occurred while publishing.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [formData, modalMode, activeProjectId, loadProjects, closeModal]);
 
   /** Duplicate a project */
   const duplicateProject = useCallback(
-    (id: string) => {
-      const source = projects.find((p) => p.id === id);
-      if (!source) return;
-      const now = nowISO();
-      const duplicate: PortfolioProject = {
-        ...source,
-        id: generateId("pf"),
-        title: `${source.title} (Copy)`,
-        slug: slugify(`${source.slug}-copy`),
-        status: "Draft",
-        publishedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setProjects((prev) => [duplicate, ...prev]);
+    async (id: string) => {
+      setIsLoading(true);
+      try {
+        const res = await duplicatePortfolioAction(id);
+        if (res.success) {
+          toast.success("Project duplicated successfully!");
+          await loadProjects();
+        } else {
+          toast.error(res.error || "Failed to duplicate project.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "An unexpected error occurred while duplicating.");
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [projects]
+    [loadProjects]
   );
 
   /** Delete a project */
-  const deleteProject = useCallback(() => {
+  const deleteProject = useCallback(async () => {
     if (!activeProjectId) return;
-    setProjects((prev) => prev.filter((p) => p.id !== activeProjectId));
-    closeModal();
-  }, [activeProjectId, closeModal]);
+    setIsLoading(true);
+    try {
+      const res = await deletePortfolioAction(activeProjectId);
+      if (res.success) {
+        toast.success("Project deleted successfully!");
+        await loadProjects();
+        closeModal();
+      } else {
+        toast.error(res.error || "Failed to delete project.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An unexpected error occurred while deleting.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeProjectId, loadProjects, closeModal]);
 
   // ── Title → slug auto-generation ────────────────────────────────────────────
   const handleTitleChange = useCallback(
@@ -275,6 +281,8 @@ export function usePortfolio() {
     projects,
     filteredProjects,
     activeProject,
+    isLoading,
+    refresh: loadProjects,
 
     // Filters
     filters,

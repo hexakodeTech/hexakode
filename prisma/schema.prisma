@@ -281,3 +281,64 @@ model CreditTransaction {
   @@index([clientId])
   @@map("credit_transactions")
 }
+
+model PortfolioProject {
+  id               String         @id @default(uuid()) @db.Uuid
+  title            String
+  slug             String         @unique
+  category         String
+  clientName       String         @default("")
+  projectUrl       String         @default("")
+  shortDescription String
+  fullDescription  String         @default("")
+  coverImage       String         @default("")
+  featured         Boolean        @default(false)
+  showOnHomepage   Boolean        @default(false)
+  allowPreview     Boolean        @default(true)
+  status           String         @default("Draft") // "Draft" | "Published"
+  publishedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // SEO fields
+  metaTitle        String         @default("")
+  metaDescription  String         @default("")
+  ogImage          String         @default("")
+
+  gallery          GalleryImage[]
+  technologies     Technology[]
+  features         Feature[]
+
+  @@map("portfolio_projects")
+}
+
+model GalleryImage {
+  id           String           @id @default(uuid()) @db.Uuid
+  portfolioId  String           @db.Uuid
+  imageUrl     String
+  displayOrder Int              @default(0)
+  alt          String           @default("")
+  project      PortfolioProject @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_gallery_images")
+}
+
+model Technology {
+  id          String           @id @default(uuid()) @db.Uuid
+  portfolioId String           @db.Uuid
+  name        String
+  project     PortfolioProject @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_technologies")
+}
+
+model Feature {
+  id           String           @id @default(uuid()) @db.Uuid
+  portfolioId  String           @db.Uuid
+  title        String
+  description  String
+  displayOrder Int              @default(0)
+  project      PortfolioProject @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_features")
+}

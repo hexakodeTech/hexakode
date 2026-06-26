@@ -5,7 +5,7 @@
 // Each section is a self-contained UI component receiving formData + updateForm.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   Upload,
   X,
@@ -18,6 +18,7 @@ import {
 import { PortfolioFormData, PortfolioCategory, PortfolioFeature } from "../types";
 import { TechChip } from "../components/TechChip";
 import { generateId, slugify } from "../utils";
+import { toast } from "sonner";
 
 // ─── Shared label style ────────────────────────────────────────────────────────
 const LABEL_CLS =
@@ -186,6 +187,8 @@ interface CoverImageProps {
 
 export function CoverImageSection({ formData, updateForm }: CoverImageProps) {
   const [urlInput, setUrlInput] = useState(formData.coverImage);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const applyUrl = () => {
     updateForm("coverImage", urlInput.trim());
@@ -194,6 +197,50 @@ export function CoverImageSection({ formData, updateForm }: CoverImageProps) {
   const remove = () => {
     updateForm("coverImage", "");
     setUrlInput("");
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!formData.slug) {
+      toast.error("Please enter a project title/slug in Basic Info first.");
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadToast = toast.loading("Uploading cover image...");
+
+    try {
+      const uFormData = new FormData();
+      uFormData.append("file", file);
+      uFormData.append("slug", formData.slug);
+      uFormData.append("type", "cover");
+
+      const response = await fetch("/api/portfolio/upload", {
+        method: "POST",
+        body: uFormData,
+      });
+      const res = await response.json();
+
+      if (res.success && res.url) {
+        updateForm("coverImage", res.url);
+        setUrlInput(res.url);
+        toast.success("Cover image uploaded successfully!", { id: uploadToast });
+      } else {
+        toast.error(res.error || "Failed to upload cover image.", { id: uploadToast });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to upload cover image.", { id: uploadToast });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -241,21 +288,40 @@ export function CoverImageSection({ formData, updateForm }: CoverImageProps) {
       ) : (
         <div className="space-y-3">
           {/* Drop zone */}
-          <div className="border-2 border-dashed border-outline-variant/40 rounded-xl h-40 flex flex-col items-center justify-center gap-3 bg-surface-container-low/30 hover:border-secondary/30 hover:bg-surface-container-low/50 transition-all cursor-pointer">
-            <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-              <ImageIcon className="w-6 h-6 text-on-surface-variant/40" />
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-semibold text-on-surface-variant/60">
-                Drag & drop cover image here
-              </p>
-              <p className="text-[10px] text-on-surface-variant/40 mt-0.5">
-                PNG, JPG, WebP — Recommended 1200×675px
-              </p>
-            </div>
-            <span className="text-[10px] text-on-surface-variant/30 font-label-mono border border-outline-variant/20 px-2 py-0.5 rounded">
-              Upload — Coming Soon
-            </span>
+          <div 
+            onClick={!isUploading ? triggerFileSelect : undefined}
+            className="border-2 border-dashed border-outline-variant/40 rounded-xl h-40 flex flex-col items-center justify-center gap-3 bg-surface-container-low/30 hover:border-secondary/30 hover:bg-surface-container-low/50 transition-all cursor-pointer"
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
+            />
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-6 h-6 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs text-on-surface-variant/60 font-semibold">Uploading cover image...</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-on-surface-variant/40" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-on-surface-variant/60">
+                    Drag & drop cover image here or click to browse
+                  </p>
+                  <p className="text-[10px] text-on-surface-variant/40 mt-0.5">
+                    PNG, JPG, WebP — Recommended 1200×675px
+                  </p>
+                </div>
+                <span className="text-[10px] text-on-surface-variant/30 font-label-mono border border-outline-variant/20 px-2 py-0.5 rounded">
+                  Select File
+                </span>
+              </>
+            )}
           </div>
 
           {/* URL fallback */}
@@ -285,6 +351,7 @@ export function CoverImageSection({ formData, updateForm }: CoverImageProps) {
   );
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Gallery Section
 // ─────────────────────────────────────────────────────────────────────────────
@@ -296,6 +363,8 @@ interface GalleryProps {
 
 export function GallerySection({ formData, updateForm }: GalleryProps) {
   const [urlInput, setUrlInput] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addImage = () => {
     if (!urlInput.trim()) return;
@@ -314,6 +383,55 @@ export function GallerySection({ formData, updateForm }: GalleryProps) {
       "gallery",
       formData.gallery.filter((img) => img.id !== id)
     );
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!formData.slug) {
+      toast.error("Please enter a project title/slug in Basic Info first.");
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadToast = toast.loading("Uploading gallery image...");
+
+    try {
+      const uFormData = new FormData();
+      uFormData.append("file", file);
+      uFormData.append("slug", formData.slug);
+      uFormData.append("type", "gallery");
+
+      const response = await fetch("/api/portfolio/upload", {
+        method: "POST",
+        body: uFormData,
+      });
+      const res = await response.json();
+
+      if (res.success && res.url) {
+        const newImg = {
+          id: generateId("img"),
+          url: res.url,
+          alt: file.name.split(".")[0] || `Gallery image ${formData.gallery.length + 1}`,
+          isCover: formData.gallery.length === 0,
+        };
+        updateForm("gallery", [...formData.gallery, newImg]);
+        toast.success("Gallery image uploaded successfully!", { id: uploadToast });
+      } else {
+        toast.error(res.error || "Failed to upload gallery image.", { id: uploadToast });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to upload gallery image.", { id: uploadToast });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -352,15 +470,32 @@ export function GallerySection({ formData, updateForm }: GalleryProps) {
           ))}
         </div>
       ) : (
-        <div className="border-2 border-dashed border-outline-variant/30 rounded-xl h-24 flex items-center justify-center mb-4 bg-surface-container-low/20">
-          <p className="text-[10px] text-on-surface-variant/40">No gallery images yet</p>
+        <div 
+          onClick={!isUploading ? triggerFileSelect : undefined}
+          className="border-2 border-dashed border-outline-variant/30 rounded-xl h-24 flex items-center justify-center mb-4 bg-surface-container-low/20 hover:border-secondary/30 hover:bg-surface-container-low/30 cursor-pointer transition-all"
+        >
+          {isUploading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+              <p className="text-[10px] text-on-surface-variant/60 font-semibold">Uploading...</p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-on-surface-variant/40">No gallery images yet. Click here to upload.</p>
+          )}
         </div>
       )}
 
       {/* Add image URL */}
       <div>
-        <label className={LABEL_CLS}>Add image via URL</label>
+        <label className={LABEL_CLS}>Add image via URL or select file</label>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
           <input
             type="url"
             value={urlInput}
@@ -377,6 +512,15 @@ export function GallerySection({ formData, updateForm }: GalleryProps) {
           >
             <Plus className="w-3 h-3" />
             Add
+          </button>
+          <button
+            type="button"
+            onClick={triggerFileSelect}
+            disabled={isUploading}
+            className="px-3 py-2 bg-secondary text-on-secondary text-xs font-semibold rounded-lg hover:bg-secondary/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 flex items-center gap-1"
+          >
+            <Upload className="w-3 h-3" />
+            {isUploading ? "Uploading..." : "Upload File"}
           </button>
         </div>
         <p className="text-[9px] text-on-surface-variant/40 mt-1">
