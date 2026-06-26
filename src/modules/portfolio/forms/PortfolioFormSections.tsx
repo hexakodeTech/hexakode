@@ -13,7 +13,6 @@ import {
   Trash2,
   Image as ImageIcon,
   Globe,
-  GitFork,
   Search,
 } from "lucide-react";
 import { PortfolioFormData, PortfolioCategory, PortfolioFeature } from "../types";
@@ -123,33 +122,19 @@ export function BasicInfoSection({
           </div>
         </div>
 
-        {/* URLs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={LABEL_CLS}>Live Project URL</label>
-            <div className="relative">
-              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-on-surface-variant/40" />
-              <input
-                type="url"
-                value={formData.projectUrl}
-                onChange={(e) => updateForm("projectUrl", e.target.value)}
-                placeholder="https://example.com"
-                className={`${INPUT_CLS} pl-8`}
-              />
-            </div>
-          </div>
-          <div>
-            <label className={LABEL_CLS}>GitHub Repository</label>
-            <div className="relative">
-              <GitFork className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-on-surface-variant/40" />
-              <input
-                type="url"
-                value={formData.githubUrl}
-                onChange={(e) => updateForm("githubUrl", e.target.value)}
-                placeholder="https://github.com/..."
-                className={`${INPUT_CLS} pl-8`}
-              />
-            </div>
+
+        {/* Live Project URL */}
+        <div>
+          <label className={LABEL_CLS}>Live Project URL</label>
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-on-surface-variant/40" />
+            <input
+              type="url"
+              value={formData.projectUrl}
+              onChange={(e) => updateForm("projectUrl", e.target.value)}
+              placeholder="https://example.com"
+              className={`${INPUT_CLS} pl-8`}
+            />
           </div>
         </div>
 

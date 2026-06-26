@@ -50,7 +50,6 @@ export interface PortfolioProject {
   category: PortfolioCategory;
   clientName: string;
   projectUrl: string;
-  githubUrl: string;
   shortDescription: string;
   longDescription: string;
   coverImage: string;

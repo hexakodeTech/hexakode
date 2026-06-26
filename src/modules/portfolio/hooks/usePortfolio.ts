@@ -22,7 +22,6 @@ const EMPTY_FORM: PortfolioFormData = {
   category: "Web Application",
   clientName: "",
   projectUrl: "",
-  githubUrl: "",
   shortDescription: "",
   longDescription: "",
   coverImage: "",

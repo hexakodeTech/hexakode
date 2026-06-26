@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, Star, Globe, ChevronRight, GitFork } from "lucide-react";
+import { X, ExternalLink, Star, Globe, ChevronRight } from "lucide-react";
 import { PortfolioProject } from "../types";
 import { StatusBadge } from "../components/StatusBadge";
 import { FeaturedBadge } from "../components/FeaturedBadge";
@@ -85,32 +85,18 @@ export function PortfolioPreviewModal({
             {/* ── Scrollable Content ──────────────────────────────────────────── */}
             <div className="overflow-y-auto flex-1 p-6 space-y-6">
               {/* Links row */}
-              {(project.projectUrl || project.githubUrl) && (
+              {project.projectUrl && (
                 <div className="flex flex-wrap items-center gap-3">
-                  {project.projectUrl && (
-                    <a
-                      href={project.projectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-secondary hover:text-secondary/80 border border-secondary/25 hover:border-secondary/50 px-3 py-1.5 rounded-lg transition-all"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      View Live Site
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {project.githubUrl && (
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-primary border border-outline-variant/30 hover:border-outline-variant/60 px-3 py-1.5 rounded-lg transition-all"
-                    >
-                      <GitFork className="w-3.5 h-3.5" />
-                      View Source
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+                  <a
+                    href={project.projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-secondary hover:text-secondary/80 border border-secondary/25 hover:border-secondary/50 px-3 py-1.5 rounded-lg transition-all"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    View Live Site
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               )}
 

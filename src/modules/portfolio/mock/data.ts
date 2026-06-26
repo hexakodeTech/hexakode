@@ -14,7 +14,6 @@ export const PORTFOLIO_MOCK_DATA: PortfolioProject[] = [
     category: "Finance",
     clientName: "NovaPay Financial Ltd.",
     projectUrl: "https://novapay-dashboard.example.com",
-    githubUrl: "https://github.com/example/novapay-dashboard",
     shortDescription:
       "A real-time financial analytics platform for tracking investment portfolios, transaction flows, and risk exposure across multiple asset classes.",
     longDescription:
@@ -91,7 +90,6 @@ export const PORTFOLIO_MOCK_DATA: PortfolioProject[] = [
     category: "Healthcare",
     clientName: "VitaSync Health",
     projectUrl: "https://vitasync.example.com",
-    githubUrl: "",
     shortDescription:
       "A cross-platform mobile application helping users monitor fitness goals, nutrition intake, sleep patterns, and chronic condition management.",
     longDescription:
@@ -162,7 +160,6 @@ export const PORTFOLIO_MOCK_DATA: PortfolioProject[] = [
     category: "E-Commerce",
     clientName: "Timberlane Craft Co.",
     projectUrl: "https://timberlane.example.com",
-    githubUrl: "https://github.com/example/timberlane",
     shortDescription:
       "A high-conversion e-commerce platform with 3D product configurator, AR room preview, and seamless B2B wholesale ordering for a premium furniture manufacturer.",
     longDescription:
@@ -239,7 +236,6 @@ export const PORTFOLIO_MOCK_DATA: PortfolioProject[] = [
     category: "Education",
     clientName: "LearnPath Academy",
     projectUrl: "https://learnpath.example.com",
-    githubUrl: "",
     shortDescription:
       "A full-featured Learning Management System with live sessions, AI-generated quizzes, progress tracking, and certificate issuance for 50,000+ students.",
     longDescription:
@@ -316,7 +312,6 @@ export const PORTFOLIO_MOCK_DATA: PortfolioProject[] = [
     category: "Food & Beverage",
     clientName: "Ember & Oak Restaurants",
     projectUrl: "https://emberoak.example.com",
-    githubUrl: "https://github.com/example/ember-oak",
     shortDescription:
       "A multi-venue restaurant platform with QR-based tableside ordering, kitchen display integration, loyalty program, and real-time analytics for a restaurant group.",
     longDescription:
