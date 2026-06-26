@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Inbox,
@@ -17,6 +17,8 @@ import {
   Building2,
   FolderKanban,
   Wrench,
+  ChevronRight,
+  LayoutGrid,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,8 +36,15 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Demo Requests", path: "/admin/demos", icon: Calendar },
     { name: "Referral Codes", path: "/admin/coupons", icon: Ticket },
     { name: "Clients", path: "/admin/clients", icon: Building2 },
-    { name: "CMS", path: "/admin/cms", icon: Database },
     { name: "Settings", path: "/admin/settings", icon: Settings },
+  ];
+
+  // CMS sub-navigation state
+  const isCmsActive = pathname.startsWith("/admin/cms");
+  const [cmsExpanded, setCmsExpanded] = useState(isCmsActive);
+
+  const cmsSubItems = [
+    { name: "Portfolio", path: "/admin/cms/portfolio", icon: LayoutGrid },
   ];
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -133,6 +142,86 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
               </Link>
             );
           })}
+
+          {/* ── CMS Section (expandable) ─────────────────────────── */}
+          <button
+            onClick={() => setCmsExpanded((v) => !v)}
+            className={`relative flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors group cursor-pointer ${
+              isCmsActive
+                ? "text-primary font-medium"
+                : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+            }`}
+          >
+            {isCmsActive && (
+              <motion.div
+                layoutId="active-indicator"
+                className="absolute inset-0 bg-surface-container rounded-lg border-l-2 border-secondary z-0"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <Database
+              className={`relative z-10 w-4 h-4 transition-transform group-hover:scale-110 ${
+                isCmsActive ? "text-secondary" : "text-on-surface-variant/70"
+              }`}
+            />
+            <span className="relative z-10 font-body-sm text-[13px] flex-1 text-left">CMS</span>
+            <ChevronRight
+              className={`relative z-10 w-3.5 h-3.5 text-on-surface-variant/50 transition-transform duration-200 ${
+                cmsExpanded ? "rotate-90" : ""
+              }`}
+            />
+          </button>
+
+          {/* CMS Sub-items */}
+          <AnimatePresence initial={false}>
+            {cmsExpanded && (
+              <motion.div
+                key="cms-sub"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="ml-4 pl-3 border-l border-outline-variant/25 space-y-0.5 py-1">
+                  {/* CMS Hub link */}
+                  <Link
+                    href="/admin/cms"
+                    onClick={onClose}
+                    className={`relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                      pathname === "/admin/cms"
+                        ? "text-secondary font-medium bg-surface-container"
+                        : "text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <Database className="w-3.5 h-3.5" />
+                    <span className="font-body-sm text-[12px]">CMS Hub</span>
+                  </Link>
+
+                  {/* Dynamic sub-items */}
+                  {cmsSubItems.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isSubActive = pathname.startsWith(sub.path);
+                    return (
+                      <Link
+                        key={sub.path}
+                        href={sub.path}
+                        onClick={onClose}
+                        className={`relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                          isSubActive
+                            ? "text-secondary font-medium bg-surface-container"
+                            : "text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low"
+                        }`}
+                      >
+                        <SubIcon className="w-3.5 h-3.5" />
+                        <span className="font-body-sm text-[12px]">{sub.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </nav>
 
         {/* Footer / Logout Section */}
