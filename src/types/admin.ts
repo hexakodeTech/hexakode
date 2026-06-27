@@ -146,6 +146,9 @@ export interface AdminInvoice {
   projectName?: string | null;
   invoiceNumber: string;
   amount: number;
+  discountType: 'amount' | 'percentage';
+  discountValue: number;
+  discountAmount: number;
   creditApplied: number;
   finalAmountDue: number;
   startingCreditBalance?: number | null; // Client balance BEFORE deduction

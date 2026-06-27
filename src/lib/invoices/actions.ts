@@ -10,6 +10,8 @@ const invoiceSchema = z.object({
   clientId: z.string().uuid({ message: 'Invalid Client ID' }),
   projectId: z.string().uuid().optional().nullable(),
   amount: z.number().positive({ message: 'Amount must be greater than zero' }),
+  discountType: z.enum(['amount', 'percentage']).default('amount'),
+  discountValue: z.number().nonnegative().optional().default(0),
   dueDate: z.string().min(1, { message: 'Due date is required' }),
   status: z.enum(['Paid', 'Pending', 'Overdue']).default('Pending'),
   creditApplied: z.number().nonnegative().optional().default(0),
@@ -18,6 +20,22 @@ const invoiceSchema = z.object({
 });
 
 export type InvoiceInput = z.infer<typeof invoiceSchema>;
+
+/**
+ * Computes the monetary discount from type + value + base amount.
+ */
+function computeDiscountAmount(
+  amount: number,
+  discountType: 'amount' | 'percentage',
+  discountValue: number
+): number {
+  if (!discountValue || discountValue <= 0) return 0;
+  if (discountType === 'percentage') {
+    const pct = Math.min(discountValue, 100);
+    return Math.round((amount * pct) / 100 * 100) / 100;
+  }
+  return Math.min(discountValue, amount);
+}
 
 /**
  * Helper to generate sequential invoice numbers: INV-YYYY-XXXX
@@ -83,6 +101,9 @@ export async function getInvoicesAction(
       projectName: inv.project?.name || null,
       invoiceNumber: inv.invoiceNumber,
       amount: inv.amount,
+      discountType: (inv.discountType as 'amount' | 'percentage') ?? 'amount',
+      discountValue: inv.discountValue ?? 0,
+      discountAmount: inv.discountAmount ?? 0,
       creditApplied: inv.creditApplied ?? 0,
       finalAmountDue: inv.finalAmountDue ?? inv.amount,
       startingCreditBalance: inv.startingCreditBalance ?? null,
@@ -117,16 +138,30 @@ export async function createInvoiceAction(data: InvoiceInput) {
   }
 
   const payload = parsed.data;
+  const discountType = payload.discountType ?? 'amount';
+  const discountValue = payload.discountValue ?? 0;
+
+  // Validate discount
+  if (discountType === 'percentage' && discountValue > 100) {
+    return { success: false, error: 'Discount percentage cannot exceed 100%.' };
+  }
+  if (discountType === 'amount' && discountValue > payload.amount) {
+    return { success: false, error: `Discount (${formatCurrency(discountValue)}) cannot exceed the invoice amount (${formatCurrency(payload.amount)}).` };
+  }
+
+  // Compute monetary discount (order: amount → discount → credits)
+  const discountAmount = computeDiscountAmount(payload.amount, discountType, discountValue);
+  const amountAfterDiscount = payload.amount - discountAmount;
+  const creditApplied = payload.creditApplied ?? 0;
+  const finalAmount = Math.max(0, amountAfterDiscount - creditApplied);
 
   try {
     const invoiceNumber = await generateInvoiceNumber();
-    const finalAmount = payload.finalAmountDue ?? (payload.amount - (payload.creditApplied || 0));
-
     let startingCreditBalance: number | null = null;
     let creditTransactionId: string | null = null;
 
-    // 1. If credit balance applied, check availability and deduct
-    if (payload.creditApplied && payload.creditApplied > 0) {
+    // If credit balance applied, check availability and deduct
+    if (creditApplied > 0) {
       const client = await prisma.client.findUnique({
         where: { id: payload.clientId },
         select: { creditBalance: true },
@@ -136,28 +171,21 @@ export async function createInvoiceAction(data: InvoiceInput) {
         return { success: false, error: 'Client not found.' };
       }
 
-      if (client.creditBalance < payload.creditApplied) {
+      if (client.creditBalance < creditApplied) {
         return { success: false, error: `Insufficient credit balance. Available: ${formatCurrency(client.creditBalance)}` };
       }
 
-      // Capture starting balance BEFORE deduction (for PDF audit trail)
       startingCreditBalance = client.creditBalance;
 
-      // Deduct balance from Client profile
       await prisma.client.update({
         where: { id: payload.clientId },
-        data: {
-          creditBalance: {
-            decrement: payload.creditApplied,
-          },
-        },
+        data: { creditBalance: { decrement: creditApplied } },
       });
 
-      // Record a negative transaction in Prepaid Credits Ledger and capture its ID
       const creditTx = await prisma.creditTransaction.create({
         data: {
           clientId: payload.clientId,
-          amount: -payload.creditApplied,
+          amount: -creditApplied,
           description: `Applied credits to invoice ${invoiceNumber}`,
         },
       });
@@ -168,24 +196,23 @@ export async function createInvoiceAction(data: InvoiceInput) {
     // Validate project logs
     if (payload.projectId && payload.maintenanceLogIds && payload.maintenanceLogIds.length > 0) {
       const logsCount = await prisma.maintenanceLog.count({
-        where: {
-          id: { in: payload.maintenanceLogIds },
-          projectId: payload.projectId,
-        },
+        where: { id: { in: payload.maintenanceLogIds }, projectId: payload.projectId },
       });
       if (logsCount !== payload.maintenanceLogIds.length) {
         return { success: false, error: 'One or more selected maintenance logs do not belong to the selected project.' };
       }
     }
 
-    // 2. Insert Invoice record (including credit audit fields)
     await prisma.invoice.create({
       data: {
         clientId: payload.clientId,
         projectId: payload.projectId || null,
         invoiceNumber,
         amount: payload.amount,
-        creditApplied: payload.creditApplied || 0,
+        discountType,
+        discountValue,
+        discountAmount,
+        creditApplied,
         finalAmountDue: finalAmount,
         startingCreditBalance,
         creditTransactionId,
@@ -291,47 +318,57 @@ export async function updateInvoiceAction(
       return { success: false, error: 'Invoice not found.' };
     }
 
-    // Prepare update data
-    const updateData: any = {};
-    if (data.amount !== undefined) updateData.amount = data.amount;
+    // Resolve final values (fall back to existing)
+    const amt = data.amount !== undefined ? data.amount : existing.amount;
+    const discountType = (data.discountType ?? existing.discountType ?? 'amount') as 'amount' | 'percentage';
+    const discountValue = data.discountValue !== undefined ? data.discountValue : (existing.discountValue ?? 0);
+    const cred = data.creditApplied !== undefined ? data.creditApplied : existing.creditApplied;
+
+    // Validate discount
+    if (discountType === 'percentage' && discountValue > 100) {
+      return { success: false, error: 'Discount percentage cannot exceed 100%.' };
+    }
+    if (discountType === 'amount' && discountValue > amt) {
+      return { success: false, error: `Discount (${formatCurrency(discountValue)}) cannot exceed the invoice amount (${formatCurrency(amt)}).` };
+    }
+
+    // Recompute in correct order: amount → discount → credits
+    const discountAmount = computeDiscountAmount(amt, discountType, discountValue);
+    const amountAfterDiscount = amt - discountAmount;
+    const finalAmountDue = Math.max(0, amountAfterDiscount - cred);
+
+    const updateData: any = {
+      discountType,
+      discountValue,
+      discountAmount,
+      finalAmountDue,
+    };
+    if (data.amount !== undefined) updateData.amount = amt;
+    if (data.creditApplied !== undefined) updateData.creditApplied = cred;
     if (data.dueDate !== undefined) updateData.dueDate = new Date(data.dueDate);
     if (data.status !== undefined) updateData.status = data.status;
     if (data.projectId !== undefined) updateData.projectId = data.projectId || null;
 
-    // Recalculate final amount if amount or credits changed
-    if (data.amount !== undefined || data.creditApplied !== undefined) {
-      const amt = data.amount !== undefined ? data.amount : existing.amount;
-      const cred = data.creditApplied !== undefined ? data.creditApplied : existing.creditApplied;
-      updateData.finalAmountDue = Math.max(0, amt - cred);
-    }
-
-    // Validate project logs if projectId is updated or if maintenanceLogIds are updated
+    // Validate project logs
     const targetProjId = data.projectId !== undefined ? data.projectId : existing.projectId;
     const targetLogIds = data.maintenanceLogIds;
 
     if (targetProjId && targetLogIds && targetLogIds.length > 0) {
       const logsCount = await prisma.maintenanceLog.count({
-        where: {
-          id: { in: targetLogIds },
-          projectId: targetProjId,
-        },
+        where: { id: { in: targetLogIds }, projectId: targetProjId },
       });
       if (logsCount !== targetLogIds.length) {
         return { success: false, error: 'One or more selected maintenance logs do not belong to the selected project.' };
       }
     }
 
-    // Handle many-to-many relationship updates for maintenanceLogs
     if (data.maintenanceLogIds !== undefined) {
       updateData.maintenanceLogs = {
         set: data.maintenanceLogIds.map((logId) => ({ id: logId })),
       };
     }
 
-    await prisma.invoice.update({
-      where: { id },
-      data: updateData,
-    });
+    await prisma.invoice.update({ where: { id }, data: updateData });
 
     revalidatePath('/admin/clients');
     if (existing.clientId) revalidatePath(`/admin/clients/${existing.clientId}`);

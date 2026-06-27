@@ -137,6 +137,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
   const [selectedInvoiceForDetails, setSelectedInvoiceForDetails] = useState<AdminInvoice | null>(null);
 
+  // Discount state
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
+  const [discountValue, setDiscountValue] = useState('');
+
   // View Log Modal state
   const [isViewLogOpen, setIsViewLogOpen] = useState(false);
   const [viewLog, setViewLog] = useState<AdminMaintenanceLog | null>(null);
@@ -453,6 +457,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setCreditDeduction((inv.creditApplied || 0).toString());
     setApplyCredits((inv.creditApplied || 0) > 0);
     setSelectedLogIds(inv.maintenanceLogs?.map((l) => l.id) || []);
+    setDiscountType(inv.discountType ?? 'amount');
+    setDiscountValue((inv.discountValue ?? 0) > 0 ? (inv.discountValue ?? 0).toString() : '');
     setInvoiceFormError('');
     setIsInvoiceFormOpen(true);
   };
@@ -466,6 +472,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setCreditDeduction('');
     setApplyCredits(false);
     setSelectedLogIds([]);
+    setDiscountType('amount');
+    setDiscountValue('');
     setInvoiceFormError('');
   };
 
@@ -482,6 +490,21 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     const amountParts = invoiceAmount.split('.');
     if (amountParts.length > 1 && amountParts[1].length > 2) {
       setInvoiceFormError('Invoice amount cannot have more than 2 decimal places');
+      return;
+    }
+
+    // Discount validation
+    const discountVal = parseFloat(discountValue) || 0;
+    if (discountVal < 0) {
+      setInvoiceFormError('Discount cannot be negative.');
+      return;
+    }
+    if (discountType === 'percentage' && discountVal > 100) {
+      setInvoiceFormError('Discount percentage cannot exceed 100%.');
+      return;
+    }
+    if (discountType === 'amount' && discountVal > amt) {
+      setInvoiceFormError('Discount amount cannot exceed the invoice amount.');
       return;
     }
 
@@ -509,10 +532,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         const res = await updateInvoiceAction(editingInvoice.id, {
           projectId,
           amount: amt,
+          discountType,
+          discountValue: discountVal,
           dueDate: invoiceDueDate,
           status: invoiceStatus,
           creditApplied: deduction,
-          finalAmountDue: amt - deduction,
           maintenanceLogIds: selectedLogIds,
         });
 
@@ -531,10 +555,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
           clientId,
           projectId,
           amount: amt,
+          discountType,
+          discountValue: discountVal,
           dueDate: invoiceDueDate,
           status: invoiceStatus,
           creditApplied: deduction,
-          finalAmountDue: amt - deduction,
           maintenanceLogIds: selectedLogIds,
         });
 
@@ -1380,6 +1405,59 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 </div>
               </div>
 
+              {/* ── Discount ───────────────────────────────────────────── */}
+              <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-3.5 space-y-3">
+                <span className="text-xs font-semibold text-primary block">Discount</span>
+                {/* Segmented control */}
+                <div className="flex rounded-lg overflow-hidden border border-outline-variant/30 text-[10px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('amount'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'amount'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    ₹ Fixed Amount
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('percentage'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'percentage'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    % Percentage
+                  </button>
+                </div>
+                {/* Value input */}
+                <div>
+                  <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    {discountType === 'amount' ? 'Discount Amount (₹)' : 'Discount Percentage (%)'}
+                  </label>
+                  <div className="relative">
+                    {discountType === 'amount' ? (
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                    ) : (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant/40 font-mono">%</span>
+                    )}
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={discountType === 'percentage' ? 100 : undefined}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      placeholder={discountType === 'amount' ? '0.00' : '0'}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-[11px] focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Credit Balance Adjustment */}
               {data?.project.clientCreditBalance !== undefined && data.project.clientCreditBalance > 0 && (
                 <div className="border border-outline-variant/30 rounded-lg p-3 bg-surface-container-low/40 space-y-2">
@@ -1434,9 +1512,15 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
               {/* Live Summary Panel */}
               {(() => {
                 const amt = parseFloat(invoiceAmount) || 0;
+                const discountVal = parseFloat(discountValue) || 0;
+                const discountAmt = discountType === 'percentage'
+                  ? Math.round(amt * Math.min(discountVal, 100) / 100 * 100) / 100
+                  : Math.min(discountVal, amt);
+                const amtAfterDiscount = Math.max(0, amt - discountAmt);
                 const deduct = applyCredits ? (parseFloat(creditDeduction) || 0) : 0;
-                const due = Math.max(0, amt - deduct);
+                const due = Math.max(0, amtAfterDiscount - deduct);
                 const isFullyCovered = amt > 0 && due === 0;
+                const hasDiscount = discountAmt > 0;
 
                 return (
                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
@@ -1444,8 +1528,16 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       <span>Invoice Amount:</span>
                       <span className="font-mono">{formatCurrency(amt)}</span>
                     </div>
+                    {hasDiscount && (
+                      <div className="flex justify-between items-center text-amber-500">
+                        <span>
+                          Discount{discountType === 'percentage' && discountVal > 0 ? ` (${discountVal}%)` : ''}:
+                        </span>
+                        <span className="font-mono">-{formatCurrency(discountAmt)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-on-surface-variant">
-                      <span>Credit Applied:</span>
+                      <span>Credits Applied:</span>
                       <span className="font-mono">-{formatCurrency(deduct)}</span>
                     </div>
                     <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${isFullyCovered
@@ -1550,20 +1642,24 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
               <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1.5 font-mono text-[11px]">
                 <div className="flex justify-between text-on-surface-variant">
-                  <span>Subtotal:</span><span>{formatCurrency(selectedInvoiceForDetails.amount)}</span>
+                  <span>Invoice Amount:</span><span>{formatCurrency(selectedInvoiceForDetails.amount)}</span>
                 </div>
+                {selectedInvoiceForDetails.discountAmount > 0 && (
+                  <div className="flex justify-between text-amber-500">
+                    <span>
+                      Discount{selectedInvoiceForDetails.discountType === 'percentage'
+                        ? ` (${selectedInvoiceForDetails.discountValue}%)`
+                        : ''}:
+                    </span>
+                    <span>-{formatCurrency(selectedInvoiceForDetails.discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-on-surface-variant">
-                  <span>GST (18%):</span><span>{formatCurrency(selectedInvoiceForDetails.amount * 0.18)}</span>
-                </div>
-                <div className="flex justify-between text-on-surface font-semibold border-t border-outline-variant/20 pt-1.5">
-                  <span>Grand Total:</span><span>{formatCurrency(selectedInvoiceForDetails.amount * 1.18)}</span>
-                </div>
-                <div className="flex justify-between text-on-surface-variant">
-                  <span>Credit Applied:</span><span>-{formatCurrency(selectedInvoiceForDetails.creditApplied)}</span>
+                  <span>Credits Applied:</span><span>-{formatCurrency(selectedInvoiceForDetails.creditApplied)}</span>
                 </div>
                 <div className="flex justify-between text-primary font-bold border-t border-outline-variant/20 pt-1.5 text-xs">
                   <span>Amount Due:</span>
-                  <span>{formatCurrency(Math.max(0, (selectedInvoiceForDetails.amount * 1.18) - selectedInvoiceForDetails.creditApplied))}</span>
+                  <span>{formatCurrency(selectedInvoiceForDetails.finalAmountDue)}</span>
                 </div>
               </div>
 

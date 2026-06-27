@@ -260,6 +260,9 @@ model Invoice {
   projectId              String?  @db.Uuid
   invoiceNumber          String   @unique
   amount                 Float
+  discountType           String   @default("amount")  // "amount" | "percentage"
+  discountValue          Float    @default(0)          // Raw entered value (₹ or %)
+  discountAmount         Float    @default(0)          // Calculated monetary discount
   creditApplied          Float    @default(0)
   finalAmountDue         Float    @default(0)
   startingCreditBalance  Float?   // Client credit balance BEFORE deduction (for PDF audit)
