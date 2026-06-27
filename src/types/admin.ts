@@ -135,6 +135,7 @@ export interface AdminMaintenanceLog {
   description?: string | null;
   logDate: string;
   createdDate: string;
+  invoices?: AdminInvoice[];
 }
 
 export interface AdminInvoice {
@@ -153,6 +154,7 @@ export interface AdminInvoice {
   dueDate: string;
   issuedDate: string;
   createdAt: string;
+  maintenanceLogs?: AdminMaintenanceLog[];
 }
 
 export interface AdminCreditTransaction {

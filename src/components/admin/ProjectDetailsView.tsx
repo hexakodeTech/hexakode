@@ -7,6 +7,7 @@ import { AdminPortalProject, AdminMaintenanceLog, AdminInvoice } from '@/types/a
 import DataTable from './DataTable';
 import {
   ChevronLeft,
+  ChevronDown,
   Globe,
   ExternalLink,
   Copy,
@@ -22,13 +23,15 @@ import {
   FileText,
   Calendar,
   DollarSign,
+  IndianRupee,
   Download,
   CheckCircle2,
 } from 'lucide-react';
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
-import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction } from '@/lib/invoices/actions';
+import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
 import { exportToPDF } from '@/lib/utils/pdf-export';
+import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -125,6 +128,14 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [invoiceToDelete, setInvoiceToDelete] = useState<AdminInvoice | null>(null);
   const [applyCredits, setApplyCredits] = useState(false);
   const [creditDeduction, setCreditDeduction] = useState('');
+
+  // Maintenance logs linkage states
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [isLogDropdownOpen, setIsLogDropdownOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<AdminInvoice | null>(null);
+  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
+  const [selectedInvoiceForDetails, setSelectedInvoiceForDetails] = useState<AdminInvoice | null>(null);
 
   // View Log Modal state
   const [isViewLogOpen, setIsViewLogOpen] = useState(false);
@@ -434,6 +445,30 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     updateInvoiceStatusAutomatically(invoiceAmount, finalVal, applyCredits);
   };
 
+  const handleOpenEditInvoice = (inv: AdminInvoice) => {
+    setEditingInvoice(inv);
+    setInvoiceAmount(inv.amount.toString());
+    setInvoiceDueDate(inv.dueDate);
+    setInvoiceStatus(inv.status);
+    setCreditDeduction((inv.creditApplied || 0).toString());
+    setApplyCredits((inv.creditApplied || 0) > 0);
+    setSelectedLogIds(inv.maintenanceLogs?.map((l) => l.id) || []);
+    setInvoiceFormError('');
+    setIsInvoiceFormOpen(true);
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setIsInvoiceFormOpen(false);
+    setEditingInvoice(null);
+    setInvoiceAmount('');
+    setInvoiceDueDate('');
+    setInvoiceStatus('Pending');
+    setCreditDeduction('');
+    setApplyCredits(false);
+    setSelectedLogIds([]);
+    setInvoiceFormError('');
+  };
+
   const handleSubmitInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setInvoiceFormError('');
@@ -470,24 +505,48 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
     setIsSubmitting(true);
     try {
-      const res = await createInvoiceAction({
-        clientId,
-        projectId,
-        amount: amt,
-        dueDate: invoiceDueDate,
-        status: invoiceStatus,
-        creditApplied: deduction,
-        finalAmountDue: amt - deduction,
-      });
+      if (editingInvoice) {
+        const res = await updateInvoiceAction(editingInvoice.id, {
+          projectId,
+          amount: amt,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          finalAmountDue: amt - deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
 
-      if (!res.success) {
-        setInvoiceFormError(res.error || 'Failed to create invoice.');
-        toast.error(res.error || 'Failed to create invoice.');
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to update invoice.');
+          toast.error(res.error || 'Failed to update invoice.');
+        } else {
+          toast.success('Invoice updated successfully.');
+          setIsInvoiceFormOpen(false);
+          setEditingInvoice(null);
+          loadInvoices();
+          loadData();
+        }
       } else {
-        toast.success('Invoice created successfully.');
-        setIsInvoiceFormOpen(false);
-        loadInvoices();
-        loadData(); // Refresh project details (reloads clientCreditBalance)
+        const res = await createInvoiceAction({
+          clientId,
+          projectId,
+          amount: amt,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          finalAmountDue: amt - deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
+
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to create invoice.');
+          toast.error(res.error || 'Failed to create invoice.');
+        } else {
+          toast.success('Invoice created successfully.');
+          setIsInvoiceFormOpen(false);
+          loadInvoices();
+          loadData(); // Refresh project details (reloads clientCreditBalance)
+        }
       }
     } catch {
       setInvoiceFormError('An unexpected error occurred.');
@@ -522,8 +581,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     try {
       toast.info('Generating PDF...');
 
+      const subtotal = inv.amount;
+      const gst = subtotal * 0.18;
+      const grandTotal = subtotal + gst;
       const creditApplied = inv.creditApplied || 0;
-      const finalDue = inv.finalAmountDue ?? inv.amount;
+      const finalDue = Math.max(0, grandTotal - creditApplied);
       const hasCredit = creditApplied > 0;
 
       // Determine payment method label
@@ -532,20 +594,19 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         : 'Direct Payment';
 
       // Build Invoice Summary items
-      const summaryItems = hasCredit
-        ? [
-          { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
-          { label: 'Credit Deducted', value: `$${creditApplied.toFixed(2)}` },
-          { label: 'Amount Due', value: `$${finalDue.toFixed(2)}` },
-          { label: 'Payment Status', value: inv.status.toUpperCase() },
-          { label: 'Payment Method', value: paymentMethod },
-        ]
-        : [
-          { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
-          { label: 'Amount Due', value: `$${inv.amount.toFixed(2)}` },
-          { label: 'Payment Status', value: inv.status.toUpperCase() },
-          { label: 'Payment Method', value: paymentMethod },
-        ];
+      const summaryItems = [
+        { label: 'Subtotal',          value: formatCurrency(subtotal) },
+        { label: 'GST (18%)',         value: formatCurrency(gst) },
+        { label: 'Grand Total',       value: formatCurrency(grandTotal) },
+      ];
+      if (hasCredit) {
+        summaryItems.push({ label: 'Credit Deducted', value: formatCurrency(creditApplied) });
+      }
+      summaryItems.push(
+        { label: 'Amount Due',        value: formatCurrency(finalDue) },
+        { label: 'Payment Status',    value: inv.status.toUpperCase() },
+        { label: 'Payment Method',    value: paymentMethod }
+      );
 
       // Build Credit Balance Usage section (only when credits were applied)
       let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
@@ -553,11 +614,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         const startingBal = inv.startingCreditBalance;
         const remainingBal = startingBal - creditApplied;
         creditSection = {
-          startingBalance: `$${startingBal.toFixed(2)}`,
-          creditsUsed: `$${creditApplied.toFixed(2)}`,
-          remainingBalance: `$${remainingBal.toFixed(2)}`,
+          startingBalance:  formatCurrency(startingBal),
+          creditsUsed:      formatCurrency(creditApplied),
+          remainingBalance: formatCurrency(remainingBal),
           paymentMethod,
-          transactionId: inv.creditTransactionId ?? undefined,
+          transactionId:    inv.creditTransactionId ?? undefined,
         };
       }
 
@@ -580,8 +641,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
           [
             `Development & maintenance services for project: ${data?.project.name || 'HexaKode application'}`,
             '1',
-            `$${inv.amount.toFixed(2)}`,
-            `$${inv.amount.toFixed(2)}`,
+            formatCurrency(subtotal),
+            formatCurrency(subtotal),
           ],
         ],
       });
@@ -880,19 +941,32 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         ) : (
           filteredInvoices.slice((invoicePage - 1) * itemsPerPage, invoicePage * itemsPerPage).map((inv) => (
             <tr key={inv.id} className="hover:bg-surface-container-low/30 transition-colors">
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{inv.invoiceNumber}</td>
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">${inv.amount.toFixed(2)}</td>
-              <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">${(inv.creditApplied || 0).toFixed(2)}</td>
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">${(inv.finalAmountDue ?? inv.amount).toFixed(2)}</td>
+              <td className="px-6 py-4">
+                <button
+                  onClick={() => {
+                    setSelectedInvoiceForDetails(inv);
+                    setIsInvoiceDetailsOpen(true);
+                  }}
+                  className="text-xs font-mono font-semibold text-primary hover:underline text-left cursor-pointer"
+                >
+                  {inv.invoiceNumber}
+                </button>
+              </td>
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{formatCurrency(inv.amount)}</td>
+              <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">{formatCurrency(inv.creditApplied || 0)}</td>
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">
+                {formatCurrency(Math.max(0, (inv.amount * 1.18) - (inv.creditApplied || 0)))}
+              </td>
               <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">{inv.dueDate}</td>
               <td className="px-6 py-4">
                 <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500' : inv.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}`}>{inv.status}</span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => handleDownloadInvoicePDF(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer"><Download className="w-3.5 h-3.5" /></button>
-                  {inv.status !== 'Paid' && <button onClick={() => handleMarkInvoicePaid(inv.id)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-emerald-500 cursor-pointer"><Check className="w-3.5 h-3.5" /></button>}
-                  <button onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDownloadInvoicePDF(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer" title="Download Invoice PDF"><Download className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleOpenEditInvoice(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer" title="Edit Invoice"><Edit2 className="w-3.5 h-3.5" /></button>
+                  {inv.status !== 'Paid' && <button onClick={() => handleMarkInvoicePaid(inv.id)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-emerald-500 cursor-pointer" title="Mark Invoice Paid"><Check className="w-3.5 h-3.5" /></button>}
+                  <button onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error cursor-pointer" title="Delete Invoice"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </td>
             </tr>
@@ -1156,6 +1230,43 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   {viewLog.description || <span className="italic text-on-surface-variant/50">No details provided.</span>}
                 </div>
               </div>
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block mb-1">Invoice Information</span>
+                {(!viewLog.invoices || viewLog.invoices.length === 0) ? (
+                  <p className="text-on-surface-variant/50 italic text-[11px]">No invoice linked</p>
+                ) : (
+                  <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3.5 space-y-2 text-xs">
+                    {viewLog.invoices.map((inv) => (
+                      <div key={inv.id} className="flex flex-col gap-1 border-b border-outline-variant/10 last:border-b-0 pb-1.5 last:pb-0">
+                        <div className="flex justify-between font-semibold text-primary">
+                          <span>Invoice #{inv.invoiceNumber}</span>
+                          <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                            inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500' : inv.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'
+                          }`}>
+                            {inv.status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-on-surface-variant font-mono text-[10px]">
+                          <span>Amount: {formatCurrency(inv.amount)}</span>
+                          <span>Due Date: {inv.dueDate}</span>
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={() => {
+                              setIsViewLogOpen(false);
+                              setSelectedInvoiceForDetails(inv as any);
+                              setIsInvoiceDetailsOpen(true);
+                            }}
+                            className="text-[10px] text-primary hover:text-secondary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
+                          >
+                            View Invoice →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex justify-end pt-3 border-t border-outline-variant/20">
               <button onClick={() => setIsViewLogOpen(false)} className="px-4 py-1.5 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg cursor-pointer">Close</button>
@@ -1181,10 +1292,90 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Linked Project</label>
                 <input type="text" disabled value={project.name} className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs text-on-surface-variant/80 cursor-not-allowed" />
               </div>
+
+              {/* ── Linked Maintenance Logs ── */}
               <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Invoice Amount ($) *</label>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Linked Maintenance Logs <span className="normal-case text-on-surface-variant/40">(Optional)</span>
+                </label>
+                {/* Selected chips */}
+                {selectedLogIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {selectedLogIds.map((lid) => {
+                      const lg = logs.find((l) => l.id === lid);
+                      return lg ? (
+                        <span key={lid} className="flex items-center gap-1 text-[10px] bg-secondary/10 text-secondary font-semibold px-2 py-0.5 rounded-full border border-secondary/20">
+                          <span className="truncate max-w-[140px]">{lg.title}</span>
+                          <button type="button" onClick={() => setSelectedLogIds((prev) => prev.filter((id) => id !== lid))} className="text-secondary/60 hover:text-secondary cursor-pointer">
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={logSearchQuery}
+                      onChange={(e) => { setLogSearchQuery(e.target.value); setIsLogDropdownOpen(true); }}
+                      onFocus={() => setIsLogDropdownOpen(true)}
+                      placeholder={logs.length === 0 ? 'No maintenance logs available' : 'Search maintenance logs...'}
+                      disabled={logs.length === 0}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary text-on-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40 pointer-events-none" />
+                  </div>
+                  {isLogDropdownOpen && logs.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                      {logs
+                        .filter((l) =>
+                          l.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                          (l.description || '').toLowerCase().includes(logSearchQuery.toLowerCase())
+                        )
+                        .map((l) => {
+                          const isSelected = selectedLogIds.includes(l.id);
+                          return (
+                            <button
+                              key={l.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedLogIds((prev) =>
+                                  isSelected ? prev.filter((id) => id !== l.id) : [...prev, l.id]
+                                );
+                                setLogSearchQuery('');
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer ${isSelected ? 'text-secondary font-semibold bg-secondary/5' : 'text-on-surface'}`}
+                            >
+                              <span className="truncate">{l.title}</span>
+                              {isSelected && <Check className="w-3 h-3 flex-shrink-0 text-secondary" />}
+                            </button>
+                          );
+                        })}
+                      {logs.filter((l) =>
+                        l.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                        (l.description || '').toLowerCase().includes(logSearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <p className="text-center py-3 text-[10px] text-on-surface-variant/50">No logs match your search.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {isLogDropdownOpen && (
+                  <button
+                    type="button"
+                    className="fixed inset-0 z-[9]"
+                    onClick={() => setIsLogDropdownOpen(false)}
+                    aria-label="Close dropdown"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Invoice Amount (₹) *</label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                   <input type="number" step="0.01" min="0" required value={invoiceAmount} onChange={(e) => handleInvoiceAmountChange(e.target.value)} placeholder="0.00" className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-secondary text-on-surface" />
                 </div>
               </div>
@@ -1197,7 +1388,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       Credit Balance Adjustment
                     </span>
                     <span className="text-[10px] font-semibold text-secondary font-mono">
-                      Available: ${data.project.clientCreditBalance.toFixed(2)}
+                      Available: {formatCurrency(data.project.clientCreditBalance)}
                     </span>
                   </div>
 
@@ -1220,10 +1411,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   {applyCredits && (
                     <div className="space-y-1">
                       <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant">
-                        Credit Deduction Amount ($)
+                        Credit Deduction Amount (₹)
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                         <input
                           type="number"
                           step="0.01"
@@ -1251,11 +1442,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
                     <div className="flex justify-between items-center text-on-surface-variant">
                       <span>Invoice Amount:</span>
-                      <span className="font-mono">${amt.toFixed(2)}</span>
+                      <span className="font-mono">{formatCurrency(amt)}</span>
                     </div>
                     <div className="flex justify-between items-center text-on-surface-variant">
                       <span>Credit Applied:</span>
-                      <span className="font-mono">-${deduct.toFixed(2)}</span>
+                      <span className="font-mono">-{formatCurrency(deduct)}</span>
                     </div>
                     <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${isFullyCovered
                         ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1'
@@ -1263,7 +1454,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       }`}>
                       <span>Amount Due:</span>
                       <span className="font-mono">
-                        ${due.toFixed(2)}
+                        {formatCurrency(due)}
                       </span>
                     </div>
                     {isFullyCovered && (
@@ -1310,6 +1501,125 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
             <div className="flex items-center justify-center gap-3">
               <button onClick={() => setIsDeleteInvoiceOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
               <button onClick={handleDeleteInvoice} className="px-4 py-2 bg-error text-on-error text-xs font-semibold rounded-lg hover:shadow-lg cursor-pointer">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invoice Details Modal ────────────────────────────────────────── */}
+      {isInvoiceDetailsOpen && selectedInvoiceForDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-premium max-h-[90vh] overflow-y-auto space-y-4 font-sans text-on-surface">
+            <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3 mb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-secondary" />
+                <h3 className="font-headline-sm text-sm font-semibold text-primary">Invoice Details</h3>
+              </div>
+              <button
+                onClick={() => { setIsInvoiceDetailsOpen(false); setSelectedInvoiceForDetails(null); }}
+                className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Invoice Number</span>
+                  <p className="font-mono text-on-surface mt-0.5 font-bold">{selectedInvoiceForDetails.invoiceNumber}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Status</span>
+                  <p className="mt-0.5">
+                    <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                      selectedInvoiceForDetails.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500'
+                      : selectedInvoiceForDetails.status === 'Pending' ? 'bg-amber-500/10 text-amber-500'
+                      : 'bg-rose-500/10 text-rose-500'
+                    }`}>
+                      {selectedInvoiceForDetails.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Linked Project</span>
+                <p className="text-on-surface mt-0.5">{project.name}</p>
+              </div>
+
+              <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Subtotal:</span><span>{formatCurrency(selectedInvoiceForDetails.amount)}</span>
+                </div>
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>GST (18%):</span><span>{formatCurrency(selectedInvoiceForDetails.amount * 0.18)}</span>
+                </div>
+                <div className="flex justify-between text-on-surface font-semibold border-t border-outline-variant/20 pt-1.5">
+                  <span>Grand Total:</span><span>{formatCurrency(selectedInvoiceForDetails.amount * 1.18)}</span>
+                </div>
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Credit Applied:</span><span>-{formatCurrency(selectedInvoiceForDetails.creditApplied)}</span>
+                </div>
+                <div className="flex justify-between text-primary font-bold border-t border-outline-variant/20 pt-1.5 text-xs">
+                  <span>Amount Due:</span>
+                  <span>{formatCurrency(Math.max(0, (selectedInvoiceForDetails.amount * 1.18) - selectedInvoiceForDetails.creditApplied))}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Issued Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.issuedDate}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Due Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.dueDate}</p>
+                </div>
+              </div>
+
+              {/* Linked Maintenance Logs */}
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block mb-1">Linked Maintenance Logs</span>
+                {(!selectedInvoiceForDetails.maintenanceLogs || selectedInvoiceForDetails.maintenanceLogs.length === 0) ? (
+                  <p className="text-on-surface-variant/50 italic text-[11px]">No maintenance logs linked to this invoice.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto p-1 bg-surface-container-low border border-outline-variant/20 rounded-lg">
+                    {selectedInvoiceForDetails.maintenanceLogs.map((log) => (
+                      <button
+                        key={log.id}
+                        onClick={() => {
+                          setIsInvoiceDetailsOpen(false);
+                          setSelectedInvoiceForDetails(null);
+                          const found = logs.find((l) => l.id === log.id);
+                          if (found) { setViewLog(found); setIsViewLogOpen(true); }
+                        }}
+                        className="w-full text-left block px-2.5 py-1.5 bg-surface-container-lowest hover:bg-secondary/5 rounded border border-outline-variant/10 text-primary hover:text-secondary font-medium transition-all truncate text-xs cursor-pointer"
+                      >
+                        {log.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant/20">
+              <button
+                onClick={() => {
+                  setIsInvoiceDetailsOpen(false);
+                  handleOpenEditInvoice(selectedInvoiceForDetails);
+                }}
+                className="px-4 py-1.5 bg-secondary text-on-secondary text-xs font-semibold rounded-lg hover:shadow-lg transition-all cursor-pointer"
+              >
+                Edit Invoice
+              </button>
+              <button
+                onClick={() => { setIsInvoiceDetailsOpen(false); setSelectedInvoiceForDetails(null); }}
+                className="px-4 py-1.5 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-all cursor-pointer text-on-surface"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
