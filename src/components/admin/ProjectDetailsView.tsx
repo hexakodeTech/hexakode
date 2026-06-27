@@ -30,6 +30,7 @@ import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenan
 import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction } from '@/lib/invoices/actions';
 import { exportToPDF } from '@/lib/utils/pdf-export';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProjectDetailsViewProps {
   clientId: string;
@@ -56,6 +57,12 @@ function validateUrl(val: string): string | null {
   }
 }
 
+function validatePackageId(val: string): string | null {
+  if (!val) return null;
+  const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
+  return packageIdRegex.test(val) ? null : 'Invalid format. Use com.company.app';
+}
+
 export default function ProjectDetailsView({ clientId, projectId }: ProjectDetailsViewProps) {
   const router = useRouter();
   const [data, setData] = useState<{ project: AdminPortalProject; logs: AdminMaintenanceLog[] } | null>(null);
@@ -75,13 +82,24 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
+  const [projectType, setProjectType] = useState<'web' | 'mobile'>('web');
   const [websiteUrl, setWebsiteUrl] = useState('');
-  const [adminUrl, setAdminUrl] = useState('');
+  const [adminPanelUrl, setAdminPanelUrl] = useState('');
+  const [androidPackage, setAndroidPackage] = useState('');
+  const [iosBundleId, setIosBundleId] = useState('');
+  const [playStoreUrl, setPlayStoreUrl] = useState('');
+  const [appStoreUrl, setAppStoreUrl] = useState('');
+
   const [status, setStatus] = useState('Active');
   const [notes, setNotes] = useState('');
+
   const [formError, setFormError] = useState('');
   const [websiteUrlError, setWebsiteUrlError] = useState('');
-  const [adminUrlError, setAdminUrlError] = useState('');
+  const [adminPanelUrlError, setAdminPanelUrlError] = useState('');
+  const [androidPackageError, setAndroidPackageError] = useState('');
+  const [iosBundleIdError, setIosBundleIdError] = useState('');
+  const [playStoreUrlError, setPlayStoreUrlError] = useState('');
+  const [appStoreUrlError, setAppStoreUrlError] = useState('');
 
   // Delete project modal state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -145,25 +163,85 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     if (!data) return;
     const { project } = data;
     setName(project.name);
+    setProjectType((project.projectType as 'web' | 'mobile') || 'web');
     setWebsiteUrl(project.websiteUrl || '');
-    setAdminUrl(project.adminUrl || '');
+    setAdminPanelUrl(project.adminPanelUrl || '');
+    setAndroidPackage(project.androidPackage || '');
+    setIosBundleId(project.iosBundleId || '');
+    setPlayStoreUrl(project.playStoreUrl || '');
+    setAppStoreUrl(project.appStoreUrl || '');
     setStatus(project.status);
     setNotes(project.notes || '');
     setFormError('');
     setWebsiteUrlError('');
-    setAdminUrlError('');
+    setAdminPanelUrlError('');
+    setAndroidPackageError('');
+    setIosBundleIdError('');
+    setPlayStoreUrlError('');
+    setAppStoreUrlError('');
     setIsEditOpen(true);
+  };
+
+  const handleWebsiteUrlChange = (val: string) => {
+    setWebsiteUrl(val);
+    setWebsiteUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAdminPanelUrlChange = (val: string) => {
+    setAdminPanelUrl(val);
+    setAdminPanelUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAndroidPackageChange = (val: string) => {
+    setAndroidPackage(val);
+    setAndroidPackageError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleIosBundleIdChange = (val: string) => {
+    setIosBundleId(val);
+    setIosBundleIdError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handlePlayStoreUrlChange = (val: string) => {
+    setPlayStoreUrl(val);
+    setPlayStoreUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAppStoreUrlChange = (val: string) => {
+    setAppStoreUrl(val);
+    setAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleSubmitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (websiteUrl) {
-      const err = validateUrl(websiteUrl);
-      if (err) { setWebsiteUrlError(err); return; }
-    }
-    if (adminUrl) {
-      const err = validateUrl(adminUrl);
-      if (err) { setAdminUrlError(err); return; }
+    setFormError('');
+
+    if (projectType === 'web') {
+      if (websiteUrl) {
+        const err = validateUrl(websiteUrl);
+        if (err) { setWebsiteUrlError(err); return; }
+      }
+      if (adminPanelUrl) {
+        const err = validateUrl(adminPanelUrl);
+        if (err) { setAdminPanelUrlError(err); return; }
+      }
+    } else {
+      if (androidPackage) {
+        const err = validatePackageId(androidPackage);
+        if (err) { setAndroidPackageError(err); return; }
+      }
+      if (iosBundleId) {
+        const err = validatePackageId(iosBundleId);
+        if (err) { setIosBundleIdError(err); return; }
+      }
+      if (playStoreUrl) {
+        const err = validateUrl(playStoreUrl);
+        if (err) { setPlayStoreUrlError(err); return; }
+      }
+      if (appStoreUrl) {
+        const err = validateUrl(appStoreUrl);
+        if (err) { setAppStoreUrlError(err); return; }
+      }
     }
 
     setIsSubmitting(true);
@@ -171,8 +249,13 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       const res = await updateProjectAction(projectId, {
         name,
         clientId,
-        websiteUrl,
-        adminUrl,
+        projectType,
+        websiteUrl: projectType === 'web' ? websiteUrl : '',
+        adminPanelUrl: projectType === 'web' ? adminPanelUrl : '',
+        androidPackage: projectType === 'mobile' ? androidPackage : '',
+        iosBundleId: projectType === 'mobile' ? iosBundleId : '',
+        playStoreUrl: projectType === 'mobile' ? playStoreUrl : '',
+        appStoreUrl: projectType === 'mobile' ? appStoreUrl : '',
         status,
         notes,
       });
@@ -374,7 +457,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         setInvoiceFormError('Credit deduction amount must be a valid non-negative number.');
         return;
       }
-      
+
       const maxAllowed = data?.project ? Math.min(amt, data.project.clientCreditBalance || 0) : amt;
       deduction = Math.min(rawDeduction, maxAllowed);
 
@@ -451,18 +534,18 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       // Build Invoice Summary items
       const summaryItems = hasCredit
         ? [
-            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Credit Deducted', value: `$${creditApplied.toFixed(2)}` },
-            { label: 'Amount Due',      value: `$${finalDue.toFixed(2)}` },
-            { label: 'Payment Status',  value: inv.status.toUpperCase() },
-            { label: 'Payment Method',  value: paymentMethod },
-          ]
+          { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
+          { label: 'Credit Deducted', value: `$${creditApplied.toFixed(2)}` },
+          { label: 'Amount Due', value: `$${finalDue.toFixed(2)}` },
+          { label: 'Payment Status', value: inv.status.toUpperCase() },
+          { label: 'Payment Method', value: paymentMethod },
+        ]
         : [
-            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Amount Due',      value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Payment Status',  value: inv.status.toUpperCase() },
-            { label: 'Payment Method',  value: paymentMethod },
-          ];
+          { label: 'Invoice Amount', value: `$${inv.amount.toFixed(2)}` },
+          { label: 'Amount Due', value: `$${inv.amount.toFixed(2)}` },
+          { label: 'Payment Status', value: inv.status.toUpperCase() },
+          { label: 'Payment Method', value: paymentMethod },
+        ];
 
       // Build Credit Balance Usage section (only when credits were applied)
       let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
@@ -470,11 +553,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         const startingBal = inv.startingCreditBalance;
         const remainingBal = startingBal - creditApplied;
         creditSection = {
-          startingBalance:  `$${startingBal.toFixed(2)}`,
-          creditsUsed:      `$${creditApplied.toFixed(2)}`,
+          startingBalance: `$${startingBal.toFixed(2)}`,
+          creditsUsed: `$${creditApplied.toFixed(2)}`,
           remainingBalance: `$${remainingBal.toFixed(2)}`,
           paymentMethod,
-          transactionId:    inv.creditTransactionId ?? undefined,
+          transactionId: inv.creditTransactionId ?? undefined,
         };
       }
 
@@ -553,11 +636,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="font-headline-sm text-sm font-semibold text-primary">{project.name}</h1>
-            <span className={`text-[8px] font-semibold uppercase px-1.5 py-0.5 rounded ${
-              project.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500'
-              : project.status === 'Completed' ? 'bg-blue-500/10 text-blue-500'
-              : 'bg-surface-container text-on-surface-variant/70'
-            }`}>{project.status}</span>
+            <span className={`text-[8px] font-semibold uppercase px-1.5 py-0.5 rounded ${project.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500'
+                : project.status === 'Completed' ? 'bg-blue-500/10 text-blue-500'
+                  : 'bg-surface-container text-on-surface-variant/70'
+              }`}>{project.status}</span>
           </div>
           <p className="text-xs text-on-surface-variant/60 mt-0.5">
             Client Profile: <span className="font-medium text-primary">{project.clientName}</span>
@@ -574,33 +656,70 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       </div>
 
       {/* ── Info Summary Grid ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-${project.projectType === 'mobile' ? (project.androidPackage && project.iosBundleId ? 4 : 3) : 3} gap-6`}>
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary mt-0.5">
             <FolderKanban className="w-5 h-5" />
           </div>
           <div>
             <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Project Name</span>
-            <p className="text-xs font-semibold text-primary mt-1">{project.name}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs font-semibold text-primary">{project.name}</p>
+              <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant/70 uppercase">
+                {project.projectType === 'mobile' ? '📱 Mobile' : '🌐 Web'}
+              </span>
+            </div>
             <p className="text-[9px] text-on-surface-variant/60 mt-0.5 font-mono">Since {project.createdDate}</p>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Website domain</span>
-            {project.websiteUrl ? (
-              <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-secondary hover:underline mt-1 block truncate" title={project.websiteUrl}>
-                {extractDomain(project.websiteUrl)}
-              </a>
-            ) : (
-              <p className="text-xs text-on-surface-variant/40 mt-1">Not set</p>
+        {project.projectType === 'mobile' ? (
+          <>
+            {project.androidPackage && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Android Package</span>
+                  <p className="text-xs font-mono text-secondary mt-1 block truncate" title={project.androidPackage}>
+                    {project.androidPackage}
+                  </p>
+                </div>
+              </div>
             )}
+
+            {project.iosBundleId && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">iOS Bundle ID</span>
+                  <p className="text-xs font-mono text-secondary mt-1 block truncate" title={project.iosBundleId}>
+                    {project.iosBundleId}
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Website domain</span>
+              {project.websiteUrl ? (
+                <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-secondary hover:underline mt-1 block truncate" title={project.websiteUrl}>
+                  {extractDomain(project.websiteUrl)}
+                </a>
+              ) : (
+                <p className="text-xs text-on-surface-variant/40 mt-1">Not set</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant mt-0.5">
@@ -614,34 +733,65 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         </div>
       </div>
 
-      {/* ── Website / Admin URL details card ────────────────────────────── */}
-      {(project.websiteUrl || project.adminUrl) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {project.websiteUrl && (
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
-              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Website URL</span>
-              <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
-                <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
-                <span className="font-mono text-secondary truncate flex-1">{project.websiteUrl}</span>
-                <button onClick={() => handleCopy(project.websiteUrl!, 'website')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
-                  {copiedKey === 'website' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+      {/* ── Project Details Link Cards ────────────────────────────── */}
+      {project.projectType === 'mobile' ? (
+        (project.playStoreUrl || project.appStoreUrl) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {project.playStoreUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Play Store URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="font-mono text-secondary truncate flex-1">{project.playStoreUrl}</span>
+                  <button onClick={() => handleCopy(project.playStoreUrl!, 'playStore')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'playStore' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-          {project.adminUrl && (
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
-              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Admin Portal URL</span>
-              <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
-                <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
-                <span className="font-mono text-on-surface truncate flex-1">{project.adminUrl}</span>
-                <button onClick={() => handleCopy(project.adminUrl!, 'admin')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
-                  {copiedKey === 'admin' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+            )}
+            {project.appStoreUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">App Store URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+                  <span className="font-mono text-on-surface truncate flex-1">{project.appStoreUrl}</span>
+                  <button onClick={() => handleCopy(project.appStoreUrl!, 'appStore')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'appStore' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )
+      ) : (
+        (project.websiteUrl || project.adminPanelUrl) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {project.websiteUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Website URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="font-mono text-secondary truncate flex-1">{project.websiteUrl}</span>
+                  <button onClick={() => handleCopy(project.websiteUrl!, 'website')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'website' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+            {project.adminPanelUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Admin Panel URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+                  <span className="font-mono text-on-surface truncate flex-1">{project.adminPanelUrl}</span>
+                  <button onClick={() => handleCopy(project.adminPanelUrl!, 'admin')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'admin' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* ── Notes ────────────────────────────────────────────────────────── */}
@@ -760,6 +910,39 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
             </div>
             <form onSubmit={handleSubmitEdit} className="space-y-3">
               {formError && <div className="text-xs text-error bg-error-container/10 p-2.5 rounded-lg border border-error/25">{formError}</div>}
+
+              {/* Project Type */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Project Type <span className="text-error">*</span>
+                </label>
+                <div className="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant/30">
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('web')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'web'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    🌐 Web App
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('mobile')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'mobile'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    📱 Mobile App
+                  </button>
+                </div>
+              </div>
+
+              {/* Project Name */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Project Name *</label>
                 <input type="text" required value={name} onChange={(e) => { setName(e.target.value); setFormError(''); }} className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
@@ -772,29 +955,94 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   <option value="Suspended">Suspended</option>
                 </select>
               </div>
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Website URL</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input type="url" value={websiteUrl} onChange={(e) => { setWebsiteUrl(e.target.value); setWebsiteUrlError(e.target.value ? (validateUrl(e.target.value) || '') : ''); }} placeholder="https://www.website.com" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${websiteUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
-                </div>
-                {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
+
+              {/* Conditional Fields with Framer Motion */}
+              <div className="relative overflow-hidden">
+                <AnimatePresence initial={false} mode="wait">
+                  {projectType === 'web' ? (
+                    <motion.div
+                      key="web-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Website URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Website URL</label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={websiteUrl} onChange={(e) => handleWebsiteUrlChange(e.target.value)} placeholder="https://www.website.com" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${websiteUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
+                      </div>
+
+                      {/* Admin Panel URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Admin Panel URL</label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={adminPanelUrl} onChange={(e) => handleAdminPanelUrlChange(e.target.value)} placeholder="https://www.website.com/admin" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${adminPanelUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {adminPanelUrlError && <p className="text-[10px] text-error mt-1">{adminPanelUrlError}</p>}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Android Package Name */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Android Package Name</label>
+                        <input type="text" value={androidPackage} onChange={(e) => handleAndroidPackageChange(e.target.value)} placeholder="com.hexakode.app" className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${androidPackageError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        {androidPackageError && <p className="text-[10px] text-error mt-1">{androidPackageError}</p>}
+                      </div>
+
+                      {/* iOS Bundle Identifier */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">iOS Bundle Identifier</label>
+                        <input type="text" value={iosBundleId} onChange={(e) => handleIosBundleIdChange(e.target.value)} placeholder="com.hexakode.app" className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${iosBundleIdError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        {iosBundleIdError && <p className="text-[10px] text-error mt-1">{iosBundleIdError}</p>}
+                      </div>
+
+                      {/* Play Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Play Store URL</label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={playStoreUrl} onChange={(e) => handlePlayStoreUrlChange(e.target.value)} placeholder="https://play.google.com/store/apps/details?id=..." className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${playStoreUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {playStoreUrlError && <p className="text-[10px] text-error mt-1">{playStoreUrlError}</p>}
+                      </div>
+
+                      {/* App Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">App Store URL</label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={appStoreUrl} onChange={(e) => handleAppStoreUrlChange(e.target.value)} placeholder="https://apps.apple.com/app/..." className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${appStoreUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {appStoreUrlError && <p className="text-[10px] text-error mt-1">{appStoreUrlError}</p>}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Admin URL</label>
-                <div className="relative">
-                  <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input type="url" value={adminUrl} onChange={(e) => { setAdminUrl(e.target.value); setAdminUrlError(e.target.value ? (validateUrl(e.target.value) || '') : ''); }} placeholder="https://www.website.com/admin" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${adminUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
-                </div>
-                {adminUrlError && <p className="text-[10px] text-error mt-1">{adminUrlError}</p>}
-              </div>
+
+              {/* Notes */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Notes</label>
                 <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 resize-none font-sans" />
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
                 <button type="button" disabled={isSubmitting} onClick={() => setIsEditOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
-                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
+                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminPanelUrlError || !!androidPackageError || !!iosBundleIdError || !!playStoreUrlError || !!appStoreUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
                   <span>Save Project</span>
                 </button>
@@ -952,7 +1200,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       Available: ${data.project.clientCreditBalance.toFixed(2)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -1009,11 +1257,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       <span>Credit Applied:</span>
                       <span className="font-mono">-${deduct.toFixed(2)}</span>
                     </div>
-                    <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${
-                      isFullyCovered 
-                        ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1' 
+                    <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${isFullyCovered
+                        ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1'
                         : 'text-primary'
-                    }`}>
+                      }`}>
                       <span>Amount Due:</span>
                       <span className="font-mono">
                         ${due.toFixed(2)}

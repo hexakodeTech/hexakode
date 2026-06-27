@@ -200,6 +200,7 @@ model Client {
   status            String              @default("Active")
   creditBalance     Float               @default(0.0)
   notes             String?
+  userId            String?             @db.Uuid
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   projects          Project[]
@@ -216,8 +217,13 @@ model Project {
   id              String           @id @default(uuid()) @db.Uuid
   name            String
   clientId        String           @db.Uuid
+  projectType     String           @default("web") // "web" | "mobile"
   websiteUrl      String?
-  adminUrl        String?
+  adminPanelUrl   String?
+  androidPackage  String?
+  iosBundleId     String?
+  playStoreUrl    String?
+  appStoreUrl     String?
   status          String           @default("Active")
   notes           String?
   createdAt       DateTime         @default(now())

@@ -113,8 +113,13 @@ export interface AdminPortalProject {
   clientId: string;
   clientName: string;
   clientCreditBalance?: number;
+  projectType: string;
   websiteUrl?: string | null;
-  adminUrl?: string | null;
+  adminPanelUrl?: string | null;
+  androidPackage?: string | null;
+  iosBundleId?: string | null;
+  playStoreUrl?: string | null;
+  appStoreUrl?: string | null;
   status: string;
   notes?: string | null;
   logCount: number;

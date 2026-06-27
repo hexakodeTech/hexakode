@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { AdminClient, AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { calculateCouponStatus } from '@/lib/coupons/utils';
+import { isValidClientId } from './utils';
 
 const urlSchema = z
   .string()
@@ -61,6 +62,17 @@ export async function getClientsAction(): Promise<AdminClient[]> {
  * Returns a single client with its associated projects.
  */
 export async function getClientByIdAction(id: string) {
+  if (!isValidClientId(id)) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[getClientByIdAction] Invalid ID format supplied: ${id}`);
+    }
+    return {
+      success: false,
+      error: 'Invalid Client ID format.',
+      code: 'INVALID_ID' as const,
+    };
+  }
+
   try {
     const client = await prisma.client.findUnique({
       where: { id },
@@ -77,9 +89,18 @@ export async function getClientByIdAction(id: string) {
       },
     });
 
-    if (!client) return null;
+    if (!client) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[getClientByIdAction] Client not found in DB for ID: ${id}`);
+      }
+      return {
+        success: false,
+        error: 'The requested client does not exist.',
+        code: 'NOT_FOUND' as const,
+      };
+    }
 
-    return {
+    const payload = {
       client: {
         id: client.id,
         name: client.name,
@@ -98,8 +119,13 @@ export async function getClientByIdAction(id: string) {
         name: p.name,
         clientId: p.clientId,
         clientName: client.name,
+        projectType: p.projectType,
         websiteUrl: p.websiteUrl,
-        adminUrl: p.adminUrl,
+        adminPanelUrl: p.adminPanelUrl,
+        androidPackage: p.androidPackage,
+        iosBundleId: p.iosBundleId,
+        playStoreUrl: p.playStoreUrl,
+        appStoreUrl: p.appStoreUrl,
         status: p.status,
         notes: p.notes,
         logCount: p._count.maintenanceLogs,
@@ -143,9 +169,24 @@ export async function getClientByIdAction(id: string) {
         } as AdminCoupon;
       }),
     };
-  } catch (error) {
-    console.error('Error fetching client by id:', error);
-    return null;
+
+    return {
+      success: true,
+      data: payload,
+    };
+  } catch (error: any) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[getClientByIdAction] Database Error:', {
+        requestedId: id,
+        error: error.message || error,
+      });
+    }
+    return {
+      success: false,
+      error: 'Database query failed.',
+      code: 'DB_ERROR' as const,
+      reason: error.message || String(error),
+    };
   }
 }
 

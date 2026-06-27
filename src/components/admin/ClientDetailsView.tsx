@@ -41,6 +41,7 @@ import { getCreditTransactionsAction, addCreditTransactionAction } from '@/lib/c
 import { createCouponAction, updateCouponAction, deleteCouponAction } from '@/lib/coupons/actions';
 import { exportToPDF } from '@/lib/utils/pdf-export';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ClientDetailsViewProps {
   id: string;
@@ -67,12 +68,19 @@ function validateUrl(val: string): string | null {
   }
 }
 
+function validatePackageId(val: string): string | null {
+  if (!val) return null;
+  const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
+  return packageIdRegex.test(val) ? null : 'Invalid format. Use com.company.app';
+}
+
 export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'invoices' | 'credits' | 'referrals'>('overview');
   const [data, setData] = useState<{ client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] } | null>(null);
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [credits, setCredits] = useState<AdminCreditTransaction[]>([]);
+  const [errorState, setErrorState] = useState<{ code: string; error: string; reason?: string } | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTab, setIsLoadingTab] = useState(false);
@@ -104,15 +112,28 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
+  const [projectType, setProjectType] = useState<'web' | 'mobile'>('web');
   const [projectWebsite, setProjectWebsite] = useState('');
   const [projectAdminUrl, setProjectAdminUrl] = useState('');
+  const [projectAndroidPackage, setProjectAndroidPackage] = useState('');
+  const [projectIosBundleId, setProjectIosBundleId] = useState('');
+  const [projectPlayStoreUrl, setProjectPlayStoreUrl] = useState('');
+  const [projectAppStoreUrl, setProjectAppStoreUrl] = useState('');
+
   const [projectStatus, setProjectStatus] = useState('Active');
   const [projectNotes, setProjectNotes] = useState('');
+
   const [projectUrlError, setProjectUrlError] = useState('');
   const [projectAdminUrlError, setProjectAdminUrlError] = useState('');
+  const [projectAndroidPackageError, setProjectAndroidPackageError] = useState('');
+  const [projectIosBundleIdError, setProjectIosBundleIdError] = useState('');
+  const [projectPlayStoreUrlError, setProjectPlayStoreUrlError] = useState('');
+  const [projectAppStoreUrlError, setProjectAppStoreUrlError] = useState('');
+
   const [projectFormError, setProjectFormError] = useState('');
   const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<AdminPortalProject | null>(null);
+  const [projectTypeFilter, setProjectTypeFilter] = useState('All');
 
   // Invoice Modals state
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
@@ -338,11 +359,27 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    const result = await getClientByIdAction(id);
-    if (result) {
-      setData(result as { client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] });
+    setErrorState(null);
+    try {
+      const result = await getClientByIdAction(id);
+      if (result && result.success && result.data) {
+        setData(result.data as { client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] });
+      } else {
+        setErrorState({
+          code: result?.code || 'DB_ERROR',
+          error: result?.error || 'Failed to load client details.',
+          reason: (result as any)?.reason || 'An unexpected error occurred during database access.',
+        });
+      }
+    } catch (err: any) {
+      setErrorState({
+        code: 'DB_ERROR',
+        error: 'An unexpected connection or runtime error occurred.',
+        reason: err.message || String(err),
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [id]);
 
   const loadInvoices = useCallback(async () => {
@@ -465,12 +502,21 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   // ─── Project Tab Actions ───────────────────────────────────────────────────
   const handleOpenAddProject = () => {
     setProjectName('');
+    setProjectType('web');
     setProjectWebsite('');
     setProjectAdminUrl('');
+    setProjectAndroidPackage('');
+    setProjectIosBundleId('');
+    setProjectPlayStoreUrl('');
+    setProjectAppStoreUrl('');
     setProjectStatus('Active');
     setProjectNotes('');
     setProjectUrlError('');
     setProjectAdminUrlError('');
+    setProjectAndroidPackageError('');
+    setProjectIosBundleIdError('');
+    setProjectPlayStoreUrlError('');
+    setProjectAppStoreUrlError('');
     setProjectFormError('');
     setIsEditingProject(false);
     setEditingProjectId(null);
@@ -479,12 +525,21 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const handleOpenEditProject = (proj: AdminPortalProject) => {
     setProjectName(proj.name);
+    setProjectType((proj.projectType as 'web' | 'mobile') || 'web');
     setProjectWebsite(proj.websiteUrl || '');
-    setProjectAdminUrl(proj.adminUrl || '');
+    setProjectAdminUrl(proj.adminPanelUrl || '');
+    setProjectAndroidPackage(proj.androidPackage || '');
+    setProjectIosBundleId(proj.iosBundleId || '');
+    setProjectPlayStoreUrl(proj.playStoreUrl || '');
+    setProjectAppStoreUrl(proj.appStoreUrl || '');
     setProjectStatus(proj.status || 'Active');
     setProjectNotes(proj.notes || '');
     setProjectUrlError('');
     setProjectAdminUrlError('');
+    setProjectAndroidPackageError('');
+    setProjectIosBundleIdError('');
+    setProjectPlayStoreUrlError('');
+    setProjectAppStoreUrlError('');
     setProjectFormError('');
     setIsEditingProject(true);
     setEditingProjectId(proj.id);
@@ -493,35 +548,64 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const handleProjectWebsiteChange = (val: string) => {
     setProjectWebsite(val);
-    if (val) {
-      const err = validateUrl(val);
-      setProjectUrlError(err || '');
-    } else {
-      setProjectUrlError('');
-    }
+    setProjectUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleProjectAdminUrlChange = (val: string) => {
     setProjectAdminUrl(val);
-    if (val) {
-      const err = validateUrl(val);
-      setProjectAdminUrlError(err || '');
-    } else {
-      setProjectAdminUrlError('');
-    }
+    setProjectAdminUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleProjectAndroidPackageChange = (val: string) => {
+    setProjectAndroidPackage(val);
+    setProjectAndroidPackageError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleProjectIosBundleIdChange = (val: string) => {
+    setProjectIosBundleId(val);
+    setProjectIosBundleIdError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleProjectPlayStoreUrlChange = (val: string) => {
+    setProjectPlayStoreUrl(val);
+    setProjectPlayStoreUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleProjectAppStoreUrlChange = (val: string) => {
+    setProjectAppStoreUrl(val);
+    setProjectAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setProjectFormError('');
 
-    if (projectWebsite) {
-      const err = validateUrl(projectWebsite);
-      if (err) { setProjectUrlError(err); return; }
-    }
-    if (projectAdminUrl) {
-      const err = validateUrl(projectAdminUrl);
-      if (err) { setProjectAdminUrlError(err); return; }
+    if (projectType === 'web') {
+      if (projectWebsite) {
+        const err = validateUrl(projectWebsite);
+        if (err) { setProjectUrlError(err); return; }
+      }
+      if (projectAdminUrl) {
+        const err = validateUrl(projectAdminUrl);
+        if (err) { setProjectAdminUrlError(err); return; }
+      }
+    } else {
+      if (projectAndroidPackage) {
+        const err = validatePackageId(projectAndroidPackage);
+        if (err) { setProjectAndroidPackageError(err); return; }
+      }
+      if (projectIosBundleId) {
+        const err = validatePackageId(projectIosBundleId);
+        if (err) { setProjectIosBundleIdError(err); return; }
+      }
+      if (projectPlayStoreUrl) {
+        const err = validateUrl(projectPlayStoreUrl);
+        if (err) { setProjectPlayStoreUrlError(err); return; }
+      }
+      if (projectAppStoreUrl) {
+        const err = validateUrl(projectAppStoreUrl);
+        if (err) { setProjectAppStoreUrlError(err); return; }
+      }
     }
 
     setIsSubmitting(true);
@@ -529,8 +613,13 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
       const payload = {
         name: projectName,
         clientId: id,
-        websiteUrl: projectWebsite,
-        adminUrl: projectAdminUrl,
+        projectType,
+        websiteUrl: projectType === 'web' ? projectWebsite : '',
+        adminPanelUrl: projectType === 'web' ? projectAdminUrl : '',
+        androidPackage: projectType === 'mobile' ? projectAndroidPackage : '',
+        iosBundleId: projectType === 'mobile' ? projectIosBundleId : '',
+        playStoreUrl: projectType === 'mobile' ? projectPlayStoreUrl : '',
+        appStoreUrl: projectType === 'mobile' ? projectAppStoreUrl : '',
         status: projectStatus,
         notes: projectNotes,
       };
@@ -851,16 +940,30 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
         <Loader2 className="w-8 h-8 animate-spin text-secondary" />
-        <span className="text-xs text-on-surface-variant/70">Loading client details...</span>
+        <span className="text-xs text-on-surface-variant/70">Loading Client...</span>
       </div>
     );
   }
 
-  if (!data) {
+  if (errorState || !data) {
+    const errorTitle = errorState?.code === 'INVALID_ID' ? 'Invalid Client ID' : 'Client Not Found';
+    const errorMessage = errorState?.error || 'The requested client does not exist.';
     return (
       <div className="text-center py-12">
-        <h3 className="font-headline-md text-primary mb-2">Client Not Found</h3>
-        <p className="text-xs text-on-surface-variant mb-6">The requested client does not exist.</p>
+        <h3 className="font-headline-md text-primary mb-2">{errorTitle}</h3>
+        <p className="text-xs text-on-surface-variant mb-6">{errorMessage}</p>
+        
+        {/* Improved Diagnostic UI in Development Mode */}
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="mx-auto max-w-lg bg-surface-container-low border border-outline-variant/30 rounded-lg p-4 text-left font-mono text-[10px] space-y-1 mb-6 text-on-surface-variant">
+            <p className="font-semibold text-primary">Development Diagnostic Info:</p>
+            <p><span className="text-secondary">Requested ID:</span> {id}</p>
+            <p><span className="text-secondary">Database Query:</span> client.findUnique</p>
+            <p><span className="text-secondary">Returned Result:</span> null</p>
+            <p><span className="text-secondary">Reason / Details:</span> {errorState?.reason || 'None (Client is missing from the database)'}</p>
+          </div>
+        )}
+
         <Link
           href="/admin/clients"
           className="text-xs bg-primary text-on-primary px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
@@ -888,7 +991,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   // Search filter lists
   const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (projectTypeFilter === 'All' || p.projectType === projectTypeFilter)
   );
 
   const filteredInvoices = invoices.filter((inv) =>
@@ -1196,6 +1300,17 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
             currentPage={currentPage}
             totalPages={Math.ceil(filteredProjects.length / itemsPerPage)}
             onPageChange={(page) => setCurrentPage(page)}
+            filterSlot={
+              <select
+                value={projectTypeFilter}
+                onChange={(e) => { setProjectTypeFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
+              >
+                <option value="All">All Types</option>
+                <option value="web">Web Applications</option>
+                <option value="mobile">Mobile Applications</option>
+              </select>
+            }
             actionSlot={
               <button
                 onClick={handleOpenAddProject}
@@ -1205,7 +1320,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 <span>Add Project</span>
               </button>
             }
-            headers={['Project Name', 'Website', 'Admin URL', 'Status', 'Logs', 'Actions']}
+            headers={['Project Name', 'Website / App Link', 'Admin URL / Bundle ID', 'Status', 'Logs', 'Actions']}
           >
             {filteredProjects.length === 0 ? (
               <tr>
@@ -1217,10 +1332,34 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => (
                 <tr key={p.id} className="hover:bg-surface-container-low/30 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-xs font-semibold text-primary">{p.name}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-semibold text-primary">{p.name}</span>
+                      <span className="text-[9px] font-semibold text-on-surface-variant/60">
+                        {p.projectType === 'mobile' ? '📱 Mobile Application' : '🌐 Web Application'}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    {p.websiteUrl ? (
+                    {p.projectType === 'mobile' ? (
+                      p.playStoreUrl ? (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={p.playStoreUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-secondary hover:underline underline-offset-2"
+                            title={p.playStoreUrl}
+                          >
+                            <Globe className="w-3 h-3" />
+                            <span className="font-mono">Play Store</span>
+                          </a>
+                        </div>
+                      ) : p.androidPackage ? (
+                        <span className="font-mono text-xs text-on-surface-variant">{p.androidPackage}</span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant/40">-</span>
+                      )
+                    ) : p.websiteUrl ? (
                       <a
                         href={p.websiteUrl}
                         target="_blank"
@@ -1235,15 +1374,34 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {p.adminUrl ? (
+                    {p.projectType === 'mobile' ? (
+                      p.appStoreUrl ? (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={p.appStoreUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary underline-offset-2 hover:underline"
+                            title={p.appStoreUrl}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span className="font-mono">App Store</span>
+                          </a>
+                        </div>
+                      ) : p.iosBundleId ? (
+                        <span className="font-mono text-xs text-on-surface-variant">{p.iosBundleId}</span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant/40">-</span>
+                      )
+                    ) : p.adminPanelUrl ? (
                       <a
-                        href={p.adminUrl}
+                        href={p.adminPanelUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary underline-offset-2 hover:underline"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        <span className="font-mono">{extractDomain(p.adminUrl)}</span>
+                        <span className="font-mono">{extractDomain(p.adminPanelUrl)}</span>
                       </a>
                     ) : (
                       <span className="text-xs text-on-surface-variant/40">-</span>
@@ -1824,6 +1982,37 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </div>
               )}
 
+              {/* Project Type */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Project Type <span className="text-error">*</span>
+                </label>
+                <div className="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant/30">
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('web')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'web'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    🌐 Web App
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('mobile')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'mobile'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    📱 Mobile App
+                  </button>
+                </div>
+              </div>
+
               {/* Project Name */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
@@ -1834,57 +2023,172 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   required
                   value={projectName}
                   onChange={(e) => { setProjectName(e.target.value); setProjectFormError(''); }}
-                  placeholder="e.g. Revopz Website"
+                  placeholder="e.g. Revopz Mobile App"
                   className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10"
                 />
               </div>
 
-              {/* Website URL */}
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                  Website URL
-                </label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input
-                    type="url"
-                    value={projectWebsite}
-                    onChange={(e) => handleProjectWebsiteChange(e.target.value)}
-                    placeholder="https://www.mywebsite.com"
-                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
-                      projectUrlError
-                        ? 'border-error focus:border-error focus:ring-error/10'
-                        : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
-                    }`}
-                  />
-                </div>
-                {projectUrlError && (
-                  <p className="text-[10px] text-error mt-1">{projectUrlError}</p>
-                )}
-              </div>
+              {/* Conditional Fields with Framer Motion */}
+              <div className="relative overflow-hidden">
+                <AnimatePresence initial={false} mode="wait">
+                  {projectType === 'web' ? (
+                    <motion.div
+                      key="web-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Website URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Website URL
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectWebsite}
+                            onChange={(e) => handleProjectWebsiteChange(e.target.value)}
+                            placeholder="https://www.mywebsite.com"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectUrlError}</p>
+                        )}
+                      </div>
 
-              {/* Admin URL */}
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                  Admin Panel URL
-                </label>
-                <div className="relative">
-                  <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input
-                    type="url"
-                    value={projectAdminUrl}
-                    onChange={(e) => handleProjectAdminUrlChange(e.target.value)}
-                    placeholder="https://www.mywebsite.com/admin"
-                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
-                      projectAdminUrlError
-                        ? 'border-error focus:border-error focus:ring-error/10'
-                        : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
-                    }`}
-                  />
-                </div>
-                {projectAdminUrlError && (
-                  <p className="text-[10px] text-error mt-1">{projectAdminUrlError}</p>
-                )}
+                      {/* Admin Panel URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Admin Panel URL
+                        </label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectAdminUrl}
+                            onChange={(e) => handleProjectAdminUrlChange(e.target.value)}
+                            placeholder="https://www.mywebsite.com/admin"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectAdminUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectAdminUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectAdminUrlError}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Android Package Name */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Android Package Name
+                        </label>
+                        <input
+                          type="text"
+                          value={projectAndroidPackage}
+                          onChange={(e) => handleProjectAndroidPackageChange(e.target.value)}
+                          placeholder="com.hexakode.app"
+                          className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                            projectAndroidPackageError
+                              ? 'border-error focus:border-error focus:ring-error/10'
+                              : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                          }`}
+                        />
+                        {projectAndroidPackageError && (
+                          <p className="text-[10px] text-error mt-1">{projectAndroidPackageError}</p>
+                        )}
+                      </div>
+
+                      {/* iOS Bundle Identifier */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          iOS Bundle Identifier
+                        </label>
+                        <input
+                          type="text"
+                          value={projectIosBundleId}
+                          onChange={(e) => handleProjectIosBundleIdChange(e.target.value)}
+                          placeholder="com.hexakode.app"
+                          className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                            projectIosBundleIdError
+                              ? 'border-error focus:border-error focus:ring-error/10'
+                              : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                          }`}
+                        />
+                        {projectIosBundleIdError && (
+                          <p className="text-[10px] text-error mt-1">{projectIosBundleIdError}</p>
+                        )}
+                      </div>
+
+                      {/* Play Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Play Store URL
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectPlayStoreUrl}
+                            onChange={(e) => handleProjectPlayStoreUrlChange(e.target.value)}
+                            placeholder="https://play.google.com/store/apps/details?id=..."
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectPlayStoreUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectPlayStoreUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectPlayStoreUrlError}</p>
+                        )}
+                      </div>
+
+                      {/* App Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          App Store URL
+                        </label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectAppStoreUrl}
+                            onChange={(e) => handleProjectAppStoreUrlChange(e.target.value)}
+                            placeholder="https://apps.apple.com/app/..."
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectAppStoreUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectAppStoreUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectAppStoreUrlError}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Status */}
@@ -1928,7 +2232,15 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !!projectUrlError || !!projectAdminUrlError}
+                  disabled={
+                    isSubmitting ||
+                    !!projectUrlError ||
+                    !!projectAdminUrlError ||
+                    !!projectAndroidPackageError ||
+                    !!projectIosBundleIdError ||
+                    !!projectPlayStoreUrlError ||
+                    !!projectAppStoreUrlError
+                  }
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}

@@ -50,7 +50,7 @@ export async function getMaintenanceLogByIdAction(id: string) {
     const log = await prisma.maintenanceLog.findUnique({
       where: { id },
       include: {
-        project: { select: { id: true, name: true, websiteUrl: true, adminUrl: true, clientId: true } },
+        project: { select: { id: true, name: true, websiteUrl: true, adminPanelUrl: true, clientId: true } },
       },
     });
 
