@@ -194,17 +194,17 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-20">
+      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-0">
         
         {/* Hero Section */}
         <section 
           id="hero-section"
-          className="relative h-[70vh] md:h-[85vh] lg:h-[calc(100vh-80px)] w-full bg-cover bg-center bg-no-repeat overflow-hidden flex flex-col justify-end border-b border-outline-variant/10 animate-fade-in"
+          className="relative w-full bg-cover bg-center bg-no-repeat overflow-hidden flex flex-col min-h-viewport border-b border-outline-variant/10 animate-fade-in"
           style={{
             backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.75) 100%), url('${project.image}')`
           }}
         >
-          <Container className="relative z-10 w-full flex flex-col justify-between h-full pt-14 md:pt-16 lg:pt-20 pb-16 md:pb-24">
+          <Container className="relative z-10 w-full flex-1 flex flex-col justify-between pt-28 md:pt-32 lg:pt-40 pb-16 md:pb-24">
             {/* Top portion of Hero: Back Button */}
             <div>
               <Link

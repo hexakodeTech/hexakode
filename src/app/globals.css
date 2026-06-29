@@ -805,3 +805,8 @@ body {
 .animate-float-down {
   animation: floatDown 2s ease-in-out infinite;
 }
+
+.min-h-viewport {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
