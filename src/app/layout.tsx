@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Zen_Dots, Kalam, Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Zen_Dots, Kalam, Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 // ─── Font configuration ──────────────────────────────────────────────────────
@@ -7,7 +7,7 @@ import "./globals.css";
 // ALL fonts use preload:false because none are applied at the document level.
 // The <body> uses Tailwind's `font-sans` which resolves to the system stack
 // (no --font-family-sans is defined in @theme). Custom fonts only activate
-// via utility classes (.font-body-sm, .font-headline-sm, .brand-logo, etc.)
+// via utility classes (.font-body-sm, .font-body-md, .brand-logo, etc.)
 // on individual elements. Eagerly preloading them causes the browser warning
 // "preloaded but not used within a few seconds" because no above-the-fold
 // CSS rule correlates to the preloaded file within the browser's timing window.
@@ -32,17 +32,9 @@ const kalam = Kalam({
   preload: false,
 });
 
-const hankenGrotesk = Hanken_Grotesk({
-  variable: "--font-hanken-grotesk",
-  weight: ["400", "600", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  weight: ["400", "500", "600"],
+const poppins = Poppins({
+  variable: "--font-poppins",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
   preload: false,
@@ -92,7 +84,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${zenDots.variable} ${kalam.variable} ${hankenGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
+      className={`${zenDots.variable} ${kalam.variable} ${poppins.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-background font-sans text-on-background antialiased">
         <DemoModalProvider>
