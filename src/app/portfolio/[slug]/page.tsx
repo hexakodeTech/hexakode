@@ -185,6 +185,19 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
               BACK TO PORTFOLIO
             </Link>
 
+            {/* COVER IMAGE */}
+            <div className="relative w-full aspect-[16/9] md:aspect-[21/9] bg-surface-container rounded-2xl md:rounded-3xl overflow-hidden border border-outline-variant/10 shadow-premium mb-10 animate-fade-in">
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                loading="lazy"
+                unoptimized={isSupabase}
+                sizes="100vw"
+                className="object-cover"
+              />
+            </div>
+
             <div className="max-w-4xl">
               {/* Category pill */}
               <span className="inline-block px-3 py-1 font-label-mono text-label-mono uppercase tracking-widest text-secondary bg-secondary/5 rounded mb-4">
@@ -209,46 +222,43 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
             {/* Left: Main details (8 columns on lg) */}
             <div className="lg:col-span-8 flex flex-col gap-12">
               
-              {/* Visual Frame */}
-              <div className="relative w-full aspect-[16/9] bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 shadow-premium">
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  priority
-                  unoptimized={isSupabase}
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="object-cover"
-                />
-              </div>
-
               {/* Narratives */}
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-12">
+                {/* 3. Our Engineering Approach (Descriptive content only, heading removed) */}
                 <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    The Challenge
-                  </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                    {details.challenge}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    Our Engineering Approach
-                  </h3>
                   <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
                     {details.approach}
                   </p>
                 </div>
 
-                <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    Key Outcomes & Impact
+                {/* 4. Redesigned Key Features cards */}
+                <div className="flex flex-col gap-6">
+                  <h3 className="font-headline-md text-headline-sm text-on-background uppercase tracking-wider border-l-2 border-secondary pl-4">
+                    Key Features
                   </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                    {details.results}
-                  </p>
+                  <div className="flex flex-col gap-6">
+                    {dbProject.features && dbProject.features.length > 0 ? (
+                      [...dbProject.features]
+                        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+                        .map((feature) => (
+                          <div
+                            key={feature.id}
+                            className="p-6 md:p-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl hover-lift hover-glow transition-all duration-300 hover:border-secondary/40"
+                          >
+                            <h4 className="font-headline-sm text-headline-sm text-on-background mb-3">
+                              {feature.title}
+                            </h4>
+                            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                              {feature.description}
+                            </p>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="font-body-md text-body-md text-on-surface-variant/60 italic">
+                        No features specified for this project.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
