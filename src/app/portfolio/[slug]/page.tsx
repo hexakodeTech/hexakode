@@ -204,7 +204,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
             backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.75) 100%), url('${project.image}')`
           }}
         >
-          <Container className="relative z-10 w-full flex flex-col justify-between h-full pt-8 pb-16 md:pb-24">
+          <Container className="relative z-10 w-full flex flex-col justify-between h-full pt-14 md:pt-16 lg:pt-20 pb-16 md:pb-24">
             {/* Top portion of Hero: Back Button */}
             <div>
               <Link
