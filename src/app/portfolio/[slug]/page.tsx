@@ -3,8 +3,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, User, Tag, Layers, Globe, ChevronDown } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, User, Tag, Layers, Globe } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
+import ScrollIndicator from "@/components/portfolio/ScrollIndicator";
 import Footer from "@/components/layout/Footer";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
 import Container from "@/components/ui/Container";
@@ -233,15 +234,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
             </div>
 
             {/* Scroll Indicator */}
-            <div 
-              id="scroll-indicator" 
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/70 pointer-events-none transition-opacity duration-500 animate-float-down"
-            >
-              <span className="font-label-mono text-[9px] uppercase tracking-widest">
-                Scroll
-              </span>
-              <ChevronDown className="w-4 h-4" />
-            </div>
+            <ScrollIndicator />
           </Container>
         </section>
 
@@ -401,29 +394,6 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
         {/* CTA Section */}
         <PortfolioCTA />
 
-        {/* Intersection Observer for Scroll Indicator */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var hero = document.getElementById('hero-section');
-                var indicator = document.getElementById('scroll-indicator');
-                if (hero && indicator) {
-                  var observer = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(entry) {
-                      if (entry.isIntersecting) {
-                        indicator.style.opacity = '0.7';
-                      } else {
-                        indicator.style.opacity = '0';
-                      }
-                    });
-                  }, { threshold: 0 });
-                  observer.observe(hero);
-                }
-              })();
-            `
-          }}
-        />
 
       </main>
       <Footer />
