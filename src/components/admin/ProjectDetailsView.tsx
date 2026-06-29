@@ -7,6 +7,7 @@ import { AdminPortalProject, AdminMaintenanceLog, AdminInvoice } from '@/types/a
 import DataTable from './DataTable';
 import {
   ChevronLeft,
+  ChevronDown,
   Globe,
   ExternalLink,
   Copy,
@@ -22,14 +23,17 @@ import {
   FileText,
   Calendar,
   DollarSign,
+  IndianRupee,
   Download,
   CheckCircle2,
 } from 'lucide-react';
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
-import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction } from '@/lib/invoices/actions';
+import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
 import { exportToPDF } from '@/lib/utils/pdf-export';
+import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProjectDetailsViewProps {
   clientId: string;
@@ -56,6 +60,12 @@ function validateUrl(val: string): string | null {
   }
 }
 
+function validatePackageId(val: string): string | null {
+  if (!val) return null;
+  const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
+  return packageIdRegex.test(val) ? null : 'Invalid format. Use com.company.app';
+}
+
 export default function ProjectDetailsView({ clientId, projectId }: ProjectDetailsViewProps) {
   const router = useRouter();
   const [data, setData] = useState<{ project: AdminPortalProject; logs: AdminMaintenanceLog[] } | null>(null);
@@ -75,13 +85,24 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
+  const [projectType, setProjectType] = useState<'web' | 'mobile'>('web');
   const [websiteUrl, setWebsiteUrl] = useState('');
-  const [adminUrl, setAdminUrl] = useState('');
+  const [adminPanelUrl, setAdminPanelUrl] = useState('');
+  const [androidPackage, setAndroidPackage] = useState('');
+  const [iosBundleId, setIosBundleId] = useState('');
+  const [playStoreUrl, setPlayStoreUrl] = useState('');
+  const [appStoreUrl, setAppStoreUrl] = useState('');
+
   const [status, setStatus] = useState('Active');
   const [notes, setNotes] = useState('');
+
   const [formError, setFormError] = useState('');
   const [websiteUrlError, setWebsiteUrlError] = useState('');
-  const [adminUrlError, setAdminUrlError] = useState('');
+  const [adminPanelUrlError, setAdminPanelUrlError] = useState('');
+  const [androidPackageError, setAndroidPackageError] = useState('');
+  const [iosBundleIdError, setIosBundleIdError] = useState('');
+  const [playStoreUrlError, setPlayStoreUrlError] = useState('');
+  const [appStoreUrlError, setAppStoreUrlError] = useState('');
 
   // Delete project modal state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -107,6 +128,18 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [invoiceToDelete, setInvoiceToDelete] = useState<AdminInvoice | null>(null);
   const [applyCredits, setApplyCredits] = useState(false);
   const [creditDeduction, setCreditDeduction] = useState('');
+
+  // Maintenance logs linkage states
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [isLogDropdownOpen, setIsLogDropdownOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<AdminInvoice | null>(null);
+  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
+  const [selectedInvoiceForDetails, setSelectedInvoiceForDetails] = useState<AdminInvoice | null>(null);
+
+  // Discount state
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
+  const [discountValue, setDiscountValue] = useState('');
 
   // View Log Modal state
   const [isViewLogOpen, setIsViewLogOpen] = useState(false);
@@ -145,25 +178,85 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     if (!data) return;
     const { project } = data;
     setName(project.name);
+    setProjectType((project.projectType as 'web' | 'mobile') || 'web');
     setWebsiteUrl(project.websiteUrl || '');
-    setAdminUrl(project.adminUrl || '');
+    setAdminPanelUrl(project.adminPanelUrl || '');
+    setAndroidPackage(project.androidPackage || '');
+    setIosBundleId(project.iosBundleId || '');
+    setPlayStoreUrl(project.playStoreUrl || '');
+    setAppStoreUrl(project.appStoreUrl || '');
     setStatus(project.status);
     setNotes(project.notes || '');
     setFormError('');
     setWebsiteUrlError('');
-    setAdminUrlError('');
+    setAdminPanelUrlError('');
+    setAndroidPackageError('');
+    setIosBundleIdError('');
+    setPlayStoreUrlError('');
+    setAppStoreUrlError('');
     setIsEditOpen(true);
+  };
+
+  const handleWebsiteUrlChange = (val: string) => {
+    setWebsiteUrl(val);
+    setWebsiteUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAdminPanelUrlChange = (val: string) => {
+    setAdminPanelUrl(val);
+    setAdminPanelUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAndroidPackageChange = (val: string) => {
+    setAndroidPackage(val);
+    setAndroidPackageError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleIosBundleIdChange = (val: string) => {
+    setIosBundleId(val);
+    setIosBundleIdError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handlePlayStoreUrlChange = (val: string) => {
+    setPlayStoreUrl(val);
+    setPlayStoreUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleAppStoreUrlChange = (val: string) => {
+    setAppStoreUrl(val);
+    setAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleSubmitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (websiteUrl) {
-      const err = validateUrl(websiteUrl);
-      if (err) { setWebsiteUrlError(err); return; }
-    }
-    if (adminUrl) {
-      const err = validateUrl(adminUrl);
-      if (err) { setAdminUrlError(err); return; }
+    setFormError('');
+
+    if (projectType === 'web') {
+      if (websiteUrl) {
+        const err = validateUrl(websiteUrl);
+        if (err) { setWebsiteUrlError(err); return; }
+      }
+      if (adminPanelUrl) {
+        const err = validateUrl(adminPanelUrl);
+        if (err) { setAdminPanelUrlError(err); return; }
+      }
+    } else {
+      if (androidPackage) {
+        const err = validatePackageId(androidPackage);
+        if (err) { setAndroidPackageError(err); return; }
+      }
+      if (iosBundleId) {
+        const err = validatePackageId(iosBundleId);
+        if (err) { setIosBundleIdError(err); return; }
+      }
+      if (playStoreUrl) {
+        const err = validateUrl(playStoreUrl);
+        if (err) { setPlayStoreUrlError(err); return; }
+      }
+      if (appStoreUrl) {
+        const err = validateUrl(appStoreUrl);
+        if (err) { setAppStoreUrlError(err); return; }
+      }
     }
 
     setIsSubmitting(true);
@@ -171,8 +264,13 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       const res = await updateProjectAction(projectId, {
         name,
         clientId,
-        websiteUrl,
-        adminUrl,
+        projectType,
+        websiteUrl: projectType === 'web' ? websiteUrl : '',
+        adminPanelUrl: projectType === 'web' ? adminPanelUrl : '',
+        androidPackage: projectType === 'mobile' ? androidPackage : '',
+        iosBundleId: projectType === 'mobile' ? iosBundleId : '',
+        playStoreUrl: projectType === 'mobile' ? playStoreUrl : '',
+        appStoreUrl: projectType === 'mobile' ? appStoreUrl : '',
         status,
         notes,
       });
@@ -351,6 +449,34 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     updateInvoiceStatusAutomatically(invoiceAmount, finalVal, applyCredits);
   };
 
+  const handleOpenEditInvoice = (inv: AdminInvoice) => {
+    setEditingInvoice(inv);
+    setInvoiceAmount(inv.amount.toString());
+    setInvoiceDueDate(inv.dueDate);
+    setInvoiceStatus(inv.status);
+    setCreditDeduction((inv.creditApplied || 0).toString());
+    setApplyCredits((inv.creditApplied || 0) > 0);
+    setSelectedLogIds(inv.maintenanceLogs?.map((l) => l.id) || []);
+    setDiscountType(inv.discountType ?? 'amount');
+    setDiscountValue((inv.discountValue ?? 0) > 0 ? (inv.discountValue ?? 0).toString() : '');
+    setInvoiceFormError('');
+    setIsInvoiceFormOpen(true);
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setIsInvoiceFormOpen(false);
+    setEditingInvoice(null);
+    setInvoiceAmount('');
+    setInvoiceDueDate('');
+    setInvoiceStatus('Pending');
+    setCreditDeduction('');
+    setApplyCredits(false);
+    setSelectedLogIds([]);
+    setDiscountType('amount');
+    setDiscountValue('');
+    setInvoiceFormError('');
+  };
+
   const handleSubmitInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setInvoiceFormError('');
@@ -367,6 +493,21 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       return;
     }
 
+    // Discount validation
+    const discountVal = parseFloat(discountValue) || 0;
+    if (discountVal < 0) {
+      setInvoiceFormError('Discount cannot be negative.');
+      return;
+    }
+    if (discountType === 'percentage' && discountVal > 100) {
+      setInvoiceFormError('Discount percentage cannot exceed 100%.');
+      return;
+    }
+    if (discountType === 'amount' && discountVal > amt) {
+      setInvoiceFormError('Discount amount cannot exceed the invoice amount.');
+      return;
+    }
+
     let deduction = 0;
     if (applyCredits) {
       const rawDeduction = parseFloat(creditDeduction) || 0;
@@ -374,7 +515,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         setInvoiceFormError('Credit deduction amount must be a valid non-negative number.');
         return;
       }
-      
+
       const maxAllowed = data?.project ? Math.min(amt, data.project.clientCreditBalance || 0) : amt;
       deduction = Math.min(rawDeduction, maxAllowed);
 
@@ -387,24 +528,50 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
     setIsSubmitting(true);
     try {
-      const res = await createInvoiceAction({
-        clientId,
-        projectId,
-        amount: amt,
-        dueDate: invoiceDueDate,
-        status: invoiceStatus,
-        creditApplied: deduction,
-        finalAmountDue: amt - deduction,
-      });
+      if (editingInvoice) {
+        const res = await updateInvoiceAction(editingInvoice.id, {
+          projectId,
+          amount: amt,
+          discountType,
+          discountValue: discountVal,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
 
-      if (!res.success) {
-        setInvoiceFormError(res.error || 'Failed to create invoice.');
-        toast.error(res.error || 'Failed to create invoice.');
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to update invoice.');
+          toast.error(res.error || 'Failed to update invoice.');
+        } else {
+          toast.success('Invoice updated successfully.');
+          setIsInvoiceFormOpen(false);
+          setEditingInvoice(null);
+          loadInvoices();
+          loadData();
+        }
       } else {
-        toast.success('Invoice created successfully.');
-        setIsInvoiceFormOpen(false);
-        loadInvoices();
-        loadData(); // Refresh project details (reloads clientCreditBalance)
+        const res = await createInvoiceAction({
+          clientId,
+          projectId,
+          amount: amt,
+          discountType,
+          discountValue: discountVal,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
+
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to create invoice.');
+          toast.error(res.error || 'Failed to create invoice.');
+        } else {
+          toast.success('Invoice created successfully.');
+          setIsInvoiceFormOpen(false);
+          loadInvoices();
+          loadData(); // Refresh project details (reloads clientCreditBalance)
+        }
       }
     } catch {
       setInvoiceFormError('An unexpected error occurred.');
@@ -439,8 +606,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     try {
       toast.info('Generating PDF...');
 
+      const subtotal = inv.amount;
+      const gst = subtotal * 0.18;
+      const grandTotal = subtotal + gst;
       const creditApplied = inv.creditApplied || 0;
-      const finalDue = inv.finalAmountDue ?? inv.amount;
+      const finalDue = Math.max(0, grandTotal - creditApplied);
       const hasCredit = creditApplied > 0;
 
       // Determine payment method label
@@ -449,20 +619,19 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         : 'Direct Payment';
 
       // Build Invoice Summary items
-      const summaryItems = hasCredit
-        ? [
-            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Credit Deducted', value: `$${creditApplied.toFixed(2)}` },
-            { label: 'Amount Due',      value: `$${finalDue.toFixed(2)}` },
-            { label: 'Payment Status',  value: inv.status.toUpperCase() },
-            { label: 'Payment Method',  value: paymentMethod },
-          ]
-        : [
-            { label: 'Invoice Amount',  value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Amount Due',      value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Payment Status',  value: inv.status.toUpperCase() },
-            { label: 'Payment Method',  value: paymentMethod },
-          ];
+      const summaryItems = [
+        { label: 'Subtotal',          value: formatCurrency(subtotal) },
+        { label: 'GST (18%)',         value: formatCurrency(gst) },
+        { label: 'Grand Total',       value: formatCurrency(grandTotal) },
+      ];
+      if (hasCredit) {
+        summaryItems.push({ label: 'Credit Deducted', value: formatCurrency(creditApplied) });
+      }
+      summaryItems.push(
+        { label: 'Amount Due',        value: formatCurrency(finalDue) },
+        { label: 'Payment Status',    value: inv.status.toUpperCase() },
+        { label: 'Payment Method',    value: paymentMethod }
+      );
 
       // Build Credit Balance Usage section (only when credits were applied)
       let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
@@ -470,9 +639,9 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         const startingBal = inv.startingCreditBalance;
         const remainingBal = startingBal - creditApplied;
         creditSection = {
-          startingBalance:  `$${startingBal.toFixed(2)}`,
-          creditsUsed:      `$${creditApplied.toFixed(2)}`,
-          remainingBalance: `$${remainingBal.toFixed(2)}`,
+          startingBalance:  formatCurrency(startingBal),
+          creditsUsed:      formatCurrency(creditApplied),
+          remainingBalance: formatCurrency(remainingBal),
           paymentMethod,
           transactionId:    inv.creditTransactionId ?? undefined,
         };
@@ -497,8 +666,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
           [
             `Development & maintenance services for project: ${data?.project.name || 'HexaKode application'}`,
             '1',
-            `$${inv.amount.toFixed(2)}`,
-            `$${inv.amount.toFixed(2)}`,
+            formatCurrency(subtotal),
+            formatCurrency(subtotal),
           ],
         ],
       });
@@ -553,11 +722,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="font-headline-sm text-sm font-semibold text-primary">{project.name}</h1>
-            <span className={`text-[8px] font-semibold uppercase px-1.5 py-0.5 rounded ${
-              project.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500'
-              : project.status === 'Completed' ? 'bg-blue-500/10 text-blue-500'
-              : 'bg-surface-container text-on-surface-variant/70'
-            }`}>{project.status}</span>
+            <span className={`text-[8px] font-semibold uppercase px-1.5 py-0.5 rounded ${project.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500'
+                : project.status === 'Completed' ? 'bg-blue-500/10 text-blue-500'
+                  : 'bg-surface-container text-on-surface-variant/70'
+              }`}>{project.status}</span>
           </div>
           <p className="text-xs text-on-surface-variant/60 mt-0.5">
             Client Profile: <span className="font-medium text-primary">{project.clientName}</span>
@@ -574,33 +742,70 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       </div>
 
       {/* ── Info Summary Grid ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-${project.projectType === 'mobile' ? (project.androidPackage && project.iosBundleId ? 4 : 3) : 3} gap-6`}>
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary mt-0.5">
             <FolderKanban className="w-5 h-5" />
           </div>
           <div>
             <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Project Name</span>
-            <p className="text-xs font-semibold text-primary mt-1">{project.name}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs font-semibold text-primary">{project.name}</p>
+              <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant/70 uppercase">
+                {project.projectType === 'mobile' ? '📱 Mobile' : '🌐 Web'}
+              </span>
+            </div>
             <p className="text-[9px] text-on-surface-variant/60 mt-0.5 font-mono">Since {project.createdDate}</p>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Website domain</span>
-            {project.websiteUrl ? (
-              <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-secondary hover:underline mt-1 block truncate" title={project.websiteUrl}>
-                {extractDomain(project.websiteUrl)}
-              </a>
-            ) : (
-              <p className="text-xs text-on-surface-variant/40 mt-1">Not set</p>
+        {project.projectType === 'mobile' ? (
+          <>
+            {project.androidPackage && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Android Package</span>
+                  <p className="text-xs font-mono text-secondary mt-1 block truncate" title={project.androidPackage}>
+                    {project.androidPackage}
+                  </p>
+                </div>
+              </div>
             )}
+
+            {project.iosBundleId && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">iOS Bundle ID</span>
+                  <p className="text-xs font-mono text-secondary mt-1 block truncate" title={project.iosBundleId}>
+                    {project.iosBundleId}
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mt-0.5">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Website domain</span>
+              {project.websiteUrl ? (
+                <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-secondary hover:underline mt-1 block truncate" title={project.websiteUrl}>
+                  {extractDomain(project.websiteUrl)}
+                </a>
+              ) : (
+                <p className="text-xs text-on-surface-variant/40 mt-1">Not set</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant mt-0.5">
@@ -614,34 +819,65 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         </div>
       </div>
 
-      {/* ── Website / Admin URL details card ────────────────────────────── */}
-      {(project.websiteUrl || project.adminUrl) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {project.websiteUrl && (
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
-              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Website URL</span>
-              <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
-                <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
-                <span className="font-mono text-secondary truncate flex-1">{project.websiteUrl}</span>
-                <button onClick={() => handleCopy(project.websiteUrl!, 'website')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
-                  {copiedKey === 'website' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+      {/* ── Project Details Link Cards ────────────────────────────── */}
+      {project.projectType === 'mobile' ? (
+        (project.playStoreUrl || project.appStoreUrl) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {project.playStoreUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Play Store URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="font-mono text-secondary truncate flex-1">{project.playStoreUrl}</span>
+                  <button onClick={() => handleCopy(project.playStoreUrl!, 'playStore')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'playStore' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-          {project.adminUrl && (
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
-              <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Admin Portal URL</span>
-              <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
-                <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
-                <span className="font-mono text-on-surface truncate flex-1">{project.adminUrl}</span>
-                <button onClick={() => handleCopy(project.adminUrl!, 'admin')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
-                  {copiedKey === 'admin' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+            )}
+            {project.appStoreUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">App Store URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+                  <span className="font-mono text-on-surface truncate flex-1">{project.appStoreUrl}</span>
+                  <button onClick={() => handleCopy(project.appStoreUrl!, 'appStore')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'appStore' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )
+      ) : (
+        (project.websiteUrl || project.adminPanelUrl) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {project.websiteUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Website URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <Globe className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="font-mono text-secondary truncate flex-1">{project.websiteUrl}</span>
+                  <button onClick={() => handleCopy(project.websiteUrl!, 'website')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'website' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+            {project.adminPanelUrl && (
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Admin Panel URL</span>
+                <div className="flex items-center gap-3 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs">
+                  <ExternalLink className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+                  <span className="font-mono text-on-surface truncate flex-1">{project.adminPanelUrl}</span>
+                  <button onClick={() => handleCopy(project.adminPanelUrl!, 'admin')} className="p-1 rounded text-on-surface-variant/60 hover:text-secondary cursor-pointer">
+                    {copiedKey === 'admin' ? <Check className="w-3.5 h-3.5 text-secondary" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* ── Notes ────────────────────────────────────────────────────────── */}
@@ -730,19 +966,32 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         ) : (
           filteredInvoices.slice((invoicePage - 1) * itemsPerPage, invoicePage * itemsPerPage).map((inv) => (
             <tr key={inv.id} className="hover:bg-surface-container-low/30 transition-colors">
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{inv.invoiceNumber}</td>
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">${inv.amount.toFixed(2)}</td>
-              <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">${(inv.creditApplied || 0).toFixed(2)}</td>
-              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">${(inv.finalAmountDue ?? inv.amount).toFixed(2)}</td>
+              <td className="px-6 py-4">
+                <button
+                  onClick={() => {
+                    setSelectedInvoiceForDetails(inv);
+                    setIsInvoiceDetailsOpen(true);
+                  }}
+                  className="text-xs font-mono font-semibold text-primary hover:underline text-left cursor-pointer"
+                >
+                  {inv.invoiceNumber}
+                </button>
+              </td>
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{formatCurrency(inv.amount)}</td>
+              <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">{formatCurrency(inv.creditApplied || 0)}</td>
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">
+                {formatCurrency(Math.max(0, (inv.amount * 1.18) - (inv.creditApplied || 0)))}
+              </td>
               <td className="px-6 py-4 font-mono text-xs text-on-surface-variant">{inv.dueDate}</td>
               <td className="px-6 py-4">
                 <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500' : inv.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}`}>{inv.status}</span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => handleDownloadInvoicePDF(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer"><Download className="w-3.5 h-3.5" /></button>
-                  {inv.status !== 'Paid' && <button onClick={() => handleMarkInvoicePaid(inv.id)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-emerald-500 cursor-pointer"><Check className="w-3.5 h-3.5" /></button>}
-                  <button onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDownloadInvoicePDF(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer" title="Download Invoice PDF"><Download className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleOpenEditInvoice(inv)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary cursor-pointer" title="Edit Invoice"><Edit2 className="w-3.5 h-3.5" /></button>
+                  {inv.status !== 'Paid' && <button onClick={() => handleMarkInvoicePaid(inv.id)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-emerald-500 cursor-pointer" title="Mark Invoice Paid"><Check className="w-3.5 h-3.5" /></button>}
+                  <button onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error cursor-pointer" title="Delete Invoice"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </td>
             </tr>
@@ -760,6 +1009,39 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
             </div>
             <form onSubmit={handleSubmitEdit} className="space-y-3">
               {formError && <div className="text-xs text-error bg-error-container/10 p-2.5 rounded-lg border border-error/25">{formError}</div>}
+
+              {/* Project Type */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Project Type <span className="text-error">*</span>
+                </label>
+                <div className="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant/30">
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('web')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'web'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    🌐 Web App
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('mobile')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'mobile'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    📱 Mobile App
+                  </button>
+                </div>
+              </div>
+
+              {/* Project Name */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Project Name *</label>
                 <input type="text" required value={name} onChange={(e) => { setName(e.target.value); setFormError(''); }} className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
@@ -772,29 +1054,94 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   <option value="Suspended">Suspended</option>
                 </select>
               </div>
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Website URL</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input type="url" value={websiteUrl} onChange={(e) => { setWebsiteUrl(e.target.value); setWebsiteUrlError(e.target.value ? (validateUrl(e.target.value) || '') : ''); }} placeholder="https://www.website.com" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${websiteUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
-                </div>
-                {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
+
+              {/* Conditional Fields with Framer Motion */}
+              <div className="relative overflow-hidden">
+                <AnimatePresence initial={false} mode="wait">
+                  {projectType === 'web' ? (
+                    <motion.div
+                      key="web-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Website URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Website URL</label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={websiteUrl} onChange={(e) => handleWebsiteUrlChange(e.target.value)} placeholder="https://www.website.com" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${websiteUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
+                      </div>
+
+                      {/* Admin Panel URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Admin Panel URL</label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={adminPanelUrl} onChange={(e) => handleAdminPanelUrlChange(e.target.value)} placeholder="https://www.website.com/admin" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${adminPanelUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {adminPanelUrlError && <p className="text-[10px] text-error mt-1">{adminPanelUrlError}</p>}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Android Package Name */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Android Package Name</label>
+                        <input type="text" value={androidPackage} onChange={(e) => handleAndroidPackageChange(e.target.value)} placeholder="com.hexakode.app" className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${androidPackageError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        {androidPackageError && <p className="text-[10px] text-error mt-1">{androidPackageError}</p>}
+                      </div>
+
+                      {/* iOS Bundle Identifier */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">iOS Bundle Identifier</label>
+                        <input type="text" value={iosBundleId} onChange={(e) => handleIosBundleIdChange(e.target.value)} placeholder="com.hexakode.app" className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${iosBundleIdError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        {iosBundleIdError && <p className="text-[10px] text-error mt-1">{iosBundleIdError}</p>}
+                      </div>
+
+                      {/* Play Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Play Store URL</label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={playStoreUrl} onChange={(e) => handlePlayStoreUrlChange(e.target.value)} placeholder="https://play.google.com/store/apps/details?id=..." className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${playStoreUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {playStoreUrlError && <p className="text-[10px] text-error mt-1">{playStoreUrlError}</p>}
+                      </div>
+
+                      {/* App Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">App Store URL</label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={appStoreUrl} onChange={(e) => handleAppStoreUrlChange(e.target.value)} placeholder="https://apps.apple.com/app/..." className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${appStoreUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {appStoreUrlError && <p className="text-[10px] text-error mt-1">{appStoreUrlError}</p>}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Admin URL</label>
-                <div className="relative">
-                  <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input type="url" value={adminUrl} onChange={(e) => { setAdminUrl(e.target.value); setAdminUrlError(e.target.value ? (validateUrl(e.target.value) || '') : ''); }} placeholder="https://www.website.com/admin" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${adminUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
-                </div>
-                {adminUrlError && <p className="text-[10px] text-error mt-1">{adminUrlError}</p>}
-              </div>
+
+              {/* Notes */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Notes</label>
                 <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 resize-none font-sans" />
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
                 <button type="button" disabled={isSubmitting} onClick={() => setIsEditOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
-                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
+                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminPanelUrlError || !!androidPackageError || !!iosBundleIdError || !!playStoreUrlError || !!appStoreUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
                   <span>Save Project</span>
                 </button>
@@ -908,6 +1255,43 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   {viewLog.description || <span className="italic text-on-surface-variant/50">No details provided.</span>}
                 </div>
               </div>
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block mb-1">Invoice Information</span>
+                {(!viewLog.invoices || viewLog.invoices.length === 0) ? (
+                  <p className="text-on-surface-variant/50 italic text-[11px]">No invoice linked</p>
+                ) : (
+                  <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3.5 space-y-2 text-xs">
+                    {viewLog.invoices.map((inv) => (
+                      <div key={inv.id} className="flex flex-col gap-1 border-b border-outline-variant/10 last:border-b-0 pb-1.5 last:pb-0">
+                        <div className="flex justify-between font-semibold text-primary">
+                          <span>Invoice #{inv.invoiceNumber}</span>
+                          <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                            inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500' : inv.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'
+                          }`}>
+                            {inv.status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-on-surface-variant font-mono text-[10px]">
+                          <span>Amount: {formatCurrency(inv.amount)}</span>
+                          <span>Due Date: {inv.dueDate}</span>
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={() => {
+                              setIsViewLogOpen(false);
+                              setSelectedInvoiceForDetails(inv as any);
+                              setIsInvoiceDetailsOpen(true);
+                            }}
+                            className="text-[10px] text-primary hover:text-secondary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
+                          >
+                            View Invoice →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex justify-end pt-3 border-t border-outline-variant/20">
               <button onClick={() => setIsViewLogOpen(false)} className="px-4 py-1.5 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg cursor-pointer">Close</button>
@@ -933,11 +1317,144 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Linked Project</label>
                 <input type="text" disabled value={project.name} className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs text-on-surface-variant/80 cursor-not-allowed" />
               </div>
+
+              {/* ── Linked Maintenance Logs ── */}
               <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Invoice Amount ($) *</label>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Linked Maintenance Logs <span className="normal-case text-on-surface-variant/40">(Optional)</span>
+                </label>
+                {/* Selected chips */}
+                {selectedLogIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {selectedLogIds.map((lid) => {
+                      const lg = logs.find((l) => l.id === lid);
+                      return lg ? (
+                        <span key={lid} className="flex items-center gap-1 text-[10px] bg-secondary/10 text-secondary font-semibold px-2 py-0.5 rounded-full border border-secondary/20">
+                          <span className="truncate max-w-[140px]">{lg.title}</span>
+                          <button type="button" onClick={() => setSelectedLogIds((prev) => prev.filter((id) => id !== lid))} className="text-secondary/60 hover:text-secondary cursor-pointer">
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={logSearchQuery}
+                      onChange={(e) => { setLogSearchQuery(e.target.value); setIsLogDropdownOpen(true); }}
+                      onFocus={() => setIsLogDropdownOpen(true)}
+                      placeholder={logs.length === 0 ? 'No maintenance logs available' : 'Search maintenance logs...'}
+                      disabled={logs.length === 0}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary text-on-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40 pointer-events-none" />
+                  </div>
+                  {isLogDropdownOpen && logs.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                      {logs
+                        .filter((l) =>
+                          l.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                          (l.description || '').toLowerCase().includes(logSearchQuery.toLowerCase())
+                        )
+                        .map((l) => {
+                          const isSelected = selectedLogIds.includes(l.id);
+                          return (
+                            <button
+                              key={l.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedLogIds((prev) =>
+                                  isSelected ? prev.filter((id) => id !== l.id) : [...prev, l.id]
+                                );
+                                setLogSearchQuery('');
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer ${isSelected ? 'text-secondary font-semibold bg-secondary/5' : 'text-on-surface'}`}
+                            >
+                              <span className="truncate">{l.title}</span>
+                              {isSelected && <Check className="w-3 h-3 flex-shrink-0 text-secondary" />}
+                            </button>
+                          );
+                        })}
+                      {logs.filter((l) =>
+                        l.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                        (l.description || '').toLowerCase().includes(logSearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <p className="text-center py-3 text-[10px] text-on-surface-variant/50">No logs match your search.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {isLogDropdownOpen && (
+                  <button
+                    type="button"
+                    className="fixed inset-0 z-[9]"
+                    onClick={() => setIsLogDropdownOpen(false)}
+                    aria-label="Close dropdown"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Invoice Amount (₹) *</label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                   <input type="number" step="0.01" min="0" required value={invoiceAmount} onChange={(e) => handleInvoiceAmountChange(e.target.value)} placeholder="0.00" className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-secondary text-on-surface" />
+                </div>
+              </div>
+
+              {/* ── Discount ───────────────────────────────────────────── */}
+              <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-3.5 space-y-3">
+                <span className="text-xs font-semibold text-primary block">Discount</span>
+                {/* Segmented control */}
+                <div className="flex rounded-lg overflow-hidden border border-outline-variant/30 text-[10px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('amount'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'amount'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    ₹ Fixed Amount
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('percentage'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'percentage'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    % Percentage
+                  </button>
+                </div>
+                {/* Value input */}
+                <div>
+                  <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    {discountType === 'amount' ? 'Discount Amount (₹)' : 'Discount Percentage (%)'}
+                  </label>
+                  <div className="relative">
+                    {discountType === 'amount' ? (
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                    ) : (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant/40 font-mono">%</span>
+                    )}
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={discountType === 'percentage' ? 100 : undefined}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      placeholder={discountType === 'amount' ? '0.00' : '0'}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-[11px] focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -949,10 +1466,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                       Credit Balance Adjustment
                     </span>
                     <span className="text-[10px] font-semibold text-secondary font-mono">
-                      Available: ${data.project.clientCreditBalance.toFixed(2)}
+                      Available: {formatCurrency(data.project.clientCreditBalance)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -972,10 +1489,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   {applyCredits && (
                     <div className="space-y-1">
                       <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant">
-                        Credit Deduction Amount ($)
+                        Credit Deduction Amount (₹)
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                         <input
                           type="number"
                           step="0.01"
@@ -995,28 +1512,41 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
               {/* Live Summary Panel */}
               {(() => {
                 const amt = parseFloat(invoiceAmount) || 0;
+                const discountVal = parseFloat(discountValue) || 0;
+                const discountAmt = discountType === 'percentage'
+                  ? Math.round(amt * Math.min(discountVal, 100) / 100 * 100) / 100
+                  : Math.min(discountVal, amt);
+                const amtAfterDiscount = Math.max(0, amt - discountAmt);
                 const deduct = applyCredits ? (parseFloat(creditDeduction) || 0) : 0;
-                const due = Math.max(0, amt - deduct);
+                const due = Math.max(0, amtAfterDiscount - deduct);
                 const isFullyCovered = amt > 0 && due === 0;
+                const hasDiscount = discountAmt > 0;
 
                 return (
                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
                     <div className="flex justify-between items-center text-on-surface-variant">
                       <span>Invoice Amount:</span>
-                      <span className="font-mono">${amt.toFixed(2)}</span>
+                      <span className="font-mono">{formatCurrency(amt)}</span>
                     </div>
+                    {hasDiscount && (
+                      <div className="flex justify-between items-center text-amber-500">
+                        <span>
+                          Discount{discountType === 'percentage' && discountVal > 0 ? ` (${discountVal}%)` : ''}:
+                        </span>
+                        <span className="font-mono">-{formatCurrency(discountAmt)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-on-surface-variant">
-                      <span>Credit Applied:</span>
-                      <span className="font-mono">-${deduct.toFixed(2)}</span>
+                      <span>Credits Applied:</span>
+                      <span className="font-mono">-{formatCurrency(deduct)}</span>
                     </div>
-                    <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${
-                      isFullyCovered 
-                        ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1' 
+                    <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${isFullyCovered
+                        ? 'text-emerald-500 bg-emerald-500/5 px-2 py-1 -mx-2 rounded-md border-t-0 mt-1'
                         : 'text-primary'
-                    }`}>
+                      }`}>
                       <span>Amount Due:</span>
                       <span className="font-mono">
-                        ${due.toFixed(2)}
+                        {formatCurrency(due)}
                       </span>
                     </div>
                     {isFullyCovered && (
@@ -1063,6 +1593,129 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
             <div className="flex items-center justify-center gap-3">
               <button onClick={() => setIsDeleteInvoiceOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
               <button onClick={handleDeleteInvoice} className="px-4 py-2 bg-error text-on-error text-xs font-semibold rounded-lg hover:shadow-lg cursor-pointer">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invoice Details Modal ────────────────────────────────────────── */}
+      {isInvoiceDetailsOpen && selectedInvoiceForDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-premium max-h-[90vh] overflow-y-auto space-y-4 font-sans text-on-surface">
+            <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3 mb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-secondary" />
+                <h3 className="font-headline-sm text-sm font-semibold text-primary">Invoice Details</h3>
+              </div>
+              <button
+                onClick={() => { setIsInvoiceDetailsOpen(false); setSelectedInvoiceForDetails(null); }}
+                className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Invoice Number</span>
+                  <p className="font-mono text-on-surface mt-0.5 font-bold">{selectedInvoiceForDetails.invoiceNumber}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Status</span>
+                  <p className="mt-0.5">
+                    <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                      selectedInvoiceForDetails.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500'
+                      : selectedInvoiceForDetails.status === 'Pending' ? 'bg-amber-500/10 text-amber-500'
+                      : 'bg-rose-500/10 text-rose-500'
+                    }`}>
+                      {selectedInvoiceForDetails.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Linked Project</span>
+                <p className="text-on-surface mt-0.5">{project.name}</p>
+              </div>
+
+              <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Invoice Amount:</span><span>{formatCurrency(selectedInvoiceForDetails.amount)}</span>
+                </div>
+                {selectedInvoiceForDetails.discountAmount > 0 && (
+                  <div className="flex justify-between text-amber-500">
+                    <span>
+                      Discount{selectedInvoiceForDetails.discountType === 'percentage'
+                        ? ` (${selectedInvoiceForDetails.discountValue}%)`
+                        : ''}:
+                    </span>
+                    <span>-{formatCurrency(selectedInvoiceForDetails.discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Credits Applied:</span><span>-{formatCurrency(selectedInvoiceForDetails.creditApplied)}</span>
+                </div>
+                <div className="flex justify-between text-primary font-bold border-t border-outline-variant/20 pt-1.5 text-xs">
+                  <span>Amount Due:</span>
+                  <span>{formatCurrency(selectedInvoiceForDetails.finalAmountDue)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Issued Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.issuedDate}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Due Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.dueDate}</p>
+                </div>
+              </div>
+
+              {/* Linked Maintenance Logs */}
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block mb-1">Linked Maintenance Logs</span>
+                {(!selectedInvoiceForDetails.maintenanceLogs || selectedInvoiceForDetails.maintenanceLogs.length === 0) ? (
+                  <p className="text-on-surface-variant/50 italic text-[11px]">No maintenance logs linked to this invoice.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto p-1 bg-surface-container-low border border-outline-variant/20 rounded-lg">
+                    {selectedInvoiceForDetails.maintenanceLogs.map((log) => (
+                      <button
+                        key={log.id}
+                        onClick={() => {
+                          setIsInvoiceDetailsOpen(false);
+                          setSelectedInvoiceForDetails(null);
+                          const found = logs.find((l) => l.id === log.id);
+                          if (found) { setViewLog(found); setIsViewLogOpen(true); }
+                        }}
+                        className="w-full text-left block px-2.5 py-1.5 bg-surface-container-lowest hover:bg-secondary/5 rounded border border-outline-variant/10 text-primary hover:text-secondary font-medium transition-all truncate text-xs cursor-pointer"
+                      >
+                        {log.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant/20">
+              <button
+                onClick={() => {
+                  setIsInvoiceDetailsOpen(false);
+                  handleOpenEditInvoice(selectedInvoiceForDetails);
+                }}
+                className="px-4 py-1.5 bg-secondary text-on-secondary text-xs font-semibold rounded-lg hover:shadow-lg transition-all cursor-pointer"
+              >
+                Edit Invoice
+              </button>
+              <button
+                onClick={() => { setIsInvoiceDetailsOpen(false); setSelectedInvoiceForDetails(null); }}
+                className="px-4 py-1.5 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-all cursor-pointer text-on-surface"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

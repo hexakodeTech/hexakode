@@ -113,8 +113,13 @@ export interface AdminPortalProject {
   clientId: string;
   clientName: string;
   clientCreditBalance?: number;
+  projectType: string;
   websiteUrl?: string | null;
-  adminUrl?: string | null;
+  adminPanelUrl?: string | null;
+  androidPackage?: string | null;
+  iosBundleId?: string | null;
+  playStoreUrl?: string | null;
+  appStoreUrl?: string | null;
   status: string;
   notes?: string | null;
   logCount: number;
@@ -130,6 +135,7 @@ export interface AdminMaintenanceLog {
   description?: string | null;
   logDate: string;
   createdDate: string;
+  invoices?: AdminInvoice[];
 }
 
 export interface AdminInvoice {
@@ -140,6 +146,9 @@ export interface AdminInvoice {
   projectName?: string | null;
   invoiceNumber: string;
   amount: number;
+  discountType: 'amount' | 'percentage';
+  discountValue: number;
+  discountAmount: number;
   creditApplied: number;
   finalAmountDue: number;
   startingCreditBalance?: number | null; // Client balance BEFORE deduction
@@ -148,6 +157,7 @@ export interface AdminInvoice {
   dueDate: string;
   issuedDate: string;
   createdAt: string;
+  maintenanceLogs?: AdminMaintenanceLog[];
 }
 
 export interface AdminCreditTransaction {
