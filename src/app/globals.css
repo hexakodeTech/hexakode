@@ -57,19 +57,22 @@
   --color-navy-light: #1e293b;
 
   /* Fonts */
-  --font-hanken: var(--font-hanken-grotesk), sans-serif;
-  --font-inter: var(--font-inter), sans-serif;
+  --font-sans: var(--font-poppins), sans-serif;
+  --font-poppins: var(--font-poppins), sans-serif;
+  --font-hanken-grotesk: var(--font-poppins), sans-serif;
+  --font-inter: var(--font-poppins), sans-serif;
+  --font-hanken: var(--font-poppins), sans-serif;
   --font-jetbrains: var(--font-jetbrains-mono), monospace;
 
-  --font-headline-lg: var(--font-hanken-grotesk), sans-serif;
-  --font-headline-sm: var(--font-hanken-grotesk), sans-serif;
-  --font-headline-md: var(--font-hanken-grotesk), sans-serif;
+  --font-headline-lg: var(--font-poppins), sans-serif;
+  --font-headline-sm: var(--font-poppins), sans-serif;
+  --font-headline-md: var(--font-poppins), sans-serif;
   --font-label-mono: var(--font-jetbrains-mono), monospace;
-  --font-body-lg: var(--font-inter), sans-serif;
-  --font-display-lg: var(--font-hanken-grotesk), sans-serif;
-  --font-body-sm: var(--font-inter), sans-serif;
-  --font-body-md: var(--font-inter), sans-serif;
-  --font-headline-lg-mobile: var(--font-hanken-grotesk), sans-serif;
+  --font-body-lg: var(--font-poppins), sans-serif;
+  --font-display-lg: var(--font-poppins), sans-serif;
+  --font-body-sm: var(--font-poppins), sans-serif;
+  --font-body-md: var(--font-poppins), sans-serif;
+  --font-headline-lg-mobile: var(--font-poppins), sans-serif;
 
   /* Spacing */
   --spacing-base: 4px;
@@ -618,23 +621,23 @@ body {
 
 /* Design System Typography Utilities */
 .font-headline-xl {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-headline-lg {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-headline-sm {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-headline-md {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-display-lg {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-label-mono {
@@ -642,19 +645,19 @@ body {
 }
 
 .font-body-lg {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-body-md {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-body-sm {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .font-headline-lg-mobile {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
 
 .text-display-lg {
@@ -776,4 +779,37 @@ body {
 .animate-ripple-3 {
   animation: hero-ripple 6s ease-out infinite;
   animation-delay: 4s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes floatDown {
+  0%, 100% {
+    transform: translate(-50%, 0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, 8px);
+    opacity: 0.95;
+  }
+}
+
+.animate-float-down {
+  animation: floatDown 2s ease-in-out infinite;
+}
+
+.min-h-viewport {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
