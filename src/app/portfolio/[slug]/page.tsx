@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, User, Tag, Layers } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, User, Tag, Layers, Globe, ChevronDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
@@ -106,6 +106,27 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   };
 }
 
+/**
+ * Formats a URL string to display only the readable domain name.
+ * e.g., "https://www.example.com/demo" -> "example.com"
+ */
+function getDisplayDomain(urlStr: string): string {
+  try {
+    let parsedUrl = urlStr.trim();
+    if (!/^https?:\/\//i.test(parsedUrl)) {
+      parsedUrl = "https://" + parsedUrl;
+    }
+    const url = new URL(parsedUrl);
+    let host = url.hostname;
+    if (host.startsWith("www.")) {
+      host = host.substring(4);
+    }
+    return host;
+  } catch (e) {
+    return urlStr;
+  }
+}
+
 export default async function ProjectDetailPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const dbProject = await getPublishedProjectBySlug(params.slug);
@@ -115,6 +136,8 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
   }
 
   const publicCategory = mapDbCategoryToPublic(dbProject.category);
+  const isWebProject = publicCategory === "Web";
+  const hasLiveUrl = !!(dbProject.projectUrl && dbProject.projectUrl.trim() !== "");
   const defaultPlaceholder = "https://lh3.googleusercontent.com/aida-public/AB6AXuB2YxLvd3x5jPAxgZFL6XMO5u3FKnZOqm3Sw5jiYFwt6C_1rbby046caqliXpWGTpjLpPwnIvaeaOmdE4lDZVyZ_sdZvktvMtR48G9PDwq9PdT4z5dmEyDZmvTGdtk0tGLYG3aND_F-CKnXlxCnvDioVyszWJ-5hrLBoAQmefvVnmK51ys89hcKnm770jq6SVjM3Pg-onRL9YM_DO5PLioIGZ3Onw3JrHAYxnPC4ePN8pVa9SN1k4ErAvN0hneQVUTOK8JkgL9fql8e";
   const displayImage = dbProject.coverImage && dbProject.coverImage.trim() !== "" ? dbProject.coverImage.trim() : defaultPlaceholder;
   const isSupabase = displayImage.includes("supabase.co") || displayImage.includes("/storage/v1/object/");
@@ -171,33 +194,53 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-20">
+      <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-0">
         
         {/* Hero Section */}
-        <section className="relative py-16 md:py-24 bg-surface-container-low border-b border-outline-variant/10">
-          <Container className="relative z-10">
-            {/* Back Button */}
-            <Link
-              href="/portfolio"
-              className="inline-flex items-center gap-2 text-sm font-label-mono text-label-mono text-on-surface-variant hover:text-primary mb-8 transition-colors duration-200 group"
-            >
-              <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-              BACK TO PORTFOLIO
-            </Link>
+        <section 
+          id="hero-section"
+          className="relative w-full bg-cover bg-center bg-no-repeat overflow-hidden flex flex-col min-h-viewport border-b border-outline-variant/10 animate-fade-in"
+          style={{
+            backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.75) 100%), url('${project.image}')`
+          }}
+        >
+          <Container className="relative z-10 w-full flex-1 flex flex-col justify-between pt-28 md:pt-32 lg:pt-40 pb-16 md:pb-24">
+            {/* Top portion of Hero: Back Button */}
+            <div>
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center gap-2 text-sm font-label-mono text-label-mono text-white/70 hover:text-white transition-colors duration-200 group focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+              >
+                <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
+                BACK TO PORTFOLIO
+              </Link>
+            </div>
 
-            <div className="max-w-4xl">
+            {/* Bottom portion of Hero: Category, Title, Description */}
+            <div className="max-w-4xl text-white mb-6 md:mb-10">
               {/* Category pill */}
-              <span className="inline-block px-3 py-1 font-label-mono text-label-mono uppercase tracking-widest text-secondary bg-secondary/5 rounded mb-4">
+              <span className="inline-block px-3 py-1 font-label-mono text-label-mono uppercase tracking-widest text-white bg-white/10 border border-white/20 rounded mb-4">
                 {project.category}
               </span>
               
-              <h1 className="font-headline-xl text-display-lg md:text-display-lg text-on-background mb-6 tracking-tight">
+              <h1 className="font-headline-xl text-display-lg md:text-display-lg text-white mb-6 tracking-tight font-bold drop-shadow-md">
                 {project.title}
               </h1>
               
-              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-3xl leading-relaxed">
+              <p className="font-body-lg text-body-lg text-white/80 max-w-3xl leading-relaxed drop-shadow-sm">
                 {project.description}
               </p>
+            </div>
+
+            {/* Scroll Indicator */}
+            <div 
+              id="scroll-indicator" 
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/70 pointer-events-none transition-opacity duration-500 animate-float-down"
+            >
+              <span className="font-label-mono text-[9px] uppercase tracking-widest">
+                Scroll
+              </span>
+              <ChevronDown className="w-4 h-4" />
             </div>
           </Container>
         </section>
@@ -209,46 +252,43 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
             {/* Left: Main details (8 columns on lg) */}
             <div className="lg:col-span-8 flex flex-col gap-12">
               
-              {/* Visual Frame */}
-              <div className="relative w-full aspect-[16/9] bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 shadow-premium">
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  priority
-                  unoptimized={isSupabase}
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="object-cover"
-                />
-              </div>
-
               {/* Narratives */}
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-12">
+                {/* 3. Our Engineering Approach (Descriptive content only, heading removed) */}
                 <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    The Challenge
-                  </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                    {details.challenge}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    Our Engineering Approach
-                  </h3>
                   <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
                     {details.approach}
                   </p>
                 </div>
 
-                <div>
-                  <h3 className="font-headline-md text-headline-sm text-on-background mb-4 uppercase tracking-wider border-l-2 border-secondary pl-4">
-                    Key Outcomes & Impact
+                {/* 4. Redesigned Key Features cards */}
+                <div className="flex flex-col gap-6">
+                  <h3 className="font-headline-md text-headline-sm text-on-background uppercase tracking-wider border-l-2 border-secondary pl-4">
+                    Key Features
                   </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                    {details.results}
-                  </p>
+                  <div className="flex flex-col gap-6">
+                    {dbProject.features && dbProject.features.length > 0 ? (
+                      [...dbProject.features]
+                        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+                        .map((feature) => (
+                          <div
+                            key={feature.id}
+                            className="p-6 md:p-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl hover-lift hover-glow transition-all duration-300 hover:border-secondary/40"
+                          >
+                            <h4 className="font-headline-sm text-headline-sm text-on-background mb-3">
+                              {feature.title}
+                            </h4>
+                            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                              {feature.description}
+                            </p>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="font-body-md text-body-md text-on-surface-variant/60 italic">
+                        No features specified for this project.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -317,6 +357,34 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
                   </div>
                 </div>
 
+                {isWebProject && hasLiveUrl && (
+                  <div className="pt-4 border-t border-outline-variant/10 flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-on-surface-variant">
+                      <Globe className="w-4 h-4 text-secondary" />
+                      <span className="block font-label-mono text-label-mono uppercase tracking-wider">
+                        Live Project
+                      </span>
+                    </div>
+                    <a
+                      href={dbProject.projectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-body-md text-body-md text-secondary hover:text-primary font-semibold transition-colors duration-200 w-fit focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 rounded"
+                    >
+                      {getDisplayDomain(dbProject.projectUrl)}
+                    </a>
+                    <a
+                      href={dbProject.projectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-primary text-on-primary font-label-mono text-label-mono rounded hover:bg-secondary transition-colors duration-300 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                      aria-label={`Visit live website of ${project.title} (opens in a new tab)`}
+                    >
+                      Visit Live Website <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+
                 <Link
                   href="/contact#contact-form"
                   className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-primary text-on-primary font-label-mono text-label-mono rounded hover:bg-secondary transition-colors duration-300 mt-2"
@@ -332,6 +400,30 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
 
         {/* CTA Section */}
         <PortfolioCTA />
+
+        {/* Intersection Observer for Scroll Indicator */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var hero = document.getElementById('hero-section');
+                var indicator = document.getElementById('scroll-indicator');
+                if (hero && indicator) {
+                  var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                      if (entry.isIntersecting) {
+                        indicator.style.opacity = '0.7';
+                      } else {
+                        indicator.style.opacity = '0';
+                      }
+                    });
+                  }, { threshold: 0 });
+                  observer.observe(hero);
+                }
+              })();
+            `
+          }}
+        />
 
       </main>
       <Footer />

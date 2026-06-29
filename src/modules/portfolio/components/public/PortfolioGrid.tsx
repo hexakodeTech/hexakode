@@ -52,7 +52,7 @@ export default function PortfolioGrid({ projects }: PortfolioGridProps) {
                   animate="visible"
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
-                  className={cn("w-full", colSpanClass)}
+                  className={cn("w-full flex flex-col h-full", colSpanClass)}
                 >
                   <PortfolioCard
                     project={project}
