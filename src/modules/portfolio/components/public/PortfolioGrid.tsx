@@ -26,13 +26,19 @@ export default function PortfolioGrid({ projects }: PortfolioGridProps) {
           className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 w-full"
         >
           <AnimatePresence mode="popLayout">
-            {projects.map((project) => {
+            {projects.map((project, index) => {
               return (
                 <motion.div
                   key={project.id}
                   variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.6,
+                    ease: "easeOut",
+                    delay: index * 0.08,
+                  }}
                   className="w-full flex flex-col h-full"
                 >
                   <PortfolioCard
