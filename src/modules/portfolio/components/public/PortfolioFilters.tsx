@@ -23,8 +23,8 @@ export default function PortfolioFilters({
 }: PortfolioFiltersProps) {
   return (
     <section className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-outline-variant/10 select-none">
-      <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-6">
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-6">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-8 py-5">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-8">
           {CATEGORIES.map((category) => {
             const isActive = currentFilter === category.id;
             return (
@@ -32,16 +32,16 @@ export default function PortfolioFilters({
                 key={category.id}
                 onClick={() => onFilterChange(category.id)}
                 className={cn(
-                  "relative px-4 py-2 font-label-mono text-label-mono uppercase tracking-widest transition-colors duration-250 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-secondary/50 rounded",
-                  isActive ? "text-primary font-semibold" : "text-on-surface-variant hover:text-primary"
+                  "relative px-4 py-2 font-label-mono text-[11px] tracking-[0.2em] uppercase transition-colors duration-300 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-secondary/50 rounded-lg",
+                  isActive ? "text-secondary font-bold" : "text-on-surface-variant/80 hover:text-primary"
                 )}
               >
                 <span className="relative z-10">{category.label}</span>
                 {isActive && (
                   <motion.div
                     layoutId="activeFilterUnderline"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary-container"
-                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                    className="absolute bottom-0 left-2 right-2 h-[3px] bg-secondary rounded-full"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
               </button>

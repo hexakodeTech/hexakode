@@ -15,35 +15,18 @@ interface PortfolioGridProps {
 }
 
 export default function PortfolioGrid({ projects }: PortfolioGridProps) {
-  // Helper to determine the responsive col span matching the design mockup layout
-  const getColSpanClass = (project: PublicProject) => {
-    switch (project.layoutSize) {
-      case "featured":
-      case "wide":
-        return "col-span-12 md:col-span-8";
-      case "side":
-        return "col-span-12 md:col-span-4";
-      case "standard":
-        return project.id === "project-3" ? "col-span-12 md:col-span-4" : "col-span-12 md:col-span-6";
-      default:
-        return "col-span-12 md:col-span-4";
-    }
-  };
-
   return (
-    <Section id="portfolio-grid" variant="white" spacing="large" className="overflow-hidden">
-      <Container>
+    <Section id="portfolio-grid" variant="white" spacing="none" className="pt-16 pb-24 md:pt-20 md:pb-32 overflow-hidden">
+      <Container clean className="max-w-[1400px] mx-auto px-6 md:px-8 w-full">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 md:grid-cols-12 gap-gutter w-full"
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 w-full"
         >
           <AnimatePresence mode="popLayout">
-            {projects.map((project) => {
-              const colSpanClass = getColSpanClass(project);
-
+            {projects.map((project, index) => {
               return (
                 <motion.div
                   key={project.id}
@@ -51,8 +34,12 @@ export default function PortfolioGrid({ projects }: PortfolioGridProps) {
                   initial="hidden"
                   animate="visible"
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className={cn("w-full flex flex-col h-full", colSpanClass)}
+                  transition={{
+                    duration: 0.6,
+                    ease: "easeOut",
+                    delay: index * 0.08,
+                  }}
+                  className="w-full flex flex-col h-full"
                 >
                   <PortfolioCard
                     project={project}

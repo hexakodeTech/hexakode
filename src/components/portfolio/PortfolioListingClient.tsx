@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Navbar from "@/components/layout/Navbar";
 import PortfolioHero from "@/components/portfolio/PortfolioHero";
 import PortfolioFilters from "@/modules/portfolio/components/public/PortfolioFilters";
@@ -22,12 +22,19 @@ export default function PortfolioListingClient() {
     retry,
   } = usePortfolioProjects();
 
-  // Filter projects dynamically based on active filter category
-  const filteredProjects = projects.filter((project) => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "ui-ux") return project.category.toLowerCase() === "ui/ux";
-    return project.category.toLowerCase() === activeFilter;
-  });
+  // Normalize inputs and filter projects dynamically using useMemo based on the latest projects state
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
+      const filter = activeFilter.toLowerCase().trim();
+      const category = (project.category || "").toLowerCase().trim();
+
+      if (filter === "all") return true;
+      if (filter === "ui-ux" || filter === "ui/ux") {
+        return category === "ui/ux" || category === "ui-ux";
+      }
+      return category === filter;
+    });
+  }, [projects, activeFilter]);
 
   const renderContent = () => {
     if (isLoading) {
@@ -39,7 +46,7 @@ export default function PortfolioListingClient() {
     }
 
     if (filteredProjects.length === 0) {
-      return <EmptyPortfolio />;
+      return <EmptyPortfolio message="No projects available in this category yet." />;
     }
 
     return <PortfolioGrid projects={filteredProjects} />;
@@ -61,4 +68,3 @@ export default function PortfolioListingClient() {
     </>
   );
 }
-
