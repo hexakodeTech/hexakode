@@ -30,7 +30,7 @@ import {
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
 import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
-import { exportToPDF } from '@/lib/utils/pdf-export';
+import { exportToPDF, exportInvoicePDF } from '@/lib/utils/pdf-export';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -606,71 +606,25 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     try {
       toast.info('Generating PDF...');
 
-      const subtotal = inv.amount;
-      const gst = subtotal * 0.18;
-      const grandTotal = subtotal + gst;
-      const creditApplied = inv.creditApplied || 0;
-      const finalDue = Math.max(0, grandTotal - creditApplied);
-      const hasCredit = creditApplied > 0;
-
-      // Determine payment method label
-      const paymentMethod = hasCredit
-        ? (finalDue > 0 ? 'Credit Balance + Direct Payment' : 'Credit Balance')
-        : 'Direct Payment';
-
-      // Build Invoice Summary items
-      const summaryItems = [
-        { label: 'Subtotal',          value: formatCurrency(subtotal) },
-        { label: 'GST (18%)',         value: formatCurrency(gst) },
-        { label: 'Grand Total',       value: formatCurrency(grandTotal) },
-      ];
-      if (hasCredit) {
-        summaryItems.push({ label: 'Credit Deducted', value: formatCurrency(creditApplied) });
-      }
-      summaryItems.push(
-        { label: 'Amount Due',        value: formatCurrency(finalDue) },
-        { label: 'Payment Status',    value: inv.status.toUpperCase() },
-        { label: 'Payment Method',    value: paymentMethod }
-      );
-
-      // Build Credit Balance Usage section (only when credits were applied)
-      let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
-      if (hasCredit && inv.startingCreditBalance != null) {
-        const startingBal = inv.startingCreditBalance;
-        const remainingBal = startingBal - creditApplied;
-        creditSection = {
-          startingBalance:  formatCurrency(startingBal),
-          creditsUsed:      formatCurrency(creditApplied),
-          remainingBalance: formatCurrency(remainingBal),
-          paymentMethod,
-          transactionId:    inv.creditTransactionId ?? undefined,
-        };
-      }
-
-      await exportToPDF({
+      await exportInvoicePDF({
         filename: `Invoice-${inv.invoiceNumber}.pdf`,
-        title: `INVOICE: ${inv.invoiceNumber}`,
-        subtitle: 'HexaKode Billing System',
-        metadata: [
-          { label: 'Invoice Number', value: inv.invoiceNumber },
-          { label: 'Issue Date', value: inv.issuedDate },
-          { label: 'Due Date', value: inv.dueDate },
-          { label: 'Client Name', value: inv.clientName },
-          { label: 'Linked Project', value: data?.project.name || 'N/A' },
-        ],
-        summaryTitle: 'Invoice Summary',
-        summaryItems,
-        creditSection,
-        tableHeaders: ['Description', 'Qty', 'Unit Price', 'Total'],
-        tableData: [
-          [
-            `Development & maintenance services for project: ${data?.project.name || 'HexaKode application'}`,
-            '1',
-            formatCurrency(subtotal),
-            formatCurrency(subtotal),
-          ],
-        ],
+        invoiceNumber: inv.invoiceNumber,
+        issuedDate: inv.issuedDate,
+        dueDate: inv.dueDate,
+        clientName: inv.clientName,
+        projectName: data?.project.name || 'N/A',
+        status: inv.status,
+        subtotal: inv.amount,
+        discountType: inv.discountType,
+        discountValue: inv.discountValue,
+        discountAmount: inv.discountAmount,
+        creditApplied: inv.creditApplied,
+        finalAmountDue: inv.finalAmountDue,
+        startingCreditBalance: inv.startingCreditBalance,
+        creditTransactionId: inv.creditTransactionId,
+        maintenanceLogs: inv.maintenanceLogs,
       });
+
       toast.success('Invoice downloaded successfully.');
     } catch (err) {
       console.error(err);
