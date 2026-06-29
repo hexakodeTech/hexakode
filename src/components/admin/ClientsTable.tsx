@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { AdminClient } from '@/types/admin';
 import DataTable from './DataTable';
 import {
@@ -265,7 +266,12 @@ export default function ClientsTable() {
           displayed.map((c) => (
             <tr key={c.id} className="hover:bg-surface-container-low/30 transition-colors">
               <td className="px-6 py-4">
-                <span className="text-xs font-semibold text-primary">{c.name}</span>
+                <Link
+                  href={`/admin/clients/${c.id}`}
+                  className="text-xs font-semibold text-primary hover:underline hover:text-secondary transition-all"
+                >
+                  {c.name}
+                </Link>
               </td>
               <td className="px-6 py-4">
                 <span className="font-label-mono text-[9px] text-on-surface-variant/70 uppercase">
@@ -319,11 +325,10 @@ export default function ClientsTable() {
               </td>
               <td className="px-6 py-4">
                 <span
-                  className={`text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full inline-block ${
-                    c.status === 'Active'
-                      ? 'bg-emerald-500/10 text-emerald-500'
-                      : 'bg-secondary-container/20 text-on-secondary-container'
-                  }`}
+                  className={`text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full inline-block ${c.status === 'Active'
+                    ? 'bg-emerald-500/10 text-emerald-500'
+                    : 'bg-secondary-container/20 text-on-secondary-container'
+                    }`}
                 >
                   {c.status}
                 </span>
@@ -397,7 +402,7 @@ export default function ClientsTable() {
                   required
                   value={name}
                   onChange={(e) => { setName(e.target.value); setFormError(''); }}
-                  placeholder="e.g. Revopz"
+                  placeholder="e.g. John Doe"
                   className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10"
                 />
               </div>
@@ -411,7 +416,7 @@ export default function ClientsTable() {
                   type="text"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  placeholder="e.g. Revopz Technologies"
+                  placeholder="e.g. John Doe Technologies"
                   className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10"
                 />
               </div>
@@ -456,11 +461,10 @@ export default function ClientsTable() {
                     value={websiteUrl}
                     onChange={(e) => handleUrlChange(e.target.value)}
                     placeholder="https://www.clientwebsite.com"
-                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
-                      urlError
-                        ? 'border-error focus:border-error focus:ring-error/10'
-                        : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
-                    }`}
+                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${urlError
+                      ? 'border-error focus:border-error focus:ring-error/10'
+                      : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                      }`}
                   />
                 </div>
                 {urlError && (

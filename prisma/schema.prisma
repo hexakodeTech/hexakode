@@ -200,6 +200,7 @@ model Client {
   status            String              @default("Active")
   creditBalance     Float               @default(0.0)
   notes             String?
+  userId            String?             @db.Uuid
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   projects          Project[]
@@ -216,8 +217,13 @@ model Project {
   id              String           @id @default(uuid()) @db.Uuid
   name            String
   clientId        String           @db.Uuid
+  projectType     String           @default("web") // "web" | "mobile"
   websiteUrl      String?
-  adminUrl        String?
+  adminPanelUrl   String?
+  androidPackage  String?
+  iosBundleId     String?
+  playStoreUrl    String?
+  appStoreUrl     String?
   status          String           @default("Active")
   notes           String?
   createdAt       DateTime         @default(now())
@@ -241,6 +247,7 @@ model MaintenanceLog {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invoices    Invoice[] @relation("InvoiceMaintenanceLogs")
 
   @@index([projectId])
   @@index([logDate])
@@ -253,6 +260,9 @@ model Invoice {
   projectId              String?  @db.Uuid
   invoiceNumber          String   @unique
   amount                 Float
+  discountType           String   @default("amount")  // "amount" | "percentage"
+  discountValue          Float    @default(0)          // Raw entered value (₹ or %)
+  discountAmount         Float    @default(0)          // Calculated monetary discount
   creditApplied          Float    @default(0)
   finalAmountDue         Float    @default(0)
   startingCreditBalance  Float?   // Client credit balance BEFORE deduction (for PDF audit)
@@ -264,6 +274,7 @@ model Invoice {
   updatedAt              DateTime @updatedAt
   client                 Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   project                Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  maintenanceLogs        MaintenanceLog[] @relation("InvoiceMaintenanceLogs")
 
   @@index([clientId])
   @@index([projectId])

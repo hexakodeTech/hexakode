@@ -17,12 +17,18 @@ export type MaintenanceLogInput = z.infer<typeof logSchema>;
 /**
  * Returns all maintenance logs formatted for the admin table.
  */
-export async function getMaintenanceLogsAction(): Promise<AdminMaintenanceLog[]> {
+export async function getMaintenanceLogsAction(projectId?: string): Promise<AdminMaintenanceLog[]> {
   try {
+    const where: any = {};
+    if (projectId) {
+      where.projectId = projectId;
+    }
     const list = await prisma.maintenanceLog.findMany({
+      where,
       orderBy: { logDate: 'desc' },
       include: {
         project: { select: { name: true, websiteUrl: true } },
+        invoices: true,
       },
     });
 
@@ -35,6 +41,22 @@ export async function getMaintenanceLogsAction(): Promise<AdminMaintenanceLog[]>
       description: l.description,
       logDate: l.logDate.toISOString().split('T')[0],
       createdDate: l.createdAt.toISOString().split('T')[0],
+      invoices: l.invoices?.map((inv) => ({
+        id: inv.id,
+        clientId: inv.clientId,
+        clientName: '',
+        invoiceNumber: inv.invoiceNumber,
+        amount: inv.amount,
+        discountType: (inv.discountType as 'amount' | 'percentage') ?? 'amount',
+        discountValue: inv.discountValue ?? 0,
+        discountAmount: inv.discountAmount ?? 0,
+        creditApplied: inv.creditApplied,
+        finalAmountDue: inv.finalAmountDue,
+        status: inv.status as any,
+        dueDate: inv.dueDate.toISOString().split('T')[0],
+        issuedDate: inv.issuedDate.toISOString().split('T')[0],
+        createdAt: inv.createdAt.toISOString().split('T')[0],
+      })) || [],
     }));
   } catch (error) {
     console.error('Error fetching maintenance logs:', error);
@@ -50,7 +72,8 @@ export async function getMaintenanceLogByIdAction(id: string) {
     const log = await prisma.maintenanceLog.findUnique({
       where: { id },
       include: {
-        project: { select: { id: true, name: true, websiteUrl: true, adminUrl: true, clientId: true } },
+        project: { select: { id: true, name: true, websiteUrl: true, adminPanelUrl: true, clientId: true } },
+        invoices: true,
       },
     });
 
@@ -65,6 +88,22 @@ export async function getMaintenanceLogByIdAction(id: string) {
       description: log.description,
       logDate: log.logDate.toISOString().split('T')[0],
       createdDate: log.createdAt.toISOString().split('T')[0],
+      invoices: log.invoices?.map((inv) => ({
+        id: inv.id,
+        clientId: inv.clientId,
+        clientName: '',
+        invoiceNumber: inv.invoiceNumber,
+        amount: inv.amount,
+        discountType: (inv.discountType as 'amount' | 'percentage') ?? 'amount',
+        discountValue: inv.discountValue ?? 0,
+        discountAmount: inv.discountAmount ?? 0,
+        creditApplied: inv.creditApplied,
+        finalAmountDue: inv.finalAmountDue,
+        status: inv.status as any,
+        dueDate: inv.dueDate.toISOString().split('T')[0],
+        issuedDate: inv.issuedDate.toISOString().split('T')[0],
+        createdAt: inv.createdAt.toISOString().split('T')[0],
+      })) || [],
     } as AdminMaintenanceLog;
   } catch (error) {
     console.error('Error fetching maintenance log:', error);

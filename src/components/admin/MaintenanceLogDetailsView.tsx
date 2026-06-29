@@ -15,6 +15,8 @@ import {
   Trash2,
   X,
   Wrench,
+  FileText,
+  IndianRupee,
 } from 'lucide-react';
 import {
   getMaintenanceLogByIdAction,
@@ -22,6 +24,7 @@ import {
   deleteMaintenanceLogAction,
 } from '@/lib/maintenance-logs/actions';
 import { getProjectsAction } from '@/lib/projects/actions';
+import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 
 interface Props {
@@ -221,6 +224,55 @@ export default function MaintenanceLogDetailsView({ id }: Props) {
           <p className="text-xs text-on-surface leading-relaxed whitespace-pre-wrap">{log.description}</p>
         </div>
       )}
+
+      {/* ── Invoice Information ───────────────────────────────────────────── */}
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="w-4 h-4 text-secondary" />
+          <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Invoice Information</span>
+        </div>
+        {(!log.invoices || log.invoices.length === 0) ? (
+          <p className="text-xs text-on-surface-variant/50 italic">No invoice linked to this maintenance log.</p>
+        ) : (
+          <div className="space-y-3">
+            {log.invoices.map((inv) => (
+              <div key={inv.id} className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <IndianRupee className="w-3.5 h-3.5 text-secondary" />
+                    <span className="text-xs font-mono font-bold text-primary">{inv.invoiceNumber}</span>
+                  </div>
+                  <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                    inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-500'
+                    : inv.status === 'Pending' ? 'bg-amber-500/10 text-amber-500'
+                    : 'bg-rose-500/10 text-rose-500'
+                  }`}>{inv.status}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-[10px] text-on-surface-variant font-mono">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-wide block text-on-surface-variant/50">Amount</span>
+                    <span className="font-semibold text-primary">{formatCurrency(inv.amount)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-wide block text-on-surface-variant/50">Due Date</span>
+                    <span>{inv.dueDate}</span>
+                  </div>
+                </div>
+                {log.projectId && (
+                  <div className="flex justify-end pt-1 border-t border-outline-variant/10">
+                    <Link
+                      href={`/admin/clients/${inv.clientId}/projects/${log.projectId}`}
+                      className="text-[10px] text-primary hover:text-secondary font-semibold hover:underline flex items-center gap-1 transition-colors"
+                    >
+                      View Invoice Details →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ── Edit Modal ───────────────────────────────────────────────────── */}
       {isEditOpen && (

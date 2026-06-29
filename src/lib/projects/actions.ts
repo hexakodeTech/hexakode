@@ -12,11 +12,23 @@ const urlSchema = z
     message: 'URL must start with http:// or https://',
   });
 
+const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
+const packageIdSchema = z.string().optional().or(z.literal(''))
+  .refine(
+    (val) => !val || packageIdRegex.test(val),
+    { message: 'Invalid format. Use com.company.app' }
+  );
+
 const projectSchema = z.object({
   name: z.string().min(1, { message: 'Project name is required' }),
   clientId: z.string().uuid({ message: 'Client ID is required' }),
+  projectType: z.enum(['web', 'mobile']).default('web'),
   websiteUrl: urlSchema.optional().or(z.literal('')),
-  adminUrl: urlSchema.optional().or(z.literal('')),
+  adminPanelUrl: urlSchema.optional().or(z.literal('')),
+  androidPackage: packageIdSchema,
+  iosBundleId: packageIdSchema,
+  playStoreUrl: urlSchema.optional().or(z.literal('')),
+  appStoreUrl: urlSchema.optional().or(z.literal('')),
   status: z.string().default('Active'),
   notes: z.string().optional().or(z.literal('')),
 });
@@ -41,8 +53,13 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
       name: p.name,
       clientId: p.clientId,
       clientName: p.client.name,
+      projectType: p.projectType,
       websiteUrl: p.websiteUrl,
-      adminUrl: p.adminUrl,
+      adminPanelUrl: p.adminPanelUrl,
+      androidPackage: p.androidPackage,
+      iosBundleId: p.iosBundleId,
+      playStoreUrl: p.playStoreUrl,
+      appStoreUrl: p.appStoreUrl,
       status: p.status,
       notes: p.notes,
       logCount: p._count.maintenanceLogs,
@@ -78,8 +95,13 @@ export async function getProjectByIdAction(id: string) {
         clientId: project.clientId,
         clientName: project.client.name,
         clientCreditBalance: project.client.creditBalance,
+        projectType: project.projectType,
         websiteUrl: project.websiteUrl,
-        adminUrl: project.adminUrl,
+        adminPanelUrl: project.adminPanelUrl,
+        androidPackage: project.androidPackage,
+        iosBundleId: project.iosBundleId,
+        playStoreUrl: project.playStoreUrl,
+        appStoreUrl: project.appStoreUrl,
         status: project.status,
         notes: project.notes,
         logCount: project.maintenanceLogs.length,
@@ -114,12 +136,18 @@ export async function createProjectAction(data: ProjectInput) {
   const payload = parsed.data;
 
   try {
+    const isWeb = payload.projectType === 'web';
     await prisma.project.create({
       data: {
         name: payload.name,
         clientId: payload.clientId,
-        websiteUrl: payload.websiteUrl || null,
-        adminUrl: payload.adminUrl || null,
+        projectType: payload.projectType,
+        websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
+        adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
+        androidPackage: !isWeb ? (payload.androidPackage || null) : null,
+        iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
+        playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
+        appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },
@@ -152,13 +180,19 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
       return { success: false, error: 'Project not found.' };
     }
 
+    const isWeb = payload.projectType === 'web';
     await prisma.project.update({
       where: { id },
       data: {
         name: payload.name,
         clientId: payload.clientId,
-        websiteUrl: payload.websiteUrl || null,
-        adminUrl: payload.adminUrl || null,
+        projectType: payload.projectType,
+        websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
+        adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
+        androidPackage: !isWeb ? (payload.androidPackage || null) : null,
+        iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
+        playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
+        appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },

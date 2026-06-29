@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AdminClient, AdminPortalProject, AdminInvoice, AdminCreditTransaction, AdminCoupon } from '@/types/admin';
+import { AdminClient, AdminPortalProject, AdminInvoice, AdminMaintenanceLog, AdminCreditTransaction, AdminCoupon } from '@/types/admin';
 import DataTable from './DataTable';
 import StatsCard from './StatsCard';
 import {
@@ -25,6 +25,7 @@ import {
   Calendar,
   FileText,
   DollarSign,
+  IndianRupee,
   TrendingUp,
   Coins,
   AlertCircle,
@@ -35,12 +36,15 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { getClientByIdAction, updateClientAction, deleteClientAction } from '@/lib/clients/actions';
+import { formatCurrency } from '@/lib/currency';
 import { createProjectAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
-import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction } from '@/lib/invoices/actions';
+import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
+import { getMaintenanceLogsAction } from '@/lib/maintenance-logs/actions';
 import { getCreditTransactionsAction, addCreditTransactionAction } from '@/lib/credits/actions';
 import { createCouponAction, updateCouponAction, deleteCouponAction } from '@/lib/coupons/actions';
 import { exportToPDF } from '@/lib/utils/pdf-export';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ClientDetailsViewProps {
   id: string;
@@ -67,12 +71,19 @@ function validateUrl(val: string): string | null {
   }
 }
 
+function validatePackageId(val: string): string | null {
+  if (!val) return null;
+  const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
+  return packageIdRegex.test(val) ? null : 'Invalid format. Use com.company.app';
+}
+
 export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'invoices' | 'credits' | 'referrals'>('overview');
   const [data, setData] = useState<{ client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] } | null>(null);
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [credits, setCredits] = useState<AdminCreditTransaction[]>([]);
+  const [errorState, setErrorState] = useState<{ code: string; error: string; reason?: string } | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTab, setIsLoadingTab] = useState(false);
@@ -104,15 +115,28 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
+  const [projectType, setProjectType] = useState<'web' | 'mobile'>('web');
   const [projectWebsite, setProjectWebsite] = useState('');
   const [projectAdminUrl, setProjectAdminUrl] = useState('');
+  const [projectAndroidPackage, setProjectAndroidPackage] = useState('');
+  const [projectIosBundleId, setProjectIosBundleId] = useState('');
+  const [projectPlayStoreUrl, setProjectPlayStoreUrl] = useState('');
+  const [projectAppStoreUrl, setProjectAppStoreUrl] = useState('');
+
   const [projectStatus, setProjectStatus] = useState('Active');
   const [projectNotes, setProjectNotes] = useState('');
+
   const [projectUrlError, setProjectUrlError] = useState('');
   const [projectAdminUrlError, setProjectAdminUrlError] = useState('');
+  const [projectAndroidPackageError, setProjectAndroidPackageError] = useState('');
+  const [projectIosBundleIdError, setProjectIosBundleIdError] = useState('');
+  const [projectPlayStoreUrlError, setProjectPlayStoreUrlError] = useState('');
+  const [projectAppStoreUrlError, setProjectAppStoreUrlError] = useState('');
+
   const [projectFormError, setProjectFormError] = useState('');
   const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<AdminPortalProject | null>(null);
+  const [projectTypeFilter, setProjectTypeFilter] = useState('All');
 
   // Invoice Modals state
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
@@ -125,6 +149,19 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [invoiceToDelete, setInvoiceToDelete] = useState<AdminInvoice | null>(null);
   const [applyCredits, setApplyCredits] = useState(false);
   const [creditDeduction, setCreditDeduction] = useState('');
+
+  // Maintenance logs linkage states
+  const [availableLogs, setAvailableLogs] = useState<AdminMaintenanceLog[]>([]);
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [isLogDropdownOpen, setIsLogDropdownOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<AdminInvoice | null>(null);
+  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
+  const [selectedInvoiceForDetails, setSelectedInvoiceForDetails] = useState<AdminInvoice | null>(null);
+
+  // Discount state
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
+  const [discountValue, setDiscountValue] = useState('');
 
   // Credit adjustments form state
   const [creditAction, setCreditAction] = useState<'add' | 'deduct'>('add');
@@ -338,11 +375,27 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    const result = await getClientByIdAction(id);
-    if (result) {
-      setData(result as { client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] });
+    setErrorState(null);
+    try {
+      const result = await getClientByIdAction(id);
+      if (result && result.success && result.data) {
+        setData(result.data as { client: AdminClient; projects: AdminPortalProject[]; coupons: AdminCoupon[] });
+      } else {
+        setErrorState({
+          code: result?.code || 'DB_ERROR',
+          error: result?.error || 'Failed to load client details.',
+          reason: (result as any)?.reason || 'An unexpected error occurred during database access.',
+        });
+      }
+    } catch (err: any) {
+      setErrorState({
+        code: 'DB_ERROR',
+        error: 'An unexpected connection or runtime error occurred.',
+        reason: err.message || String(err),
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [id]);
 
   const loadInvoices = useCallback(async () => {
@@ -362,6 +415,19 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      getMaintenanceLogsAction(selectedProjectId).then((logs) => {
+        setAvailableLogs(logs);
+      });
+    } else {
+      setAvailableLogs([]);
+      if (!editingInvoice) {
+        setSelectedLogIds([]);
+      }
+    }
+  }, [selectedProjectId, editingInvoice]);
 
   useEffect(() => {
     if (activeTab === 'invoices') {
@@ -465,12 +531,21 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   // ─── Project Tab Actions ───────────────────────────────────────────────────
   const handleOpenAddProject = () => {
     setProjectName('');
+    setProjectType('web');
     setProjectWebsite('');
     setProjectAdminUrl('');
+    setProjectAndroidPackage('');
+    setProjectIosBundleId('');
+    setProjectPlayStoreUrl('');
+    setProjectAppStoreUrl('');
     setProjectStatus('Active');
     setProjectNotes('');
     setProjectUrlError('');
     setProjectAdminUrlError('');
+    setProjectAndroidPackageError('');
+    setProjectIosBundleIdError('');
+    setProjectPlayStoreUrlError('');
+    setProjectAppStoreUrlError('');
     setProjectFormError('');
     setIsEditingProject(false);
     setEditingProjectId(null);
@@ -479,12 +554,21 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const handleOpenEditProject = (proj: AdminPortalProject) => {
     setProjectName(proj.name);
+    setProjectType((proj.projectType as 'web' | 'mobile') || 'web');
     setProjectWebsite(proj.websiteUrl || '');
-    setProjectAdminUrl(proj.adminUrl || '');
+    setProjectAdminUrl(proj.adminPanelUrl || '');
+    setProjectAndroidPackage(proj.androidPackage || '');
+    setProjectIosBundleId(proj.iosBundleId || '');
+    setProjectPlayStoreUrl(proj.playStoreUrl || '');
+    setProjectAppStoreUrl(proj.appStoreUrl || '');
     setProjectStatus(proj.status || 'Active');
     setProjectNotes(proj.notes || '');
     setProjectUrlError('');
     setProjectAdminUrlError('');
+    setProjectAndroidPackageError('');
+    setProjectIosBundleIdError('');
+    setProjectPlayStoreUrlError('');
+    setProjectAppStoreUrlError('');
     setProjectFormError('');
     setIsEditingProject(true);
     setEditingProjectId(proj.id);
@@ -493,35 +577,64 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   const handleProjectWebsiteChange = (val: string) => {
     setProjectWebsite(val);
-    if (val) {
-      const err = validateUrl(val);
-      setProjectUrlError(err || '');
-    } else {
-      setProjectUrlError('');
-    }
+    setProjectUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleProjectAdminUrlChange = (val: string) => {
     setProjectAdminUrl(val);
-    if (val) {
-      const err = validateUrl(val);
-      setProjectAdminUrlError(err || '');
-    } else {
-      setProjectAdminUrlError('');
-    }
+    setProjectAdminUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleProjectAndroidPackageChange = (val: string) => {
+    setProjectAndroidPackage(val);
+    setProjectAndroidPackageError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleProjectIosBundleIdChange = (val: string) => {
+    setProjectIosBundleId(val);
+    setProjectIosBundleIdError(val ? (validatePackageId(val) || '') : '');
+  };
+
+  const handleProjectPlayStoreUrlChange = (val: string) => {
+    setProjectPlayStoreUrl(val);
+    setProjectPlayStoreUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleProjectAppStoreUrlChange = (val: string) => {
+    setProjectAppStoreUrl(val);
+    setProjectAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setProjectFormError('');
 
-    if (projectWebsite) {
-      const err = validateUrl(projectWebsite);
-      if (err) { setProjectUrlError(err); return; }
-    }
-    if (projectAdminUrl) {
-      const err = validateUrl(projectAdminUrl);
-      if (err) { setProjectAdminUrlError(err); return; }
+    if (projectType === 'web') {
+      if (projectWebsite) {
+        const err = validateUrl(projectWebsite);
+        if (err) { setProjectUrlError(err); return; }
+      }
+      if (projectAdminUrl) {
+        const err = validateUrl(projectAdminUrl);
+        if (err) { setProjectAdminUrlError(err); return; }
+      }
+    } else {
+      if (projectAndroidPackage) {
+        const err = validatePackageId(projectAndroidPackage);
+        if (err) { setProjectAndroidPackageError(err); return; }
+      }
+      if (projectIosBundleId) {
+        const err = validatePackageId(projectIosBundleId);
+        if (err) { setProjectIosBundleIdError(err); return; }
+      }
+      if (projectPlayStoreUrl) {
+        const err = validateUrl(projectPlayStoreUrl);
+        if (err) { setProjectPlayStoreUrlError(err); return; }
+      }
+      if (projectAppStoreUrl) {
+        const err = validateUrl(projectAppStoreUrl);
+        if (err) { setProjectAppStoreUrlError(err); return; }
+      }
     }
 
     setIsSubmitting(true);
@@ -529,8 +642,13 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
       const payload = {
         name: projectName,
         clientId: id,
-        websiteUrl: projectWebsite,
-        adminUrl: projectAdminUrl,
+        projectType,
+        websiteUrl: projectType === 'web' ? projectWebsite : '',
+        adminPanelUrl: projectType === 'web' ? projectAdminUrl : '',
+        androidPackage: projectType === 'mobile' ? projectAndroidPackage : '',
+        iosBundleId: projectType === 'mobile' ? projectIosBundleId : '',
+        playStoreUrl: projectType === 'mobile' ? projectPlayStoreUrl : '',
+        appStoreUrl: projectType === 'mobile' ? projectAppStoreUrl : '',
         status: projectStatus,
         notes: projectNotes,
       };
@@ -652,6 +770,36 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     updateInvoiceStatusAutomatically(invoiceAmount, finalVal, applyCredits);
   };
 
+  const handleOpenEditInvoice = (inv: AdminInvoice) => {
+    setEditingInvoice(inv);
+    setSelectedProjectId(inv.projectId || '');
+    setInvoiceAmount(inv.amount.toString());
+    setInvoiceDueDate(inv.dueDate);
+    setInvoiceStatus(inv.status);
+    setCreditDeduction((inv.creditApplied || 0).toString());
+    setApplyCredits((inv.creditApplied || 0) > 0);
+    setSelectedLogIds(inv.maintenanceLogs?.map((l) => l.id) || []);
+    setDiscountType(inv.discountType ?? 'amount');
+    setDiscountValue((inv.discountValue ?? 0) > 0 ? (inv.discountValue ?? 0).toString() : '');
+    setInvoiceFormError('');
+    setIsInvoiceFormOpen(true);
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setIsInvoiceFormOpen(false);
+    setEditingInvoice(null);
+    setSelectedProjectId('');
+    setInvoiceAmount('');
+    setInvoiceDueDate('');
+    setInvoiceStatus('Pending');
+    setCreditDeduction('');
+    setApplyCredits(false);
+    setSelectedLogIds([]);
+    setDiscountType('amount');
+    setDiscountValue('');
+    setInvoiceFormError('');
+  };
+
   const handleSubmitInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setInvoiceFormError('');
@@ -665,6 +813,21 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     const amountParts = invoiceAmount.split('.');
     if (amountParts.length > 1 && amountParts[1].length > 2) {
       setInvoiceFormError('Invoice amount cannot have more than 2 decimal places');
+      return;
+    }
+
+    // Discount validation
+    const discountVal = parseFloat(discountValue) || 0;
+    if (discountVal < 0) {
+      setInvoiceFormError('Discount cannot be negative.');
+      return;
+    }
+    if (discountType === 'percentage' && discountVal > 100) {
+      setInvoiceFormError('Discount percentage cannot exceed 100%.');
+      return;
+    }
+    if (discountType === 'amount' && discountVal > amt) {
+      setInvoiceFormError('Discount amount cannot exceed the invoice amount.');
       return;
     }
 
@@ -688,24 +851,50 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
     setIsSubmitting(true);
     try {
-      const res = await createInvoiceAction({
-        clientId: id,
-        projectId: selectedProjectId || null,
-        amount: amt,
-        dueDate: invoiceDueDate,
-        status: invoiceStatus,
-        creditApplied: deduction,
-        finalAmountDue: amt - deduction,
-      });
+      if (editingInvoice) {
+        const res = await updateInvoiceAction(editingInvoice.id, {
+          projectId: selectedProjectId || null,
+          amount: amt,
+          discountType,
+          discountValue: discountVal,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
 
-      if (!res.success) {
-        setInvoiceFormError(res.error || 'Failed to create invoice.');
-        toast.error(res.error || 'Failed to create invoice.');
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to update invoice.');
+          toast.error(res.error || 'Failed to update invoice.');
+        } else {
+          toast.success('Invoice updated successfully.');
+          setIsInvoiceFormOpen(false);
+          setEditingInvoice(null);
+          loadInvoices();
+          loadData();
+        }
       } else {
-        toast.success('Invoice created successfully.');
-        setIsInvoiceFormOpen(false);
-        loadInvoices();
-        loadData(); // Reload client overview (for credit balance card)
+        const res = await createInvoiceAction({
+          clientId: id,
+          projectId: selectedProjectId || null,
+          amount: amt,
+          discountType,
+          discountValue: discountVal,
+          dueDate: invoiceDueDate,
+          status: invoiceStatus,
+          creditApplied: deduction,
+          maintenanceLogIds: selectedLogIds,
+        });
+
+        if (!res.success) {
+          setInvoiceFormError(res.error || 'Failed to create invoice.');
+          toast.error(res.error || 'Failed to create invoice.');
+        } else {
+          toast.success('Invoice created successfully.');
+          setIsInvoiceFormOpen(false);
+          loadInvoices();
+          loadData(); // Reload client overview (for credit balance card)
+        }
       }
     } catch {
       setInvoiceFormError('An unexpected error occurred.');
@@ -749,8 +938,11 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         metadata.push({ label: 'Linked Project', value: inv.projectName });
       }
 
+      const subtotal = inv.amount;
+      const gst = subtotal * 0.18;
+      const grandTotal = subtotal + gst;
       const creditApplied = inv.creditApplied || 0;
-      const finalDue = inv.finalAmountDue ?? inv.amount;
+      const finalDue = Math.max(0, grandTotal - creditApplied);
       const hasCredit = creditApplied > 0;
 
       // Determine payment method label
@@ -759,20 +951,19 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         : 'Direct Payment';
 
       // Build Invoice Summary items
-      const summaryItems = hasCredit
-        ? [
-            { label: 'Invoice Amount',   value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Credit Deducted',  value: `$${creditApplied.toFixed(2)}` },
-            { label: 'Amount Due',        value: `$${finalDue.toFixed(2)}` },
-            { label: 'Payment Status',    value: inv.status.toUpperCase() },
-            { label: 'Payment Method',    value: paymentMethod },
-          ]
-        : [
-            { label: 'Invoice Amount',   value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Amount Due',        value: `$${inv.amount.toFixed(2)}` },
-            { label: 'Payment Status',    value: inv.status.toUpperCase() },
-            { label: 'Payment Method',    value: paymentMethod },
-          ];
+      const summaryItems = [
+        { label: 'Subtotal',          value: formatCurrency(subtotal) },
+        { label: 'GST (18%)',         value: formatCurrency(gst) },
+        { label: 'Grand Total',       value: formatCurrency(grandTotal) },
+      ];
+      if (hasCredit) {
+        summaryItems.push({ label: 'Credit Deducted', value: formatCurrency(creditApplied) });
+      }
+      summaryItems.push(
+        { label: 'Amount Due',        value: formatCurrency(finalDue) },
+        { label: 'Payment Status',    value: inv.status.toUpperCase() },
+        { label: 'Payment Method',    value: paymentMethod }
+      );
 
       // Build Credit Balance Usage section (only when credits were applied)
       let creditSection: Parameters<typeof exportToPDF>[0]['creditSection'];
@@ -780,9 +971,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         const startingBal = inv.startingCreditBalance;
         const remainingBal = startingBal - creditApplied;
         creditSection = {
-          startingBalance:  `$${startingBal.toFixed(2)}`,
-          creditsUsed:      `$${creditApplied.toFixed(2)}`,
-          remainingBalance: `$${remainingBal.toFixed(2)}`,
+          startingBalance:  formatCurrency(startingBal),
+          creditsUsed:      formatCurrency(creditApplied),
+          remainingBalance: formatCurrency(remainingBal),
           paymentMethod,
           transactionId:    inv.creditTransactionId ?? undefined,
         };
@@ -801,8 +992,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
           [
             `Services / maintenance provided for project: ${inv.projectName || 'HexaKode Managed Web Application'}`,
             '1',
-            `$${inv.amount.toFixed(2)}`,
-            `$${inv.amount.toFixed(2)}`,
+            formatCurrency(subtotal),
+            formatCurrency(subtotal),
           ],
         ],
       });
@@ -851,16 +1042,30 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
         <Loader2 className="w-8 h-8 animate-spin text-secondary" />
-        <span className="text-xs text-on-surface-variant/70">Loading client details...</span>
+        <span className="text-xs text-on-surface-variant/70">Loading Client...</span>
       </div>
     );
   }
 
-  if (!data) {
+  if (errorState || !data) {
+    const errorTitle = errorState?.code === 'INVALID_ID' ? 'Invalid Client ID' : 'Client Not Found';
+    const errorMessage = errorState?.error || 'The requested client does not exist.';
     return (
       <div className="text-center py-12">
-        <h3 className="font-headline-md text-primary mb-2">Client Not Found</h3>
-        <p className="text-xs text-on-surface-variant mb-6">The requested client does not exist.</p>
+        <h3 className="font-headline-md text-primary mb-2">{errorTitle}</h3>
+        <p className="text-xs text-on-surface-variant mb-6">{errorMessage}</p>
+        
+        {/* Improved Diagnostic UI in Development Mode */}
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="mx-auto max-w-lg bg-surface-container-low border border-outline-variant/30 rounded-lg p-4 text-left font-mono text-[10px] space-y-1 mb-6 text-on-surface-variant">
+            <p className="font-semibold text-primary">Development Diagnostic Info:</p>
+            <p><span className="text-secondary">Requested ID:</span> {id}</p>
+            <p><span className="text-secondary">Database Query:</span> client.findUnique</p>
+            <p><span className="text-secondary">Returned Result:</span> null</p>
+            <p><span className="text-secondary">Reason / Details:</span> {errorState?.reason || 'None (Client is missing from the database)'}</p>
+          </div>
+        )}
+
         <Link
           href="/admin/clients"
           className="text-xs bg-primary text-on-primary px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
@@ -888,7 +1093,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
 
   // Search filter lists
   const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (projectTypeFilter === 'All' || p.projectType === projectTypeFilter)
   );
 
   const filteredInvoices = invoices.filter((inv) =>
@@ -960,7 +1166,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         />
         <StatsCard
           title="Credit Balance"
-          value={`$${client.creditBalance.toFixed(2)}`}
+          value={formatCurrency(client.creditBalance)}
           subtext="Available prepaid credits"
           icon={Coins}
         />
@@ -1059,7 +1265,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   </div>
                   <div>
                     <span className="text-on-surface-variant/70 block">Credit Balance</span>
-                    <p className="font-semibold text-secondary mt-0.5 font-mono">${client.creditBalance.toFixed(2)}</p>
+                    <p className="font-semibold text-secondary mt-0.5 font-mono">{formatCurrency(client.creditBalance)}</p>
                   </div>
                 </div>
               </div>
@@ -1122,7 +1328,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   <div>
                     <span className="text-on-surface-variant/70 block">Credits Earned</span>
                     <p className="font-semibold text-secondary mt-0.5 font-mono">
-                      ${referralCreditsEarned.toFixed(2)}
+                      {formatCurrency(referralCreditsEarned)}
                     </p>
                   </div>
                   <div>
@@ -1196,6 +1402,17 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
             currentPage={currentPage}
             totalPages={Math.ceil(filteredProjects.length / itemsPerPage)}
             onPageChange={(page) => setCurrentPage(page)}
+            filterSlot={
+              <select
+                value={projectTypeFilter}
+                onChange={(e) => { setProjectTypeFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface rounded-lg px-3 py-1.5 focus:outline-none focus:border-secondary transition-all"
+              >
+                <option value="All">All Types</option>
+                <option value="web">Web Applications</option>
+                <option value="mobile">Mobile Applications</option>
+              </select>
+            }
             actionSlot={
               <button
                 onClick={handleOpenAddProject}
@@ -1205,7 +1422,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 <span>Add Project</span>
               </button>
             }
-            headers={['Project Name', 'Website', 'Admin URL', 'Status', 'Logs', 'Actions']}
+            headers={['Project Name', 'Website / App Link', 'Admin URL / Bundle ID', 'Status', 'Logs', 'Actions']}
           >
             {filteredProjects.length === 0 ? (
               <tr>
@@ -1217,10 +1434,34 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => (
                 <tr key={p.id} className="hover:bg-surface-container-low/30 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-xs font-semibold text-primary">{p.name}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-semibold text-primary">{p.name}</span>
+                      <span className="text-[9px] font-semibold text-on-surface-variant/60">
+                        {p.projectType === 'mobile' ? '📱 Mobile Application' : '🌐 Web Application'}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    {p.websiteUrl ? (
+                    {p.projectType === 'mobile' ? (
+                      p.playStoreUrl ? (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={p.playStoreUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-secondary hover:underline underline-offset-2"
+                            title={p.playStoreUrl}
+                          >
+                            <Globe className="w-3 h-3" />
+                            <span className="font-mono">Play Store</span>
+                          </a>
+                        </div>
+                      ) : p.androidPackage ? (
+                        <span className="font-mono text-xs text-on-surface-variant">{p.androidPackage}</span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant/40">-</span>
+                      )
+                    ) : p.websiteUrl ? (
                       <a
                         href={p.websiteUrl}
                         target="_blank"
@@ -1235,15 +1476,34 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {p.adminUrl ? (
+                    {p.projectType === 'mobile' ? (
+                      p.appStoreUrl ? (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={p.appStoreUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary underline-offset-2 hover:underline"
+                            title={p.appStoreUrl}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span className="font-mono">App Store</span>
+                          </a>
+                        </div>
+                      ) : p.iosBundleId ? (
+                        <span className="font-mono text-xs text-on-surface-variant">{p.iosBundleId}</span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant/40">-</span>
+                      )
+                    ) : p.adminPanelUrl ? (
                       <a
-                        href={p.adminUrl}
+                        href={p.adminPanelUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary underline-offset-2 hover:underline"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        <span className="font-mono">{extractDomain(p.adminUrl)}</span>
+                        <span className="font-mono">{extractDomain(p.adminPanelUrl)}</span>
                       </a>
                     ) : (
                       <span className="text-xs text-on-surface-variant/40">-</span>
@@ -1340,7 +1600,15 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               filteredInvoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((inv) => (
                 <tr key={inv.id} className="hover:bg-surface-container-low/30 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-xs font-mono font-semibold text-primary">{inv.invoiceNumber}</span>
+                    <button
+                      onClick={() => {
+                        setSelectedInvoiceForDetails(inv);
+                        setIsInvoiceDetailsOpen(true);
+                      }}
+                      className="text-xs font-mono font-semibold text-primary hover:underline text-left cursor-pointer"
+                    >
+                      {inv.invoiceNumber}
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-xs text-on-surface">
@@ -1348,13 +1616,15 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-mono text-xs font-semibold text-primary">${inv.amount.toFixed(2)}</span>
+                    <span className="font-mono text-xs font-semibold text-primary">{formatCurrency(inv.amount)}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-mono text-xs text-on-surface-variant">${(inv.creditApplied || 0).toFixed(2)}</span>
+                    <span className="font-mono text-xs text-on-surface-variant">{formatCurrency(inv.creditApplied || 0)}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-mono text-xs font-semibold text-primary">${(inv.finalAmountDue ?? inv.amount).toFixed(2)}</span>
+                    <span className="font-mono text-xs font-semibold text-primary">
+                      {formatCurrency(Math.max(0, (inv.amount * 1.18) - (inv.creditApplied || 0)))}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-mono text-xs text-on-surface-variant">{inv.dueDate}</span>
@@ -1380,6 +1650,13 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                         title="Download Invoice PDF"
                       >
                         <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEditInvoice(inv)}
+                        className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-secondary transition-all cursor-pointer"
+                        title="Edit Invoice"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       {inv.status !== 'Paid' && (
                         <button
@@ -1450,7 +1727,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                       </td>
                       <td className="px-6 py-4 font-mono text-xs">
                         <span className={tx.amount >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'}>
-                          {tx.amount >= 0 ? '+' : ''}${tx.amount.toFixed(2)}
+                          {tx.amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -1494,7 +1771,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 {/* Amount */}
                 <div>
                   <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                    Amount ($)
+                    Amount (₹)
                   </label>
                   <input
                     type="number"
@@ -1824,6 +2101,37 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </div>
               )}
 
+              {/* Project Type */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Project Type <span className="text-error">*</span>
+                </label>
+                <div className="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant/30">
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('web')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'web'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    🌐 Web App
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectType('mobile')}
+                    className={`flex-1 text-center py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      projectType === 'mobile'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant/70 hover:text-primary'
+                    }`}
+                  >
+                    📱 Mobile App
+                  </button>
+                </div>
+              </div>
+
               {/* Project Name */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
@@ -1834,57 +2142,172 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                   required
                   value={projectName}
                   onChange={(e) => { setProjectName(e.target.value); setProjectFormError(''); }}
-                  placeholder="e.g. Revopz Website"
+                  placeholder="e.g. Revopz Mobile App"
                   className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10"
                 />
               </div>
 
-              {/* Website URL */}
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                  Website URL
-                </label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input
-                    type="url"
-                    value={projectWebsite}
-                    onChange={(e) => handleProjectWebsiteChange(e.target.value)}
-                    placeholder="https://www.mywebsite.com"
-                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
-                      projectUrlError
-                        ? 'border-error focus:border-error focus:ring-error/10'
-                        : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
-                    }`}
-                  />
-                </div>
-                {projectUrlError && (
-                  <p className="text-[10px] text-error mt-1">{projectUrlError}</p>
-                )}
-              </div>
+              {/* Conditional Fields with Framer Motion */}
+              <div className="relative overflow-hidden">
+                <AnimatePresence initial={false} mode="wait">
+                  {projectType === 'web' ? (
+                    <motion.div
+                      key="web-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Website URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Website URL
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectWebsite}
+                            onChange={(e) => handleProjectWebsiteChange(e.target.value)}
+                            placeholder="https://www.mywebsite.com"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectUrlError}</p>
+                        )}
+                      </div>
 
-              {/* Admin URL */}
-              <div>
-                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                  Admin Panel URL
-                </label>
-                <div className="relative">
-                  <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
-                  <input
-                    type="url"
-                    value={projectAdminUrl}
-                    onChange={(e) => handleProjectAdminUrlChange(e.target.value)}
-                    placeholder="https://www.mywebsite.com/admin"
-                    className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
-                      projectAdminUrlError
-                        ? 'border-error focus:border-error focus:ring-error/10'
-                        : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
-                    }`}
-                  />
-                </div>
-                {projectAdminUrlError && (
-                  <p className="text-[10px] text-error mt-1">{projectAdminUrlError}</p>
-                )}
+                      {/* Admin Panel URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Admin Panel URL
+                        </label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectAdminUrl}
+                            onChange={(e) => handleProjectAdminUrlChange(e.target.value)}
+                            placeholder="https://www.mywebsite.com/admin"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectAdminUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectAdminUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectAdminUrlError}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile-fields"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      {/* Android Package Name */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Android Package Name
+                        </label>
+                        <input
+                          type="text"
+                          value={projectAndroidPackage}
+                          onChange={(e) => handleProjectAndroidPackageChange(e.target.value)}
+                          placeholder="com.hexakode.app"
+                          className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                            projectAndroidPackageError
+                              ? 'border-error focus:border-error focus:ring-error/10'
+                              : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                          }`}
+                        />
+                        {projectAndroidPackageError && (
+                          <p className="text-[10px] text-error mt-1">{projectAndroidPackageError}</p>
+                        )}
+                      </div>
+
+                      {/* iOS Bundle Identifier */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          iOS Bundle Identifier
+                        </label>
+                        <input
+                          type="text"
+                          value={projectIosBundleId}
+                          onChange={(e) => handleProjectIosBundleIdChange(e.target.value)}
+                          placeholder="com.hexakode.app"
+                          className={`w-full bg-surface-container-low border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                            projectIosBundleIdError
+                              ? 'border-error focus:border-error focus:ring-error/10'
+                              : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                          }`}
+                        />
+                        {projectIosBundleIdError && (
+                          <p className="text-[10px] text-error mt-1">{projectIosBundleIdError}</p>
+                        )}
+                      </div>
+
+                      {/* Play Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Play Store URL
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectPlayStoreUrl}
+                            onChange={(e) => handleProjectPlayStoreUrlChange(e.target.value)}
+                            placeholder="https://play.google.com/store/apps/details?id=..."
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectPlayStoreUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectPlayStoreUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectPlayStoreUrlError}</p>
+                        )}
+                      </div>
+
+                      {/* App Store URL */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          App Store URL
+                        </label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectAppStoreUrl}
+                            onChange={(e) => handleProjectAppStoreUrlChange(e.target.value)}
+                            placeholder="https://apps.apple.com/app/..."
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectAppStoreUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectAppStoreUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectAppStoreUrlError}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Status */}
@@ -1928,7 +2351,15 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !!projectUrlError || !!projectAdminUrlError}
+                  disabled={
+                    isSubmitting ||
+                    !!projectUrlError ||
+                    !!projectAdminUrlError ||
+                    !!projectAndroidPackageError ||
+                    !!projectIosBundleIdError ||
+                    !!projectPlayStoreUrlError ||
+                    !!projectAppStoreUrlError
+                  }
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -1967,11 +2398,11 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-secondary" />
                 <h3 className="font-headline-sm text-sm font-semibold text-primary">
-                  Create Invoice
+                  {editingInvoice ? `Edit Invoice #${editingInvoice.invoiceNumber}` : 'Create Invoice'}
                 </h3>
               </div>
               <button
-                onClick={() => setIsInvoiceFormOpen(false)}
+                onClick={handleCloseInvoiceModal}
                 className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -2017,13 +2448,146 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </select>
               </div>
 
+              {/* Linked Maintenance Logs (Optional) */}
+              <div>
+                <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                  Linked Maintenance Logs (Optional)
+                </label>
+                
+                {!selectedProjectId ? (
+                  <input
+                    type="text"
+                    disabled
+                    value="Select a project first"
+                    className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs text-on-surface-variant/80 cursor-not-allowed"
+                  />
+                ) : availableLogs.length === 0 ? (
+                  <input
+                    type="text"
+                    disabled
+                    value="No maintenance logs available"
+                    className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs text-on-surface-variant/80 cursor-not-allowed"
+                  />
+                ) : (
+                  <div className="relative">
+                    {/* Selected Chips */}
+                    {selectedLogIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2 p-1.5 bg-surface-container-low border border-outline-variant/20 rounded-lg max-h-24 overflow-y-auto">
+                        {selectedLogIds.map((logId) => {
+                          const log = availableLogs.find((l) => l.id === logId);
+                          if (!log) return null;
+                          return (
+                            <span
+                              key={logId}
+                              className="inline-flex items-center gap-1 bg-secondary/10 hover:bg-secondary/15 text-secondary font-medium px-2 py-0.5 rounded text-[10px] transition-colors"
+                            >
+                              <span className="truncate max-w-[150px]">{log.title}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedLogIds(selectedLogIds.filter((id) => id !== logId))}
+                                className="hover:text-primary cursor-pointer text-[10px]"
+                              >
+                                ✕
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Dropdown Toggle / Search Input */}
+                    <div className="relative z-10">
+                      <input
+                        type="text"
+                        placeholder="Search & select maintenance logs..."
+                        value={logSearchQuery}
+                        onChange={(e) => {
+                          setLogSearchQuery(e.target.value);
+                          setIsLogDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsLogDropdownOpen(true)}
+                        className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 pr-8 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsLogDropdownOpen(!isLogDropdownOpen)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface cursor-pointer text-xs"
+                      >
+                        {isLogDropdownOpen ? '▲' : '▼'}
+                      </button>
+                    </div>
+
+                    {/* transparent backdrop click shield */}
+                    {isLogDropdownOpen && (
+                      <div
+                        className="fixed inset-0 z-0 bg-transparent"
+                        onClick={() => setIsLogDropdownOpen(false)}
+                      />
+                    )}
+
+                    {/* Dropdown Options */}
+                    {isLogDropdownOpen && (
+                      <div className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-premium p-1 space-y-0.5">
+                        {(() => {
+                          const query = logSearchQuery.toLowerCase();
+                          const filteredLogs = availableLogs.filter((log) => (
+                            log.title.toLowerCase().includes(query) ||
+                            log.id.toLowerCase().includes(query) ||
+                            (log.description || '').toLowerCase().includes(query)
+                          ));
+                          if (filteredLogs.length === 0) {
+                            return (
+                              <div className="p-2 text-[10px] text-on-surface-variant/50 text-center italic">
+                                No matching maintenance logs
+                              </div>
+                            );
+                          }
+                          return filteredLogs.map((log) => {
+                            const isSelected = selectedLogIds.includes(log.id);
+                            return (
+                              <button
+                                type="button"
+                                key={log.id}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedLogIds(selectedLogIds.filter((id) => id !== log.id));
+                                  } else {
+                                    setSelectedLogIds([...selectedLogIds, log.id]);
+                                  }
+                                  setLogSearchQuery('');
+                                }}
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left text-[11px] rounded transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-secondary/10 text-secondary font-semibold'
+                                    : 'text-on-surface hover:bg-surface-container-low'
+                                }`}
+                              >
+                                <div className="truncate pr-2">
+                                  <p className="font-semibold truncate">{log.title}</p>
+                                  {log.description && (
+                                    <p className="text-[9px] text-on-surface-variant/60 truncate mt-0.5">
+                                      {log.description}
+                                    </p>
+                                  )}
+                                </div>
+                                {isSelected && <span className="text-secondary text-xs">✓</span>}
+                              </button>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Amount */}
               <div>
                 <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                  Invoice Amount ($) <span className="text-error">*</span>
+                  Invoice Amount (₹) *
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                   <input
                     type="number"
                     step="0.01"
@@ -2037,50 +2601,99 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </div>
               </div>
 
-              {/* Credit Balance Adjustment */}
-              {data?.client && data.client.creditBalance > 0 && (
-                <div className="border border-outline-variant/30 rounded-lg p-3 bg-surface-container-low/40 space-y-2">
+
+              {/* ── Discount ────────────────────────────────────────────── */}
+              <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-3.5 space-y-3">
+                <span className="text-xs font-semibold text-primary block">Discount</span>
+
+                {/* Segmented control */}
+                <div className="flex rounded-lg overflow-hidden border border-outline-variant/30 text-[10px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('amount'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'amount'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    ₹ Fixed Amount
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDiscountType('percentage'); setDiscountValue(''); }}
+                    className={`flex-1 py-1.5 transition-colors cursor-pointer ${
+                      discountType === 'percentage'
+                        ? 'bg-secondary text-on-secondary'
+                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                    }`}
+                  >
+                    % Percentage
+                  </button>
+                </div>
+
+                {/* Value input */}
+                <div>
+                  <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    {discountType === 'amount' ? 'Discount Amount (₹)' : 'Discount Percentage (%)'}
+                  </label>
+                  <div className="relative">
+                    {discountType === 'amount' ? (
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                    ) : (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant/40 font-mono">%</span>
+                    )}
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={discountType === 'percentage' ? 100 : undefined}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      placeholder={discountType === 'amount' ? '0.00' : '0'}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-[11px] focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Prepaid Credits deduction toggle */}
+              {data && data.client.creditBalance > 0 && !editingInvoice && (
+                <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant">
+                    <span className="text-xs font-semibold text-primary">
                       Credit Balance Adjustment
                     </span>
                     <span className="text-[10px] font-semibold text-secondary font-mono">
-                      Available: ${data.client.creditBalance.toFixed(2)}
+                      Available: {formatCurrency(data.client.creditBalance)}
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer py-1">
                     <input
                       type="checkbox"
-                      id="applyCredits"
                       checked={applyCredits}
                       onChange={(e) => handleApplyCreditsToggle(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded border-outline-variant text-secondary focus:ring-secondary/20 transition-all cursor-pointer"
+                      className="w-3.5 h-3.5 rounded border-outline-variant accent-secondary cursor-pointer"
                     />
-                    <label
-                      htmlFor="applyCredits"
-                      className="text-[10px] text-on-surface-variant cursor-pointer select-none"
-                    >
-                      Apply available credit balance to this invoice
-                    </label>
-                  </div>
+                    <span className="text-[11px] text-on-surface">Apply prepaid credits to this invoice</span>
+                  </label>
 
                   {applyCredits && (
                     <div className="space-y-1">
                       <label className="block font-label-mono text-[8px] uppercase tracking-wider text-on-surface-variant">
-                        Credit Deduction Amount ($)
+                        Credit Deduction Amount (₹)
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
                         <input
                           type="number"
                           step="0.01"
                           min="0"
-                          max={Math.min(parseFloat(invoiceAmount) || 0, data.client.creditBalance)}
                           value={creditDeduction}
                           onChange={(e) => handleCreditDeductionChange(e.target.value)}
                           placeholder="0.00"
-                          className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
+                          className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-9 pr-3 py-1.5 text-[11px] focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface font-mono"
                         />
                       </div>
                     </div>
@@ -2088,22 +2701,36 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 </div>
               )}
 
-              {/* Live Summary Panel */}
+              {/* Dynamic calculations audit panel */}
               {(() => {
                 const amt = parseFloat(invoiceAmount) || 0;
+                const discountVal = parseFloat(discountValue) || 0;
+                const discountAmt = discountType === 'percentage'
+                  ? Math.round(amt * Math.min(discountVal, 100) / 100 * 100) / 100
+                  : Math.min(discountVal, amt);
+                const amtAfterDiscount = Math.max(0, amt - discountAmt);
                 const deduct = applyCredits ? (parseFloat(creditDeduction) || 0) : 0;
-                const due = Math.max(0, amt - deduct);
+                const due = Math.max(0, amtAfterDiscount - deduct);
                 const isFullyCovered = amt > 0 && due === 0;
+                const hasDiscount = discountAmt > 0;
 
                 return (
                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1 text-xs">
                     <div className="flex justify-between items-center text-on-surface-variant">
                       <span>Invoice Amount:</span>
-                      <span className="font-mono">${amt.toFixed(2)}</span>
+                      <span className="font-mono">{formatCurrency(amt)}</span>
                     </div>
+                    {hasDiscount && (
+                      <div className="flex justify-between items-center text-amber-500">
+                        <span>
+                          Discount{discountType === 'percentage' && discountVal > 0 ? ` (${discountVal}%)` : ''}:
+                        </span>
+                        <span className="font-mono">-{formatCurrency(discountAmt)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-on-surface-variant">
-                      <span>Credit Applied:</span>
-                      <span className="font-mono">-${deduct.toFixed(2)}</span>
+                      <span>Credits Applied:</span>
+                      <span className="font-mono">-{formatCurrency(deduct)}</span>
                     </div>
                     <div className={`flex justify-between items-center border-t border-outline-variant/20 pt-1.5 font-semibold transition-all duration-200 ${
                       isFullyCovered 
@@ -2112,7 +2739,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     }`}>
                       <span>Amount Due:</span>
                       <span className="font-mono">
-                        ${due.toFixed(2)}
+                        {formatCurrency(due)}
                       </span>
                     </div>
                     {isFullyCovered && (
@@ -2159,7 +2786,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 <button
                   type="button"
                   disabled={isSubmitting}
-                  onClick={() => setIsInvoiceFormOpen(false)}
+                  onClick={handleCloseInvoiceModal}
                   className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-all cursor-pointer text-on-surface disabled:opacity-50"
                 >
                   Cancel
@@ -2582,6 +3209,140 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                 type="button"
                 onClick={() => setIsReferralCodesPopupOpen(false)}
                 className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container hover:text-primary transition-all cursor-pointer text-on-surface"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invoice Details Modal ────────────────────────────────────────── */}
+      {isInvoiceDetailsOpen && selectedInvoiceForDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-premium max-h-[90vh] overflow-y-auto space-y-4 font-sans text-on-surface">
+            <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3 mb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-secondary" />
+                <h3 className="font-headline-sm text-sm font-semibold text-primary">
+                  Invoice Details
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsInvoiceDetailsOpen(false);
+                  setSelectedInvoiceForDetails(null);
+                }}
+                className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Invoice Number</span>
+                  <p className="font-mono text-on-surface mt-0.5 font-bold">{selectedInvoiceForDetails.invoiceNumber}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Status</span>
+                  <p className="mt-0.5">
+                    <span className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                      selectedInvoiceForDetails.status === 'Paid'
+                        ? 'bg-emerald-500/10 text-emerald-500'
+                        : selectedInvoiceForDetails.status === 'Pending'
+                        ? 'bg-amber-500/10 text-amber-500'
+                        : 'bg-rose-500/10 text-rose-500'
+                    }`}>
+                      {selectedInvoiceForDetails.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Linked Project</span>
+                <p className="text-on-surface mt-0.5">{selectedInvoiceForDetails.projectName || 'General / No Project'}</p>
+              </div>
+
+              <div className="bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Invoice Amount:</span>
+                  <span>{formatCurrency(selectedInvoiceForDetails.amount)}</span>
+                </div>
+                {selectedInvoiceForDetails.discountAmount > 0 && (
+                  <div className="flex justify-between text-amber-500">
+                    <span>
+                      Discount{selectedInvoiceForDetails.discountType === 'percentage'
+                        ? ` (${selectedInvoiceForDetails.discountValue}%)`
+                        : ''}:
+                    </span>
+                    <span>-{formatCurrency(selectedInvoiceForDetails.discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Credits Applied:</span>
+                  <span>-{formatCurrency(selectedInvoiceForDetails.creditApplied)}</span>
+                </div>
+                <div className="flex justify-between text-primary font-bold border-t border-outline-variant/20 pt-1.5 text-xs">
+                  <span>Amount Due:</span>
+                  <span>{formatCurrency(selectedInvoiceForDetails.finalAmountDue)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Issued Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.issuedDate}</p>
+                </div>
+                <div>
+                  <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60">Due Date</span>
+                  <p className="font-mono text-on-surface mt-0.5">{selectedInvoiceForDetails.dueDate}</p>
+                </div>
+              </div>
+
+              {/* Linked Maintenance Logs */}
+              <div>
+                <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block mb-1">Linked Maintenance Logs</span>
+                {(!selectedInvoiceForDetails.maintenanceLogs || selectedInvoiceForDetails.maintenanceLogs.length === 0) ? (
+                  <p className="text-on-surface-variant/50 italic text-[11px]">No maintenance logs linked to this invoice.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto p-1 bg-surface-container-low border border-outline-variant/20 rounded-lg">
+                    {selectedInvoiceForDetails.maintenanceLogs.map((log) => (
+                      <Link
+                        key={log.id}
+                        href={selectedInvoiceForDetails.projectId ? `/admin/clients/${selectedInvoiceForDetails.clientId}/projects/${selectedInvoiceForDetails.projectId}?logId=${log.id}` : `/admin/clients/${selectedInvoiceForDetails.clientId}`}
+                        onClick={() => {
+                          setIsInvoiceDetailsOpen(false);
+                          setSelectedInvoiceForDetails(null);
+                        }}
+                        className="block px-2.5 py-1.5 bg-surface-container-lowest hover:bg-secondary/5 rounded border border-outline-variant/10 text-primary hover:text-secondary font-medium transition-all truncate"
+                      >
+                        {log.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant/20">
+              <button
+                onClick={() => {
+                  setIsInvoiceDetailsOpen(false);
+                  handleOpenEditInvoice(selectedInvoiceForDetails);
+                }}
+                className="px-4 py-1.5 bg-secondary text-on-secondary text-xs font-semibold rounded-lg hover:shadow-lg transition-all cursor-pointer"
+              >
+                Edit Invoice
+              </button>
+              <button
+                onClick={() => {
+                  setIsInvoiceDetailsOpen(false);
+                  setSelectedInvoiceForDetails(null);
+                }}
+                className="px-4 py-1.5 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-all cursor-pointer text-on-surface"
               >
                 Close
               </button>
