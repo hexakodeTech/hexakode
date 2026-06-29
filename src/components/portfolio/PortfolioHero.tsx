@@ -7,7 +7,7 @@ import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function PortfolioHero() {
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden bg-background">
+    <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 overflow-hidden bg-background">
       {/* Background ambient accents */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-secondary/5 rounded-full filter blur-[120px] pointer-events-none" />
       
