@@ -27,50 +27,23 @@ export default function PortfolioCard({
   const isSupabase = displayImage.includes("supabase.co") || displayImage.includes("/storage/v1/object/");
 
   return (
-    <Link href={`/portfolio/${project.slug}`} className="block group relative">
+    <Link href={`/portfolio/${project.slug}`} className="block h-full cursor-pointer select-none">
       <div
         className={cn(
-          "relative w-full overflow-hidden bg-surface-container rounded-xl border border-outline-variant/10 shadow-sm group-hover:shadow-premium-hover group-hover:border-secondary-container/30 transition-all duration-300 cursor-pointer select-none",
-          heightClass || defaultHeight
+          "flex flex-col justify-between h-full bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-premium hover:border-secondary/20 hover:translate-y-[-4px] transition-all duration-300 group"
         )}
       >
-        {/* Featured Badge */}
-        {project.featured && (
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-1 bg-amber-500/90 backdrop-blur-sm text-white text-[9px] font-semibold px-2.5 py-1 rounded shadow-premium uppercase tracking-widest">
-            <Star className="w-2.5 h-2.5 fill-white text-white" />
-            Featured
-          </div>
-        )}
-
-        {/* Next.js Optimized Image */}
-        <div className="absolute inset-0 z-0 overflow-hidden w-full h-full">
-          <Image
-            src={displayImage}
-            alt={project.title}
-            fill
-            unoptimized={isSupabase}
-            sizes={isLarge ? "(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 66vw" : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"}
-            className="object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
-            priority={layoutSize === "featured" || layoutSize === "side"}
-          />
-        </div>
-
-        {/* Hover Reveal Overlay Details */}
-        <div
-          className={cn(
-            "absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end text-white select-none z-10",
-            isLarge ? "p-12" : "p-8"
-          )}
-        >
+        {/* Top: Details */}
+        <div className="flex flex-col">
           {/* Category Pill Tag */}
-          <span className="font-label-mono text-label-mono text-secondary-container mb-3 tracking-widest uppercase">
+          <span className="font-label-mono text-[10px] tracking-widest text-secondary font-bold uppercase mb-3 block">
             {project.category}
           </span>
 
           {/* Project Title */}
           <h3
             className={cn(
-              "font-headline-md tracking-tight mb-3 text-white",
+              "font-headline-sm tracking-tight text-on-background mb-3 font-semibold group-hover:text-secondary transition-colors duration-200",
               isLarge ? "text-headline-md" : "text-headline-sm"
             )}
           >
@@ -80,35 +53,38 @@ export default function PortfolioCard({
           {/* Project Description */}
           <p
             className={cn(
-              "font-body-md text-white/80 leading-relaxed mb-4 max-w-xl",
+              "font-body-sm text-on-surface-variant leading-relaxed mb-6 line-clamp-3 overflow-hidden",
               isLarge ? "text-body-md" : "text-body-sm"
             )}
           >
             {project.description}
           </p>
+        </div>
 
-          {/* Technologies Used (Max 4, then +X) */}
-          {project.techStack && project.techStack.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-6 max-w-xl">
-              {project.techStack.slice(0, 4).map((tech) => (
-                <span
-                  key={tech}
-                  className="text-[9.5px] font-label-mono uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/5"
-                >
-                  {tech}
-                </span>
-              ))}
-              {project.techStack.length > 4 && (
-                <span className="text-[9.5px] font-label-mono uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/5">
-                  +{project.techStack.length - 4}
-                </span>
-              )}
-            </div>
-          )}
+        {/* Bottom: Image & CTA */}
+        <div className="mt-auto flex flex-col gap-6 w-full">
+          {/* Cover Image Frame */}
+          <div className="relative w-full aspect-[16/10] bg-surface-container rounded-xl overflow-hidden border border-outline-variant/5">
+            {project.featured && (
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-amber-500/90 backdrop-blur-sm text-white text-[8px] font-semibold px-2.5 py-1 rounded shadow-sm uppercase tracking-widest">
+                <Star className="w-2.5 h-2.5 fill-white text-white" />
+                Featured
+              </div>
+            )}
+            <Image
+              src={displayImage}
+              alt={project.title}
+              fill
+              unoptimized={isSupabase}
+              sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+              className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+              priority={layoutSize === "featured" || layoutSize === "side"}
+            />
+          </div>
 
           {/* Action CTA link */}
-          <div className="flex items-center gap-2 font-label-mono text-label-mono text-secondary-container hover:text-white transition-colors duration-200">
-            <span>View Case Study</span>
+          <div className="flex items-center gap-2 font-label-mono text-label-mono text-secondary group-hover:text-primary transition-colors duration-200 mt-2">
+            <span>Explore Case Study</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
         </div>
