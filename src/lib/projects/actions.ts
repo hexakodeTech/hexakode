@@ -12,6 +12,13 @@ const urlSchema = z
     message: 'URL must start with http:// or https://',
   });
 
+const repositoryUrlSchema = z
+  .string()
+  .url({ message: 'Please enter a valid URL (e.g. https://github.com/username/project)' })
+  .refine((v) => v.startsWith('https://'), {
+    message: 'Repository URL must start with https://',
+  });
+
 const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
 const packageIdSchema = z.string().optional().or(z.literal(''))
   .refine(
@@ -29,6 +36,7 @@ const projectSchema = z.object({
   iosBundleId: packageIdSchema,
   playStoreUrl: urlSchema.optional().or(z.literal('')),
   appStoreUrl: urlSchema.optional().or(z.literal('')),
+  repositoryUrl: repositoryUrlSchema.optional().or(z.literal('')),
   status: z.string().default('Active'),
   notes: z.string().optional().or(z.literal('')),
 });
@@ -60,6 +68,7 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
       iosBundleId: p.iosBundleId,
       playStoreUrl: p.playStoreUrl,
       appStoreUrl: p.appStoreUrl,
+      repositoryUrl: p.repositoryUrl,
       status: p.status,
       notes: p.notes,
       logCount: p._count.maintenanceLogs,
@@ -102,6 +111,7 @@ export async function getProjectByIdAction(id: string) {
         iosBundleId: project.iosBundleId,
         playStoreUrl: project.playStoreUrl,
         appStoreUrl: project.appStoreUrl,
+        repositoryUrl: project.repositoryUrl,
         status: project.status,
         notes: project.notes,
         logCount: project.maintenanceLogs.length,
@@ -140,7 +150,7 @@ export async function createProjectAction(data: ProjectInput) {
     await prisma.project.create({
       data: {
         name: payload.name,
-        clientId: payload.clientId,
+        client: { connect: { id: payload.clientId } },
         projectType: payload.projectType,
         websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
         adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
@@ -148,6 +158,7 @@ export async function createProjectAction(data: ProjectInput) {
         iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
         playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
         appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
+        repositoryUrl: payload.repositoryUrl || null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },
@@ -185,7 +196,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
       where: { id },
       data: {
         name: payload.name,
-        clientId: payload.clientId,
+        client: { connect: { id: payload.clientId } },
         projectType: payload.projectType,
         websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
         adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
@@ -193,6 +204,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
         iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
         playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
         appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
+        repositoryUrl: payload.repositoryUrl || null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },

@@ -16,6 +16,7 @@ import {
   FolderKanban,
   Copy,
   Check,
+  GitBranch,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,6 +48,19 @@ function validateUrl(val: string): string | null {
     return null;
   } catch {
     return 'Please enter a valid URL (e.g. https://example.com)';
+  }
+}
+
+function validateRepositoryUrl(val: string): string | null {
+  if (!val) return null;
+  try {
+    const u = new URL(val);
+    if (u.protocol !== 'https:') {
+      return 'Repository URL must start with https://';
+    }
+    return null;
+  } catch {
+    return 'Please enter a valid HTTPS URL (e.g. https://github.com/username/project)';
   }
 }
 
@@ -89,6 +103,7 @@ export default function ProjectsTable() {
   const [iosBundleId, setIosBundleId] = useState('');
   const [playStoreUrl, setPlayStoreUrl] = useState('');
   const [appStoreUrl, setAppStoreUrl] = useState('');
+  const [repositoryUrl, setRepositoryUrl] = useState('');
   const [status, setStatus] = useState('Active');
   const [notes, setNotes] = useState('');
 
@@ -99,6 +114,7 @@ export default function ProjectsTable() {
   const [iosBundleIdError, setIosBundleIdError] = useState('');
   const [playStoreUrlError, setPlayStoreUrlError] = useState('');
   const [appStoreUrlError, setAppStoreUrlError] = useState('');
+  const [repositoryUrlError, setRepositoryUrlError] = useState('');
 
   // Copy state
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -130,6 +146,7 @@ export default function ProjectsTable() {
     setIosBundleId('');
     setPlayStoreUrl('');
     setAppStoreUrl('');
+    setRepositoryUrl('');
     setStatus('Active');
     setNotes('');
     setFormError('');
@@ -139,6 +156,7 @@ export default function ProjectsTable() {
     setIosBundleIdError('');
     setPlayStoreUrlError('');
     setAppStoreUrlError('');
+    setRepositoryUrlError('');
   };
 
   const handleOpenAdd = () => {
@@ -158,6 +176,7 @@ export default function ProjectsTable() {
     setIosBundleId(project.iosBundleId || '');
     setPlayStoreUrl(project.playStoreUrl || '');
     setAppStoreUrl(project.appStoreUrl || '');
+    setRepositoryUrl(project.repositoryUrl || '');
     setStatus(project.status || 'Active');
     setNotes(project.notes || '');
     setFormError('');
@@ -167,6 +186,7 @@ export default function ProjectsTable() {
     setIosBundleIdError('');
     setPlayStoreUrlError('');
     setAppStoreUrlError('');
+    setRepositoryUrlError('');
     setIsEditing(true);
     setEditingId(project.id);
     setIsFormOpen(true);
@@ -202,6 +222,11 @@ export default function ProjectsTable() {
     setAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
+  const handleRepositoryUrlChange = (val: string) => {
+    setRepositoryUrl(val);
+    setRepositoryUrlError(val ? (validateRepositoryUrl(val) || '') : '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -234,6 +259,11 @@ export default function ProjectsTable() {
       }
     }
 
+    if (repositoryUrl) {
+      const err = validateRepositoryUrl(repositoryUrl);
+      if (err) { setRepositoryUrlError(err); return; }
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -246,6 +276,7 @@ export default function ProjectsTable() {
         iosBundleId: projectType === 'mobile' ? iosBundleId : '',
         playStoreUrl: projectType === 'mobile' ? playStoreUrl : '',
         appStoreUrl: projectType === 'mobile' ? appStoreUrl : '',
+        repositoryUrl,
         status,
         notes,
       };
@@ -687,6 +718,30 @@ export default function ProjectsTable() {
                         {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
                       </div>
 
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Repository Link
+                        </label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={repositoryUrl}
+                            onChange={(e) => handleRepositoryUrlChange(e.target.value)}
+                            placeholder="https://github.com/username/project"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              repositoryUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {repositoryUrlError && (
+                          <p className="text-[10px] text-error mt-1">{repositoryUrlError}</p>
+                        )}
+                      </div>
+
                       {/* Admin Panel URL */}
                       <div>
                         <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
@@ -799,6 +854,30 @@ export default function ProjectsTable() {
                         </div>
                         {appStoreUrlError && <p className="text-[10px] text-error mt-1">{appStoreUrlError}</p>}
                       </div>
+
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Repository Link
+                        </label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={repositoryUrl}
+                            onChange={(e) => handleRepositoryUrlChange(e.target.value)}
+                            placeholder="https://github.com/username/project"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              repositoryUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {repositoryUrlError && (
+                          <p className="text-[10px] text-error mt-1">{repositoryUrlError}</p>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -836,7 +915,8 @@ export default function ProjectsTable() {
                     !!androidPackageError ||
                     !!iosBundleIdError ||
                     !!playStoreUrlError ||
-                    !!appStoreUrlError
+                    !!appStoreUrlError ||
+                    !!repositoryUrlError
                   }
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >

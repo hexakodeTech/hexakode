@@ -224,6 +224,7 @@ model Project {
   iosBundleId     String?
   playStoreUrl    String?
   appStoreUrl     String?
+  repositoryUrl   String?
   status          String           @default("Active")
   notes           String?
   createdAt       DateTime         @default(now())

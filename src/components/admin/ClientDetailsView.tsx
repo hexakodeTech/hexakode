@@ -34,6 +34,7 @@ import {
   Ticket,
   User,
   Sparkles,
+  GitBranch,
 } from 'lucide-react';
 import { getClientByIdAction, updateClientAction, deleteClientAction } from '@/lib/clients/actions';
 import { formatCurrency } from '@/lib/currency';
@@ -68,6 +69,19 @@ function validateUrl(val: string): string | null {
     return null;
   } catch {
     return 'Please enter a valid URL (e.g. https://example.com)';
+  }
+}
+
+function validateRepositoryUrl(val: string): string | null {
+  if (!val) return null;
+  try {
+    const u = new URL(val);
+    if (u.protocol !== 'https:') {
+      return 'Repository URL must start with https://';
+    }
+    return null;
+  } catch {
+    return 'Please enter a valid HTTPS URL (e.g. https://github.com/username/project)';
   }
 }
 
@@ -122,6 +136,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [projectIosBundleId, setProjectIosBundleId] = useState('');
   const [projectPlayStoreUrl, setProjectPlayStoreUrl] = useState('');
   const [projectAppStoreUrl, setProjectAppStoreUrl] = useState('');
+  const [projectRepositoryUrl, setProjectRepositoryUrl] = useState('');
 
   const [projectStatus, setProjectStatus] = useState('Active');
   const [projectNotes, setProjectNotes] = useState('');
@@ -132,6 +147,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [projectIosBundleIdError, setProjectIosBundleIdError] = useState('');
   const [projectPlayStoreUrlError, setProjectPlayStoreUrlError] = useState('');
   const [projectAppStoreUrlError, setProjectAppStoreUrlError] = useState('');
+  const [projectRepositoryUrlError, setProjectRepositoryUrlError] = useState('');
 
   const [projectFormError, setProjectFormError] = useState('');
   const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
@@ -538,6 +554,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setProjectIosBundleId('');
     setProjectPlayStoreUrl('');
     setProjectAppStoreUrl('');
+    setProjectRepositoryUrl('');
     setProjectStatus('Active');
     setProjectNotes('');
     setProjectUrlError('');
@@ -546,6 +563,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setProjectIosBundleIdError('');
     setProjectPlayStoreUrlError('');
     setProjectAppStoreUrlError('');
+    setProjectRepositoryUrlError('');
     setProjectFormError('');
     setIsEditingProject(false);
     setEditingProjectId(null);
@@ -561,6 +579,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setProjectIosBundleId(proj.iosBundleId || '');
     setProjectPlayStoreUrl(proj.playStoreUrl || '');
     setProjectAppStoreUrl(proj.appStoreUrl || '');
+    setProjectRepositoryUrl(proj.repositoryUrl || '');
     setProjectStatus(proj.status || 'Active');
     setProjectNotes(proj.notes || '');
     setProjectUrlError('');
@@ -569,6 +588,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setProjectIosBundleIdError('');
     setProjectPlayStoreUrlError('');
     setProjectAppStoreUrlError('');
+    setProjectRepositoryUrlError('');
     setProjectFormError('');
     setIsEditingProject(true);
     setEditingProjectId(proj.id);
@@ -605,6 +625,11 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setProjectAppStoreUrlError(val ? (validateUrl(val) || '') : '');
   };
 
+  const handleProjectRepositoryUrlChange = (val: string) => {
+    setProjectRepositoryUrl(val);
+    setProjectRepositoryUrlError(val ? (validateRepositoryUrl(val) || '') : '');
+  };
+
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setProjectFormError('');
@@ -637,6 +662,11 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
       }
     }
 
+    if (projectRepositoryUrl) {
+      const err = validateRepositoryUrl(projectRepositoryUrl);
+      if (err) { setProjectRepositoryUrlError(err); return; }
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -649,6 +679,7 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         iosBundleId: projectType === 'mobile' ? projectIosBundleId : '',
         playStoreUrl: projectType === 'mobile' ? projectPlayStoreUrl : '',
         appStoreUrl: projectType === 'mobile' ? projectAppStoreUrl : '',
+        repositoryUrl: projectRepositoryUrl,
         status: projectStatus,
         notes: projectNotes,
       };
@@ -2134,6 +2165,30 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                         )}
                       </div>
 
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Repository Link
+                        </label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectRepositoryUrl}
+                            onChange={(e) => handleProjectRepositoryUrlChange(e.target.value)}
+                            placeholder="https://github.com/username/project"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectRepositoryUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectRepositoryUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectRepositoryUrlError}</p>
+                        )}
+                      </div>
+
                       {/* Admin Panel URL */}
                       <div>
                         <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
@@ -2256,6 +2311,30 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                           <p className="text-[10px] text-error mt-1">{projectAppStoreUrlError}</p>
                         )}
                       </div>
+
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                          Repository Link
+                        </label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input
+                            type="url"
+                            value={projectRepositoryUrl}
+                            onChange={(e) => handleProjectRepositoryUrlChange(e.target.value)}
+                            placeholder="https://github.com/username/project"
+                            className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              projectRepositoryUrlError
+                                ? 'border-error focus:border-error focus:ring-error/10'
+                                : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'
+                            }`}
+                          />
+                        </div>
+                        {projectRepositoryUrlError && (
+                          <p className="text-[10px] text-error mt-1">{projectRepositoryUrlError}</p>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -2309,7 +2388,8 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     !!projectAndroidPackageError ||
                     !!projectIosBundleIdError ||
                     !!projectPlayStoreUrlError ||
-                    !!projectAppStoreUrlError
+                    !!projectAppStoreUrlError ||
+                    !!projectRepositoryUrlError
                   }
                   className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >

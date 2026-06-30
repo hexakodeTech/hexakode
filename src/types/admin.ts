@@ -120,6 +120,7 @@ export interface AdminPortalProject {
   iosBundleId?: string | null;
   playStoreUrl?: string | null;
   appStoreUrl?: string | null;
+  repositoryUrl?: string | null;
   status: string;
   notes?: string | null;
   logCount: number;
