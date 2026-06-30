@@ -9,7 +9,7 @@ import { PublicProject } from "../../types/portfolio";
 
 interface PortfolioCardProps {
   project: PublicProject;
-  layoutSize: "side" | "standard" | "featured" | "wide";
+  layoutSize?: "side" | "standard" | "featured" | "wide";
   heightClass?: string;
 }
 
@@ -18,9 +18,6 @@ export default function PortfolioCard({
   layoutSize,
   heightClass,
 }: PortfolioCardProps) {
-  const isLarge = layoutSize === "featured" || layoutSize === "wide";
-  const defaultHeight = layoutSize === "side" ? "h-[500px]" : isLarge ? "h-[500px]" : "h-[400px] md:h-[450px]";
-
   // Fallback cover image URL
   const defaultPlaceholder = "https://lh3.googleusercontent.com/aida-public/AB6AXuB2YxLvd3x5jPAxgZFL6XMO5u3FKnZOqm3Sw5jiYFwt6C_1rbby046caqliXpWGTpjLpPwnIvaeaOmdE4lDZVyZ_sdZvktvMtR48G9PDwq9PdT4z5dmEyDZmvTGdtk0tGLYG3aND_F-CKnXlxCnvDioVyszWJ-5hrLBoAQmefvVnmK51ys89hcKnm770jq6SVjM3Pg-onRL9YM_DO5PLioIGZ3Onw3JrHAYxnPC4ePN8pVa9SN1k4ErAvN0hneQVUTOK8JkgL9fql8e";
   const displayImage = project.image && project.image.trim() !== "" ? project.image.trim() : defaultPlaceholder;
@@ -30,33 +27,24 @@ export default function PortfolioCard({
     <Link href={`/portfolio/${project.slug}`} className="block h-full cursor-pointer select-none">
       <div
         className={cn(
-          "flex flex-col justify-between h-full bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-premium hover:border-secondary/20 hover:translate-y-[-4px] transition-all duration-300 group"
+          "flex flex-col justify-between h-full bg-white border border-[#efefef] rounded-[24px] p-6 md:p-8 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.04),0_1px_1px_rgba(0,0,0,0.01)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 ease-out hover:-translate-y-2 group"
         )}
+        style={{ translate: "0px 0px", scale: 1 }}
       >
         {/* Top: Details */}
         <div className="flex flex-col">
-          {/* Category Pill Tag */}
-          <span className="font-label-mono text-[10px] tracking-widest text-secondary font-bold uppercase mb-3 block">
+          {/* Category Tag */}
+          <span className="font-label-mono text-[10px] tracking-[0.25em] text-secondary font-bold uppercase mb-3 block">
             {project.category}
           </span>
 
           {/* Project Title */}
-          <h3
-            className={cn(
-              "font-headline-sm tracking-tight text-on-background mb-3 font-semibold group-hover:text-secondary transition-colors duration-200",
-              isLarge ? "text-headline-md" : "text-headline-sm"
-            )}
-          >
+          <h3 className="font-poppins text-headline-sm font-bold tracking-tight text-on-background mb-3 group-hover:text-secondary transition-colors duration-300">
             {project.title}
           </h3>
 
-          {/* Project Description */}
-          <p
-            className={cn(
-              "font-body-sm text-on-surface-variant leading-relaxed mb-6 line-clamp-3 overflow-hidden",
-              isLarge ? "text-body-md" : "text-body-sm"
-            )}
-          >
+          {/* Project Description (limited to 2-3 lines using line clamping) */}
+          <p className="font-body-sm text-on-surface-variant/80 leading-relaxed mb-6 line-clamp-3 overflow-hidden">
             {project.description}
           </p>
         </div>
@@ -76,16 +64,16 @@ export default function PortfolioCard({
               alt={project.title}
               fill
               unoptimized={isSupabase}
-              sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
               priority={layoutSize === "featured" || layoutSize === "side"}
             />
           </div>
 
           {/* Action CTA link */}
-          <div className="flex items-center gap-2 font-label-mono text-label-mono text-secondary group-hover:text-primary transition-colors duration-200 mt-2">
-            <span>Explore Case Study</span>
-            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+          <div className="flex items-center gap-2 font-label-mono text-[10px] tracking-[0.18em] text-secondary group-hover:text-primary transition-colors duration-300 mt-2 font-bold uppercase">
+            <span>View Case Study</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </div>
         </div>
       </div>
