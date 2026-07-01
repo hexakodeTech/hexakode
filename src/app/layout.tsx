@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zen_Dots, Kalam, Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 // ─── Font configuration ──────────────────────────────────────────────────────
 //
@@ -91,6 +92,9 @@ export default function RootLayout({
           {children}
         </DemoModalProvider>
         <Toaster position="bottom-right" richColors />
+        <GoogleAnalytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+        />
       </body>
     </html>
   );
