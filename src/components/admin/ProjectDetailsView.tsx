@@ -82,7 +82,11 @@ function validatePackageId(val: string): string | null {
 
 export default function ProjectDetailsView({ clientId, projectId }: ProjectDetailsViewProps) {
   const router = useRouter();
-  const [data, setData] = useState<{ project: AdminPortalProject; logs: AdminMaintenanceLog[] } | null>(null);
+  const [data, setData] = useState<{
+    project: AdminPortalProject;
+    logs: AdminMaintenanceLog[];
+    coupons: { id: string; code: string; referrerName: string; rewardType: string; status: string }[];
+  } | null>(null);
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
@@ -93,6 +97,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [invoiceSearch, setInvoiceSearch] = useState('');
   const [logPage, setLogPage] = useState(1);
   const [invoicePage, setInvoicePage] = useState(1);
+  const [couponSearch, setCouponSearch] = useState('');
+  const [couponPage, setCouponPage] = useState(1);
   const itemsPerPage = 5;
 
   // Edit project modal state
@@ -165,7 +171,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setIsLoading(true);
     const result = await getProjectByIdAction(projectId);
     if (result) {
-      setData(result as { project: AdminPortalProject; logs: AdminMaintenanceLog[] });
+      setData(result as {
+        project: AdminPortalProject;
+        logs: AdminMaintenanceLog[];
+        coupons: { id: string; code: string; referrerName: string; rewardType: string; status: string }[];
+      });
     }
     setIsLoading(false);
   }, [projectId]);
@@ -684,7 +694,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     );
   }
 
-  const { project, logs } = data;
+  const { project, logs, coupons } = data;
 
   const filteredLogs = logs.filter((l) =>
     l.title.toLowerCase().includes(logSearch.toLowerCase()) ||
@@ -693,6 +703,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
   const filteredInvoices = invoices.filter((i) =>
     i.invoiceNumber.toLowerCase().includes(invoiceSearch.toLowerCase())
+  );
+
+  const filteredCoupons = coupons.filter((c) =>
+    c.code.toLowerCase().includes(couponSearch.toLowerCase()) ||
+    c.referrerName.toLowerCase().includes(couponSearch.toLowerCase())
   );
 
   return (
@@ -713,6 +728,22 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
           <p className="text-xs text-on-surface-variant/60 mt-0.5">
             Client Profile: <span className="font-medium text-primary">{project.clientName}</span>
           </p>
+          {data.coupons && data.coupons.length > 0 && (
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="text-[10px] font-semibold text-on-surface-variant/70 font-label-mono uppercase tracking-wider">Referral Codes:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {data.coupons.map((c) => (
+                  <Link
+                    key={c.code}
+                    href={`/admin/coupons/${c.code}`}
+                    className="font-mono text-[9px] font-bold px-2 py-0.5 bg-secondary-container/20 text-secondary border border-secondary/20 rounded hover:bg-secondary-container/30 transition-all cursor-pointer"
+                  >
+                    {c.code}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={handleOpenEdit} className="flex items-center gap-1.5 px-3 py-1.5 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer text-on-surface">
@@ -1016,6 +1047,61 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                   {inv.status !== 'Paid' && <button onClick={() => handleMarkInvoicePaid(inv.id)} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-emerald-500 cursor-pointer" title="Mark Invoice Paid"><Check className="w-3.5 h-3.5" /></button>}
                   <button onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} className="p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-error cursor-pointer" title="Delete Invoice"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </DataTable>
+
+      {/* ── Linked Referral Codes ────────────────────────────────────────── */}
+      <DataTable
+        title="Linked Referral Codes"
+        subtitle={`Referral marketing campaign codes linked to ${project.name}`}
+        searchValue={couponSearch}
+        onSearchChange={(val) => { setCouponSearch(val); setCouponPage(1); }}
+        searchPlaceholder="Search referral codes..."
+        currentPage={couponPage}
+        totalPages={Math.ceil(filteredCoupons.length / itemsPerPage)}
+        onPageChange={(page) => setCouponPage(page)}
+        headers={['Code', 'Referrer', 'Reward Type', 'Status', 'Actions']}
+      >
+        {filteredCoupons.length === 0 ? (
+          <tr>
+            <td colSpan={5} className="text-center py-8 text-xs text-on-surface-variant/50">
+              No referral codes linked to this project.
+            </td>
+          </tr>
+        ) : (
+          filteredCoupons.slice((couponPage - 1) * itemsPerPage, couponPage * itemsPerPage).map((c) => (
+            <tr key={c.id} className="hover:bg-surface-container-low/30 transition-colors">
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{c.code}</td>
+              <td className="px-6 py-4 text-xs text-on-surface">{c.referrerName || '-'}</td>
+              <td className="px-6 py-4 text-xs text-on-surface-variant">{c.rewardType || '-'}</td>
+              <td className="px-6 py-4">
+                <span
+                  className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                    c.status === 'Active'
+                      ? 'bg-emerald-500/10 text-emerald-500'
+                      : c.status === 'Scheduled'
+                      ? 'bg-blue-500/10 text-blue-500'
+                      : c.status === 'Expired'
+                      ? 'bg-rose-500/10 text-rose-500'
+                      : c.status === 'Exhausted'
+                      ? 'bg-yellow-500/10 text-yellow-500'
+                      : 'bg-surface-container text-on-surface-variant/70'
+                  }`}
+                >
+                  {c.status}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <Link
+                  href={`/admin/coupons/${c.code}`}
+                  className="inline-flex p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all cursor-pointer"
+                  title="View Referral Details"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </Link>
               </td>
             </tr>
           ))

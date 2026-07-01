@@ -35,6 +35,7 @@ import {
   User,
   Sparkles,
   GitBranch,
+  Search,
 } from 'lucide-react';
 import { getClientByIdAction, updateClientAction, deleteClientAction } from '@/lib/clients/actions';
 import { formatCurrency } from '@/lib/currency';
@@ -199,6 +200,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   const [referralStartDate, setReferralStartDate] = useState('');
   const [referralExpiryDate, setReferralExpiryDate] = useState('');
   const [referralFormError, setReferralFormError] = useState('');
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
   const [isDeleteReferralConfirmOpen, setIsDeleteReferralConfirmOpen] = useState(false);
   const [referralToDelete, setReferralToDelete] = useState<AdminCoupon | null>(null);
   const [isReferralCodesPopupOpen, setIsReferralCodesPopupOpen] = useState(false);
@@ -225,6 +229,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setReferralStartDate(getTodayDateString());
     setReferralExpiryDate(getDefaultExpiryDate());
     setReferralFormError('');
+    setSelectedProjectIds([]);
+    setIsProjectDropdownOpen(false);
+    setProjectSearchQuery('');
     setIsEditingReferral(false);
     setIsReferralFormOpen(true);
   };
@@ -240,6 +247,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
     setReferralStartDate(c.startDate);
     setReferralExpiryDate(c.expiryDate || getDefaultExpiryDate());
     setReferralFormError('');
+    setSelectedProjectIds(c.projectIds || []);
+    setIsProjectDropdownOpen(false);
+    setProjectSearchQuery('');
     setIsEditingReferral(true);
     setIsReferralFormOpen(true);
   };
@@ -347,8 +357,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
           expiryType: referralExpiryType,
           expiryDate: referralExpiryType === 'custom' ? referralExpiryDate : null,
           enabled: referralEnabled,
-          clientId: referralRewardType === 'Service Credit' ? data.client.id : null,
-          clientName: referralRewardType === 'Service Credit' ? data.client.name : null,
+          clientId: data.client.id,
+          clientName: data.client.name,
+          projectIds: selectedProjectIds,
         });
         if (!res.success) {
           setReferralFormError(res.error || 'Failed to update referral code.');
@@ -369,8 +380,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
           expiryType: referralExpiryType,
           expiryDate: referralExpiryType === 'custom' ? referralExpiryDate : null,
           enabled: referralEnabled,
-          clientId: referralRewardType === 'Service Credit' ? data.client.id : null,
-          clientName: referralRewardType === 'Service Credit' ? data.client.name : null,
+          clientId: data.client.id,
+          clientName: data.client.name,
+          projectIds: selectedProjectIds,
         });
         if (!res.success) {
           setReferralFormError(res.error || 'Failed to create referral code.');
@@ -2942,6 +2954,111 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
                     value={client.name}
                     className="w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2 text-xs text-on-surface-variant/80 cursor-not-allowed font-semibold"
                   />
+                </div>
+
+                {/* Section: Linked Projects (Optional) */}
+                <div className="relative">
+                  <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    Linked Projects (Optional)
+                  </label>
+                  <div className="relative">
+                    {isProjectDropdownOpen && (
+                      <div 
+                        className="fixed inset-0 z-40 bg-transparent" 
+                        onClick={() => setIsProjectDropdownOpen(false)}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                      className="w-full text-left bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 flex items-center justify-between min-h-[38px] relative z-50 text-on-surface"
+                    >
+                      {selectedProjectIds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 pr-4 max-w-[90%]">
+                          {selectedProjectIds.map((id) => {
+                            const p = (data?.projects || []).find((proj) => proj.id === id);
+                            return (
+                              <span
+                                key={id}
+                                className="inline-flex items-center gap-1 bg-secondary/10 text-secondary text-[10px] font-medium px-2 py-0.5 rounded-full"
+                              >
+                                {p ? p.name : id}
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedProjectIds(selectedProjectIds.filter((pid) => pid !== id));
+                                  }}
+                                  className="hover:text-error cursor-pointer font-bold text-xs"
+                                >
+                                  ×
+                                </span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-on-surface-variant/50">Select project(s)...</span>
+                      )}
+                      <span className="text-[10px] text-on-surface-variant/50">▼</span>
+                    </button>
+
+                    {isProjectDropdownOpen && (
+                      <div className="absolute left-0 right-0 z-50 mt-1 bg-surface-container-lowest border border-outline-variant/40 rounded-lg shadow-premium p-2 space-y-2 max-h-60 overflow-y-auto">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+                          <input
+                            type="text"
+                            placeholder="Search project..."
+                            value={projectSearchQuery}
+                            onChange={(e) => setProjectSearchQuery(e.target.value)}
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary"
+                          />
+                        </div>
+
+                        <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                          {(data?.projects || []).length === 0 ? (
+                            <div className="p-3 text-center text-xs text-on-surface-variant/60">
+                              No projects available for this client.
+                            </div>
+                          ) : (() => {
+                            const filtered = (data?.projects || []).filter((p) =>
+                              p.name.toLowerCase().includes(projectSearchQuery.toLowerCase())
+                            );
+                            if (filtered.length === 0) {
+                              return (
+                                <div className="p-3 text-center text-xs text-on-surface-variant/60">
+                                  No matching projects.
+                                </div>
+                              );
+                            }
+                            return filtered.map((project) => {
+                              const isSelected = selectedProjectIds.includes(project.id);
+                              return (
+                                <button
+                                  key={project.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedProjectIds(selectedProjectIds.filter((pid) => pid !== project.id));
+                                    } else {
+                                      setSelectedProjectIds([...selectedProjectIds, project.id]);
+                                    }
+                                    setProjectSearchQuery('');
+                                  }}
+                                  className={`w-full text-left px-2.5 py-2 rounded-md hover:bg-surface-container-low transition-colors flex items-center justify-between cursor-pointer ${
+                                    isSelected ? 'bg-secondary-container/10 font-semibold' : ''
+                                  }`}
+                                >
+                                  <span className="text-xs text-on-surface">{project.name}</span>
+                                  {isSelected && <span className="text-xs text-secondary font-bold">✓</span>}
+                                </button>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>

@@ -87,6 +87,8 @@ export interface AdminCoupon {
   createdDate: string;
   clientId?: string | null;
   clientName?: string | null;
+  projectIds?: string[];
+  projects?: { id: string; name: string }[];
 }
 
 // ─────────────────────────────────────────────

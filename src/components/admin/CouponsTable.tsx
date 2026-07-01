@@ -15,6 +15,7 @@ import {
   getReferralStatsAction,
   getClientsForSelectorAction
 } from '@/lib/coupons/actions';
+import { getProjectsByClientAction } from '@/lib/projects/actions';
 
 export default function CouponsTable() {
   const router = useRouter();
@@ -59,6 +60,33 @@ export default function CouponsTable() {
   const [clientsList, setClientsList] = useState<{ id: string; name: string; email: string | null; company: string | null }[]>([]);
   const [isClientsLoading, setIsClientsLoading] = useState(false);
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+
+  // Project Selection Fields
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [projectsList, setProjectsList] = useState<{ id: string; name: string }[]>([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
+
+  // Fetch client projects whenever selectedClientId changes
+  useEffect(() => {
+    if (selectedClientId) {
+      loadProjectsForClient(selectedClientId);
+    } else {
+      setProjectsList([]);
+    }
+  }, [selectedClientId]);
+
+  async function loadProjectsForClient(clientId: string) {
+    setIsProjectsLoading(true);
+    const res = await getProjectsByClientAction(clientId);
+    if (res.success && res.data) {
+      setProjectsList(res.data);
+    } else {
+      toast.error(res.error || 'Failed to load client projects.');
+    }
+    setIsProjectsLoading(false);
+  }
 
   // Fetch active clients when the modal opens
   useEffect(() => {
@@ -119,6 +147,10 @@ export default function CouponsTable() {
     setSelectedClientName('');
     setClientSearchQuery('');
     setIsClientDropdownOpen(false);
+    setSelectedProjectIds([]);
+    setProjectsList([]);
+    setProjectSearchQuery('');
+    setIsProjectDropdownOpen(false);
     setIsEditing(false);
     setIsFormOpen(true);
   };
@@ -143,6 +175,9 @@ export default function CouponsTable() {
     setSelectedClientName(coupon.clientName || '');
     setClientSearchQuery('');
     setIsClientDropdownOpen(false);
+    setSelectedProjectIds(coupon.projectIds || []);
+    setProjectSearchQuery('');
+    setIsProjectDropdownOpen(false);
     setFormError('');
     setIsEditing(true);
     setIsFormOpen(true);
@@ -260,8 +295,9 @@ export default function CouponsTable() {
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
           enabled,
-          clientId: rewardType === 'Service Credit' ? selectedClientId : null,
-          clientName: rewardType === 'Service Credit' ? selectedClientName : null,
+          clientId: selectedClientId || null,
+          clientName: selectedClientName || null,
+          projectIds: selectedProjectIds,
         });
         if (!res.success) {
           setFormError(res.error || 'Failed to update referral code.');
@@ -282,8 +318,9 @@ export default function CouponsTable() {
           expiryType,
           expiryDate: expiryType === 'custom' ? expiryDate : null,
           enabled,
-          clientId: rewardType === 'Service Credit' ? selectedClientId : null,
-          clientName: rewardType === 'Service Credit' ? selectedClientName : null,
+          clientId: selectedClientId || null,
+          clientName: selectedClientName || null,
+          projectIds: selectedProjectIds,
         });
         if (!res.success) {
           setFormError(res.error || 'Failed to create referral code.');
@@ -595,6 +632,234 @@ export default function CouponsTable() {
                   />
                 </div>
 
+                {/* Section: Linked Client (Optional) */}
+                <div className="relative">
+                  <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                    Linked Client (Optional)
+                  </label>
+                  <div className="relative">
+                    {isClientDropdownOpen && (
+                      <div 
+                        className="fixed inset-0 z-40 bg-transparent" 
+                        onClick={() => setIsClientDropdownOpen(false)}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                      className="w-full text-left bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 flex items-center justify-between min-h-[38px] relative z-50 text-on-surface"
+                    >
+                      {selectedClientId ? (
+                        <div className="flex flex-col text-left">
+                          <span className="font-semibold">{selectedClientName}</span>
+                          <span className="text-[9px] text-on-surface-variant/75 font-mono">
+                            {(() => {
+                              const c = clientsList.find(cl => cl.id === selectedClientId);
+                              if (!c) return '';
+                              return c.email ? `${c.email}${c.company ? ' • ' + c.company : ''}` : c.company || '';
+                            })()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-on-surface-variant/50">Select a client...</span>
+                      )}
+                      <div className="flex items-center gap-1.5 z-50">
+                        {selectedClientId && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedClientId('');
+                              setSelectedClientName('');
+                              setSelectedProjectIds([]);
+                              setProjectsList([]);
+                            }}
+                            className="p-1 rounded text-on-surface-variant/65 hover:text-error transition-colors cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                        <span className="text-[10px] text-on-surface-variant/50">▼</span>
+                      </div>
+                    </button>
+
+                    {isClientDropdownOpen && (
+                      <div className="absolute left-0 right-0 z-50 mt-1 bg-surface-container-lowest border border-outline-variant/40 rounded-lg shadow-premium p-2 space-y-2 max-h-60 overflow-y-auto">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+                          <input
+                            type="text"
+                            placeholder="Search by name, email, or company..."
+                            value={clientSearchQuery}
+                            onChange={(e) => setClientSearchQuery(e.target.value)}
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary"
+                          />
+                        </div>
+
+                        <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                          {isClientsLoading ? (
+                            <div className="flex items-center justify-center py-4 gap-2 text-xs text-on-surface-variant/70">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary" />
+                              <span>Loading clients...</span>
+                            </div>
+                          ) : filteredClients.length === 0 ? (
+                            <div className="p-3 text-center space-y-2">
+                              <p className="text-xs text-on-surface-variant/60 leading-relaxed">
+                                No clients available. Please create a client first.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsFormOpen(false);
+                                  router.push('/admin/clients');
+                                }}
+                                className="mx-auto flex items-center justify-center gap-1 bg-primary text-on-primary text-[10px] font-semibold px-2.5 py-1 rounded hover:shadow-md transition-all cursor-pointer"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Create Client</span>
+                              </button>
+                            </div>
+                          ) : (
+                            filteredClients.map((client) => (
+                              <button
+                                key={client.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedClientId(client.id);
+                                  setSelectedClientName(client.name);
+                                  setSelectedProjectIds([]);
+                                  setIsClientDropdownOpen(false);
+                                  setClientSearchQuery('');
+                                  setFormError('');
+                                }}
+                                className={`w-full text-left px-2.5 py-2 rounded-md hover:bg-surface-container-low transition-colors flex flex-col gap-0.5 cursor-pointer ${
+                                  selectedClientId === client.id ? 'bg-secondary-container/10 border-l-2 border-secondary' : ''
+                                }`}
+                              >
+                                <span className="text-xs font-semibold text-on-surface">{client.name}</span>
+                                <span className="text-[9px] text-on-surface-variant/70 font-mono">
+                                  {client.email ? `${client.email}${client.company ? ' • ' + client.company : ''}` : client.company || '-'}
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Section: Linked Projects (Optional) */}
+                {selectedClientId && (
+                  <div className="relative">
+                    <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
+                      Linked Projects (Optional)
+                    </label>
+                    <div className="relative">
+                      {isProjectDropdownOpen && (
+                        <div 
+                          className="fixed inset-0 z-40 bg-transparent" 
+                          onClick={() => setIsProjectDropdownOpen(false)}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                        className="w-full text-left bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 flex items-center justify-between min-h-[38px] relative z-50 text-on-surface"
+                      >
+                        {selectedProjectIds.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 pr-4 max-w-[90%]">
+                            {selectedProjectIds.map((id) => {
+                              const p = projectsList.find((proj) => proj.id === id);
+                              return (
+                                <span
+                                  key={id}
+                                  className="inline-flex items-center gap-1 bg-secondary/10 text-secondary text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                >
+                                  {p ? p.name : id}
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedProjectIds(selectedProjectIds.filter((pid) => pid !== id));
+                                    }}
+                                    className="hover:text-error cursor-pointer font-bold text-xs"
+                                  >
+                                    ×
+                                  </span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span className="text-on-surface-variant/50">Select project(s)...</span>
+                        )}
+                        <span className="text-[10px] text-on-surface-variant/50">▼</span>
+                      </button>
+
+                      {isProjectDropdownOpen && (
+                        <div className="absolute left-0 right-0 z-50 mt-1 bg-surface-container-lowest border border-outline-variant/40 rounded-lg shadow-premium p-2 space-y-2 max-h-60 overflow-y-auto">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+                            <input
+                              type="text"
+                              placeholder="Search project..."
+                              value={projectSearchQuery}
+                              onChange={(e) => setProjectSearchQuery(e.target.value)}
+                              className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary"
+                            />
+                          </div>
+
+                          <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                            {isProjectsLoading ? (
+                              <div className="flex items-center justify-center py-4 gap-2 text-xs text-on-surface-variant/70">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary" />
+                                <span>Loading projects...</span>
+                              </div>
+                            ) : projectsList.length === 0 ? (
+                              <div className="p-3 text-center text-xs text-on-surface-variant/60">
+                                No projects available for this client.
+                              </div>
+                            ) : (() => {
+                              const filtered = projectsList.filter((p) =>
+                                p.name.toLowerCase().includes(projectSearchQuery.toLowerCase())
+                              );
+                              if (filtered.length === 0) {
+                                return (
+                                  <div className="p-3 text-center text-xs text-on-surface-variant/60">
+                                    No matching projects.
+                                  </div>
+                                );
+                              }
+                              return filtered.map((project) => {
+                                const isSelected = selectedProjectIds.includes(project.id);
+                                return (
+                                  <button
+                                    key={project.id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedProjectIds(selectedProjectIds.filter((pid) => pid !== project.id));
+                                      } else {
+                                        setSelectedProjectIds([...selectedProjectIds, project.id]);
+                                      }
+                                      setProjectSearchQuery('');
+                                    }}
+                                    className={`w-full text-left px-2.5 py-2 rounded-md hover:bg-surface-container-low transition-colors flex items-center justify-between cursor-pointer ${
+                                      isSelected ? 'bg-secondary-container/10 font-semibold' : ''
+                                    }`}
+                                  >
+                                    <span className="text-xs text-on-surface">{project.name}</span>
+                                    {isSelected && <span className="text-xs text-secondary font-bold">✓</span>}
+                                  </button>
+                                );
+                              });
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
                     Reward Type
@@ -602,15 +867,8 @@ export default function CouponsTable() {
                   <select
                     value={rewardType}
                     onChange={(e) => {
-                      const newType = e.target.value;
-                      setRewardType(newType);
+                      setRewardType(e.target.value);
                       setFormError('');
-                      if (newType !== 'Service Credit') {
-                        setSelectedClientId('');
-                        setSelectedClientName('');
-                        setClientSearchQuery('');
-                        setIsClientDropdownOpen(false);
-                      }
                     }}
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 text-on-surface"
                   >
@@ -621,106 +879,6 @@ export default function CouponsTable() {
                     <option value="Custom Reward">Custom Reward</option>
                   </select>
                 </div>
-
-                {rewardType === 'Service Credit' && (
-                  <div className="relative">
-                    <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">
-                      Client Profile <span className="text-error">*</span>
-                    </label>
-                    <div className="relative">
-                      {isClientDropdownOpen && (
-                        <div 
-                          className="fixed inset-0 z-40 bg-transparent" 
-                          onClick={() => setIsClientDropdownOpen(false)}
-                        />
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                        className="w-full text-left bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 flex items-center justify-between min-h-[38px] relative z-50 text-on-surface"
-                      >
-                        {selectedClientId ? (
-                          <div className="flex flex-col text-left">
-                            <span className="font-semibold">{selectedClientName}</span>
-                            <span className="text-[9px] text-on-surface-variant/75 font-mono">
-                              {(() => {
-                                const c = clientsList.find(cl => cl.id === selectedClientId);
-                                if (!c) return '';
-                                return c.email ? `${c.email}${c.company ? ' • ' + c.company : ''}` : c.company || '';
-                              })()}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-on-surface-variant/50">Select client...</span>
-                        )}
-                        <span className="text-[10px] text-on-surface-variant/50">▼</span>
-                      </button>
-
-                      {isClientDropdownOpen && (
-                        <div className="absolute left-0 right-0 z-50 mt-1 bg-surface-container-lowest border border-outline-variant/40 rounded-lg shadow-premium p-2 space-y-2 max-h-60 overflow-y-auto">
-                          <div className="relative">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
-                            <input
-                              type="text"
-                              placeholder="Search by name, email, or company..."
-                              value={clientSearchQuery}
-                              onChange={(e) => setClientSearchQuery(e.target.value)}
-                              className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-secondary"
-                            />
-                          </div>
-
-                          <div className="space-y-0.5 max-h-40 overflow-y-auto">
-                            {isClientsLoading ? (
-                              <div className="flex items-center justify-center py-4 gap-2 text-xs text-on-surface-variant/70">
-                                <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary" />
-                                <span>Loading clients...</span>
-                              </div>
-                            ) : filteredClients.length === 0 ? (
-                              <div className="p-3 text-center space-y-2">
-                                <p className="text-xs text-on-surface-variant/60 leading-relaxed">
-                                  No clients available. Please create a client first.
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setIsFormOpen(false);
-                                    router.push('/admin/clients');
-                                  }}
-                                  className="mx-auto flex items-center justify-center gap-1 bg-primary text-on-primary text-[10px] font-semibold px-2.5 py-1 rounded hover:shadow-md transition-all cursor-pointer"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                  <span>Create Client</span>
-                                </button>
-                              </div>
-                            ) : (
-                              filteredClients.map((client) => (
-                                <button
-                                  key={client.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedClientId(client.id);
-                                    setSelectedClientName(client.name);
-                                    setIsClientDropdownOpen(false);
-                                    setClientSearchQuery('');
-                                    setFormError('');
-                                  }}
-                                  className={`w-full text-left px-2.5 py-2 rounded-md hover:bg-surface-container-low transition-colors flex flex-col gap-0.5 cursor-pointer ${
-                                    selectedClientId === client.id ? 'bg-secondary-container/10 border-l-2 border-secondary' : ''
-                                  }`}
-                                >
-                                  <span className="text-xs font-semibold text-on-surface">{client.name}</span>
-                                  <span className="text-[9px] text-on-surface-variant/70 font-mono">
-                                    {client.email ? `${client.email}${client.company ? ' • ' + client.company : ''}` : client.company || '-'}
-                                  </span>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">

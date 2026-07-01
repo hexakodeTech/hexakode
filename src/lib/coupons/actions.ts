@@ -30,6 +30,11 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
   try {
     const list = await prisma.coupon.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        projects: {
+          select: { id: true, name: true }
+        }
+      }
     });
 
     return list.map((c) => {
@@ -60,6 +65,8 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
         createdDate: c.createdAt.toISOString().split('T')[0],
         clientId: c.clientId,
         clientName: c.clientName,
+        projectIds: c.projects.map((p) => p.id),
+        projects: c.projects.map((p) => ({ id: p.id, name: p.name })),
       };
     });
   } catch (error) {
@@ -83,6 +90,7 @@ export async function createCouponAction(data: {
   enabled: boolean;
   clientId?: string | null;
   clientName?: string | null;
+  projectIds?: string[];
 }) {
   const uppercasedCode = data.code.toUpperCase().trim();
   
@@ -165,8 +173,11 @@ export async function createCouponAction(data: {
         expiryType: data.expiryType,
         expiryDate: parsedExpiryDate,
         enabled: data.enabled,
-        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
-        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
+        clientId: data.clientId || null,
+        clientName: data.clientName || null,
+        projects: data.projectIds && data.projectIds.length > 0 ? {
+          connect: data.projectIds.map((id) => ({ id })),
+        } : undefined,
       },
     });
 
@@ -211,6 +222,7 @@ export async function updateCouponAction(
     enabled: boolean;
     clientId?: string | null;
     clientName?: string | null;
+    projectIds?: string[];
   }
 ) {
   if (!data.referrerName || data.referrerName.trim().length === 0) {
@@ -286,8 +298,11 @@ export async function updateCouponAction(
         expiryDate: parsedExpiryDate,
         activeDays,
         enabled: data.enabled,
-        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
-        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
+        clientId: data.clientId || null,
+        clientName: data.clientName || null,
+        projects: data.projectIds ? {
+          set: data.projectIds.map((id) => ({ id })),
+        } : undefined,
       },
     });
 
@@ -368,7 +383,12 @@ export async function getCouponDetailsAction(code: string) {
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
-      include: { client: true },
+      include: {
+        client: true,
+        projects: {
+          select: { id: true, name: true }
+        }
+      },
     });
 
     if (!coupon) {
@@ -428,6 +448,8 @@ export async function getCouponDetailsAction(code: string) {
         createdDate: coupon.createdAt.toISOString().split('T')[0],
         clientId: coupon.clientId,
         clientName: coupon.clientName,
+        projectIds: coupon.projects.map((p) => p.id),
+        projects: coupon.projects.map((p) => ({ id: p.id, name: p.name })),
       },
       client: coupon.client ? {
         id: coupon.client.id,

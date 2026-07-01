@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminPortalProject } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { calculateCouponStatus } from '../coupons/utils';
 
 const urlSchema = z
   .string()
@@ -92,10 +93,42 @@ export async function getProjectByIdAction(id: string) {
         maintenanceLogs: {
           orderBy: { logDate: 'desc' },
         },
+        coupons: {
+          select: {
+            id: true,
+            code: true,
+            referrerName: true,
+            rewardType: true,
+            enabled: true,
+            currentEnquiries: true,
+            maxLimit: true,
+            expiryType: true,
+            expiryDate: true,
+            startDate: true,
+          }
+        }
       },
     });
 
     if (!project) return null;
+
+    const mappedCoupons = project.coupons.map((c) => {
+      const status = calculateCouponStatus(
+        c.enabled,
+        c.currentEnquiries,
+        c.maxLimit,
+        c.expiryType,
+        c.expiryDate,
+        c.startDate
+      );
+      return {
+        id: c.id,
+        code: c.code,
+        referrerName: c.referrerName || '',
+        rewardType: c.rewardType || '',
+        status,
+      };
+    });
 
     return {
       project: {
@@ -127,6 +160,7 @@ export async function getProjectByIdAction(id: string) {
         logDate: l.logDate.toISOString().split('T')[0],
         createdDate: l.createdAt.toISOString().split('T')[0],
       })),
+      coupons: mappedCoupons,
     };
   } catch (error) {
     console.error('Error fetching project by id:', error);
@@ -240,5 +274,28 @@ export async function deleteProjectAction(id: string) {
     console.error('Project deletion error:', error);
     const msg = error instanceof Error ? error.message : 'Database error deleting project.';
     return { success: false, error: msg };
+  }
+}
+
+/**
+ * Fetches all active projects for a specific client.
+ */
+export async function getProjectsByClientAction(clientId: string) {
+  try {
+    const list = await prisma.project.findMany({
+      where: {
+        clientId,
+        status: "Active",
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    return { success: true, data: list };
+  } catch (error) {
+    console.error("Error fetching projects by client:", error);
+    return { success: false, error: "Failed to fetch client projects." };
   }
 }

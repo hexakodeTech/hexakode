@@ -149,6 +149,7 @@ model Coupon {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   client           Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  projects         Project[] @relation("CouponToProject")
 
   @@map("coupons")
 }
@@ -232,6 +233,7 @@ model Project {
   client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
   maintenanceLogs MaintenanceLog[]
   invoices        Invoice[]
+  coupons         Coupon[]         @relation("CouponToProject")
 
   @@index([clientId])
   @@index([status])
