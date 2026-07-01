@@ -76,6 +76,7 @@ export const metadata: Metadata = {
 import { DemoModalProvider } from "@/components/common/DemoModal";
 import { Toaster } from "sonner";
 import AnalyticsTracker from "@/components/common/AnalyticsTracker";
+import ClarityTracker from "@/components/common/ClarityTracker";
 
 export default function RootLayout({
   children,
@@ -98,6 +99,7 @@ export default function RootLayout({
           gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
         />
         <AnalyticsTracker />
+        <ClarityTracker />
       </body>
     </html>
   );
