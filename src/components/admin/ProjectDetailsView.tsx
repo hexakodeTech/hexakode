@@ -21,16 +21,15 @@ import {
   Wrench,
   Plus,
   FileText,
-  Calendar,
-  DollarSign,
   IndianRupee,
   Download,
   CheckCircle2,
+  GitBranch,
 } from 'lucide-react';
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
 import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
-import { exportToPDF, exportInvoicePDF } from '@/lib/utils/pdf-export';
+import { exportInvoicePDF } from '@/lib/utils/pdf-export';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -60,6 +59,19 @@ function validateUrl(val: string): string | null {
   }
 }
 
+function validateRepositoryUrl(val: string): string | null {
+  if (!val) return null;
+  try {
+    const u = new URL(val);
+    if (u.protocol !== 'https:') {
+      return 'Repository URL must start with https://';
+    }
+    return null;
+  } catch {
+    return 'Please enter a valid HTTPS URL (e.g. https://github.com/username/project)';
+  }
+}
+
 function validatePackageId(val: string): string | null {
   if (!val) return null;
   const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
@@ -68,7 +80,11 @@ function validatePackageId(val: string): string | null {
 
 export default function ProjectDetailsView({ clientId, projectId }: ProjectDetailsViewProps) {
   const router = useRouter();
-  const [data, setData] = useState<{ project: AdminPortalProject; logs: AdminMaintenanceLog[] } | null>(null);
+  const [data, setData] = useState<{
+    project: AdminPortalProject;
+    logs: AdminMaintenanceLog[];
+    coupons: { id: string; code: string; referrerName: string; rewardType: string; status: string }[];
+  } | null>(null);
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
@@ -79,6 +95,8 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [invoiceSearch, setInvoiceSearch] = useState('');
   const [logPage, setLogPage] = useState(1);
   const [invoicePage, setInvoicePage] = useState(1);
+  const [couponSearch, setCouponSearch] = useState('');
+  const [couponPage, setCouponPage] = useState(1);
   const itemsPerPage = 5;
 
   // Edit project modal state
@@ -92,6 +110,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [iosBundleId, setIosBundleId] = useState('');
   const [playStoreUrl, setPlayStoreUrl] = useState('');
   const [appStoreUrl, setAppStoreUrl] = useState('');
+  const [repositoryUrl, setRepositoryUrl] = useState('');
 
   const [status, setStatus] = useState('Active');
   const [notes, setNotes] = useState('');
@@ -103,6 +122,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const [iosBundleIdError, setIosBundleIdError] = useState('');
   const [playStoreUrlError, setPlayStoreUrlError] = useState('');
   const [appStoreUrlError, setAppStoreUrlError] = useState('');
+  const [repositoryUrlError, setRepositoryUrlError] = useState('');
 
   // Delete project modal state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -149,7 +169,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setIsLoading(true);
     const result = await getProjectByIdAction(projectId);
     if (result) {
-      setData(result as { project: AdminPortalProject; logs: AdminMaintenanceLog[] });
+      setData(result as {
+        project: AdminPortalProject;
+        logs: AdminMaintenanceLog[];
+        coupons: { id: string; code: string; referrerName: string; rewardType: string; status: string }[];
+      });
     }
     setIsLoading(false);
   }, [projectId]);
@@ -162,8 +186,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   }, [clientId, projectId]);
 
   useEffect(() => {
-    loadData();
-    loadInvoices();
+    Promise.resolve().then(() => {
+      loadData();
+      loadInvoices();
+    });
   }, [loadData, loadInvoices]);
 
   const handleCopy = (text: string, key: string) => {
@@ -185,6 +211,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setIosBundleId(project.iosBundleId || '');
     setPlayStoreUrl(project.playStoreUrl || '');
     setAppStoreUrl(project.appStoreUrl || '');
+    setRepositoryUrl(project.repositoryUrl || '');
     setStatus(project.status);
     setNotes(project.notes || '');
     setFormError('');
@@ -194,6 +221,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     setIosBundleIdError('');
     setPlayStoreUrlError('');
     setAppStoreUrlError('');
+    setRepositoryUrlError('');
     setIsEditOpen(true);
   };
 
@@ -225,6 +253,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   const handleAppStoreUrlChange = (val: string) => {
     setAppStoreUrl(val);
     setAppStoreUrlError(val ? (validateUrl(val) || '') : '');
+  };
+
+  const handleRepositoryUrlChange = (val: string) => {
+    setRepositoryUrl(val);
+    setRepositoryUrlError(val ? (validateRepositoryUrl(val) || '') : '');
   };
 
   const handleSubmitEdit = async (e: React.FormEvent) => {
@@ -259,6 +292,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
       }
     }
 
+    if (repositoryUrl) {
+      const err = validateRepositoryUrl(repositoryUrl);
+      if (err) { setRepositoryUrlError(err); return; }
+    }
+
     setIsSubmitting(true);
     try {
       const res = await updateProjectAction(projectId, {
@@ -271,6 +309,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         iosBundleId: projectType === 'mobile' ? iosBundleId : '',
         playStoreUrl: projectType === 'mobile' ? playStoreUrl : '',
         appStoreUrl: projectType === 'mobile' ? appStoreUrl : '',
+        repositoryUrl,
         status,
         notes,
       });
@@ -655,7 +694,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
     );
   }
 
-  const { project, logs } = data;
+  const { project, logs, coupons } = data;
 
   const filteredLogs = logs.filter((l) =>
     l.title.toLowerCase().includes(logSearch.toLowerCase()) ||
@@ -664,6 +703,11 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
 
   const filteredInvoices = invoices.filter((i) =>
     i.invoiceNumber.toLowerCase().includes(invoiceSearch.toLowerCase())
+  );
+
+  const filteredCoupons = coupons.filter((c) =>
+    c.code.toLowerCase().includes(couponSearch.toLowerCase()) ||
+    c.referrerName.toLowerCase().includes(couponSearch.toLowerCase())
   );
 
   return (
@@ -684,6 +728,22 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
           <p className="text-xs text-on-surface-variant/60 mt-0.5">
             Client Profile: <span className="font-medium text-primary">{project.clientName}</span>
           </p>
+          {data.coupons && data.coupons.length > 0 && (
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="text-[10px] font-semibold text-on-surface-variant/70 font-label-mono uppercase tracking-wider">Referral Codes:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {data.coupons.map((c) => (
+                  <Link
+                    key={c.code}
+                    href={`/admin/coupons/${c.code}`}
+                    className="font-mono text-[9px] font-bold px-2 py-0.5 bg-secondary-container/20 text-secondary border border-secondary/20 rounded hover:bg-secondary-container/30 transition-all cursor-pointer"
+                  >
+                    {c.code}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={handleOpenEdit} className="flex items-center gap-1.5 px-3 py-1.5 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer text-on-surface">
@@ -834,6 +894,46 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         )
       )}
 
+      {/* ── Repository Link Card ────────────────────────────────────────── */}
+      {project.repositoryUrl && (
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-3">
+          <span className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant/60 block">Repository</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-low/60 border border-outline-variant/20 rounded-lg p-3 text-xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <GitBranch className="w-4 h-4 text-secondary flex-shrink-0" />
+              <span className="font-mono text-secondary truncate">{project.repositoryUrl}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => handleCopy(project.repositoryUrl!, 'repository')}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-outline-variant/40 hover:bg-surface-container-low rounded-lg transition-all font-semibold cursor-pointer text-on-surface"
+              >
+                {copiedKey === 'repository' ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-secondary" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+              <a
+                href={project.repositoryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary hover:shadow-lg hover:shadow-primary/10 rounded-lg transition-all font-semibold cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Repository</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Notes ────────────────────────────────────────────────────────── */}
       {project.notes && (
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-5 shadow-card space-y-2">
@@ -953,6 +1053,61 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
         )}
       </DataTable>
 
+      {/* ── Linked Referral Codes ────────────────────────────────────────── */}
+      <DataTable
+        title="Linked Referral Codes"
+        subtitle={`Referral marketing campaign codes linked to ${project.name}`}
+        searchValue={couponSearch}
+        onSearchChange={(val) => { setCouponSearch(val); setCouponPage(1); }}
+        searchPlaceholder="Search referral codes..."
+        currentPage={couponPage}
+        totalPages={Math.ceil(filteredCoupons.length / itemsPerPage)}
+        onPageChange={(page) => setCouponPage(page)}
+        headers={['Code', 'Referrer', 'Reward Type', 'Status', 'Actions']}
+      >
+        {filteredCoupons.length === 0 ? (
+          <tr>
+            <td colSpan={5} className="text-center py-8 text-xs text-on-surface-variant/50">
+              No referral codes linked to this project.
+            </td>
+          </tr>
+        ) : (
+          filteredCoupons.slice((couponPage - 1) * itemsPerPage, couponPage * itemsPerPage).map((c) => (
+            <tr key={c.id} className="hover:bg-surface-container-low/30 transition-colors">
+              <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{c.code}</td>
+              <td className="px-6 py-4 text-xs text-on-surface">{c.referrerName || '-'}</td>
+              <td className="px-6 py-4 text-xs text-on-surface-variant">{c.rewardType || '-'}</td>
+              <td className="px-6 py-4">
+                <span
+                  className={`text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                    c.status === 'Active'
+                      ? 'bg-emerald-500/10 text-emerald-500'
+                      : c.status === 'Scheduled'
+                      ? 'bg-blue-500/10 text-blue-500'
+                      : c.status === 'Expired'
+                      ? 'bg-rose-500/10 text-rose-500'
+                      : c.status === 'Exhausted'
+                      ? 'bg-yellow-500/10 text-yellow-500'
+                      : 'bg-surface-container text-on-surface-variant/70'
+                  }`}
+                >
+                  {c.status}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <Link
+                  href={`/admin/coupons/${c.code}`}
+                  className="inline-flex p-1 rounded text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all cursor-pointer"
+                  title="View Referral Details"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </Link>
+              </td>
+            </tr>
+          ))
+        )}
+      </DataTable>
+
       {/* ── Edit Project Modal ────────────────────────────────────────────── */}
       {isEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -1031,6 +1186,16 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                         {websiteUrlError && <p className="text-[10px] text-error mt-1">{websiteUrlError}</p>}
                       </div>
 
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Repository Link</label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={repositoryUrl} onChange={(e) => handleRepositoryUrlChange(e.target.value)} placeholder="https://github.com/username/project" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${repositoryUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {repositoryUrlError && <p className="text-[10px] text-error mt-1">{repositoryUrlError}</p>}
+                      </div>
+
                       {/* Admin Panel URL */}
                       <div>
                         <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Admin Panel URL</label>
@@ -1083,6 +1248,16 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                         </div>
                         {appStoreUrlError && <p className="text-[10px] text-error mt-1">{appStoreUrlError}</p>}
                       </div>
+
+                      {/* Repository Link */}
+                      <div>
+                        <label className="block font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant mb-1">Repository Link</label>
+                        <div className="relative">
+                          <GitBranch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+                          <input type="url" value={repositoryUrl} onChange={(e) => handleRepositoryUrlChange(e.target.value)} placeholder="https://github.com/username/project" className={`w-full bg-surface-container-low border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 transition-all ${repositoryUrlError ? 'border-error focus:border-error focus:ring-error/10' : 'border-outline-variant/40 focus:border-secondary focus:ring-secondary/10'}`} />
+                        </div>
+                        {repositoryUrlError && <p className="text-[10px] text-error mt-1">{repositoryUrlError}</p>}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1095,7 +1270,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
                 <button type="button" disabled={isSubmitting} onClick={() => setIsEditOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
-                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminPanelUrlError || !!androidPackageError || !!iosBundleIdError || !!playStoreUrlError || !!appStoreUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
+                <button type="submit" disabled={isSubmitting || !!websiteUrlError || !!adminPanelUrlError || !!androidPackageError || !!iosBundleIdError || !!playStoreUrlError || !!appStoreUrlError || !!repositoryUrlError} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
                   <span>Save Project</span>
                 </button>
@@ -1233,7 +1408,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                           <button
                             onClick={() => {
                               setIsViewLogOpen(false);
-                              setSelectedInvoiceForDetails(inv as any);
+                              setSelectedInvoiceForDetails(inv as unknown as AdminInvoice);
                               setIsInvoiceDetailsOpen(true);
                             }}
                             className="text-[10px] text-primary hover:text-secondary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
@@ -1263,7 +1438,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 <FileText className="w-4 h-4 text-secondary" />
                 <h3 className="font-headline-sm text-sm font-semibold text-primary">Link Project Invoice</h3>
               </div>
-              <button onClick={() => setIsInvoiceFormOpen(false)} className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={handleCloseInvoiceModal} className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleSubmitInvoice} noValidate className="space-y-3 text-xs">
               {invoiceFormError && <div className="text-xs text-error bg-error-container/10 p-2.5 rounded-lg border border-error/25">{invoiceFormError}</div>}
@@ -1525,7 +1700,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 </select>
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
-                <button type="button" disabled={isSubmitting} onClick={() => setIsInvoiceFormOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
+                <button type="button" disabled={isSubmitting} onClick={handleCloseInvoiceModal} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
                 <button type="submit" disabled={isSubmitting || !invoiceAmount || isNaN(parseFloat(invoiceAmount)) || parseFloat(invoiceAmount) <= 0 || !invoiceDueDate} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Link Invoice</span>

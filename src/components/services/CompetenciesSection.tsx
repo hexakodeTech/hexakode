@@ -9,6 +9,7 @@ import SectionHeading from "../ui/SectionHeading";
 import ServiceCard from "./ServiceCard";
 import FeaturedServiceCard from "./FeaturedServiceCard";
 import { fadeUp, staggerContainer } from "@/lib/motion";
+import { ServiceViewTracker } from "@/components/common/AnalyticsTracker";
 
 interface CompetencyData {
   id: string;
@@ -99,6 +100,7 @@ export default function CompetenciesSection() {
                     : "col-span-12 md:col-span-6 lg:col-span-4"
                 }
               >
+                <ServiceViewTracker serviceName={item.title} />
                 {item.featured ? (
                   <FeaturedServiceCard
                     title={item.title}

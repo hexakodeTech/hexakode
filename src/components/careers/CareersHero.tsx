@@ -12,6 +12,8 @@ import {
   useReducedMotion,
   animate,
   useInView,
+  MotionValue,
+  MotionStyle,
 } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
@@ -25,7 +27,9 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
   useEffect(() => {
     if (!isInView) return;
     if (prefersReducedMotion) {
-      setCount(value);
+      Promise.resolve().then(() => {
+        setCount(value);
+      });
       return;
     }
 
@@ -80,7 +84,9 @@ export default function CareersHero() {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    handleResize();
+    Promise.resolve().then(() => {
+      handleResize();
+    });
     window.addEventListener("resize", handleResize);
 
     return () => window.removeEventListener("resize", handleResize);
@@ -96,7 +102,9 @@ export default function CareersHero() {
       delay: Math.random() * 6,
       duration: Math.random() * 8 + 10, // 10s to 18s for slow engineering aesthetic
     }));
-    setParticles(newParticles);
+    Promise.resolve().then(() => {
+      setParticles(newParticles);
+    });
   }, [isMobile]);
 
   // Mouse move handler
@@ -119,7 +127,7 @@ export default function CareersHero() {
   };
 
   // Return style only if parallax should run
-  const parallaxStyle = (x: any, y: any) => {
+  const parallaxStyle = (x: MotionValue<number>, y: MotionValue<number>): MotionStyle => {
     if (isMobile || prefersReducedMotion) return {};
     return { x, y };
   };

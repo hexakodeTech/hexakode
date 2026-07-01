@@ -33,7 +33,14 @@ export const PortfolioProjectSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug must only contain lowercase alphanumeric characters and hyphens"),
   category: z.string().min(1, "Category is required"),
   clientName: z.string().optional().default(""),
-  projectUrl: z.string().optional().default(""),
+  projectUrl: z
+    .string()
+    .optional()
+    .default("")
+    .refine(
+      (v) => !v || v.trim() === "" || (/^https?:\/\//i.test(v) && z.string().url().safeParse(v).success),
+      { message: "Please enter a valid HTTP or HTTPS URL (e.g., https://example.com)" }
+    ),
   shortDescription: z
     .string()
     .min(SHORT_DESC_MIN_LEN, `Short description must be at least ${SHORT_DESC_MIN_LEN} characters`)

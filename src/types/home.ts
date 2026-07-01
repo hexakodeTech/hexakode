@@ -27,6 +27,8 @@ export interface Project {
   imageUrl: string;
   tags: string[];
   href: string;
+  description?: string;
+  featured?: boolean;
 }
 
 export interface ProcessStep {

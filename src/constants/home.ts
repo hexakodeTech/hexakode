@@ -1,4 +1,4 @@
-import { NavLink, Technology, Service, Project, ProcessStep, FooterSection } from "../types/home";
+import { NavLink, Technology, Service, ProcessStep, FooterSection } from "../types/home";
 
 export const COMPANY_NAME = "HexaKode";
 export const COMPANY_TAGLINE = "Code that powers growth";
@@ -57,33 +57,6 @@ export const SERVICES: Service[] = [
     highlighted: true,
     href: "#services",
     iconName: "Code2",
-  },
-];
-
-export const PROJECTS: Project[] = [
-  {
-    id: "fintech-dashboard",
-    title: "Fintech Analytics Dashboard",
-    category: "SaaS Platform",
-    imageUrl: "/project-fintech.png",
-    tags: ["Next.js", "Tailwind CSS", "Recharts"],
-    href: "#portfolio",
-  },
-  {
-    id: "health-tracker",
-    title: "Health & Wellness Tracker",
-    category: "Mobile App",
-    imageUrl: "/project-health.png",
-    tags: ["React Native", "Expo", "HealthKit"],
-    href: "#portfolio",
-  },
-  {
-    id: "ecommerce-platform",
-    title: "E-Commerce Platform",
-    category: "Web App",
-    imageUrl: "/project-ecommerce.png",
-    tags: ["Next.js 15", "Stripe", "PostgreSQL"],
-    href: "#portfolio",
   },
 ];
 

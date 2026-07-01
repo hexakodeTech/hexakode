@@ -83,7 +83,9 @@ export default function DemoTable() {
 
   // Fetch demos and stats on mount
   useEffect(() => {
-    loadData();
+    Promise.resolve().then(() => {
+      loadData();
+    });
 
     // Enable Supabase Realtime
     const supabase = createClient();
@@ -96,8 +98,7 @@ export default function DemoTable() {
           schema: "public",
           table: "demo_requests",
         },
-        (payload) => {
-          console.log("Realtime demo_requests change received:", payload);
+        () => {
           loadData();
         }
       )

@@ -15,6 +15,7 @@ import { PROJECT_TYPES, BUDGET_RANGES } from "../../constants/contact";
 import { submitEnquiryAction } from "@/lib/enquiries/actions";
 import { validateCouponAction } from "@/lib/coupons/actions";
 import { Loader2 } from "lucide-react";
+import { trackGenerateLead } from "@/lib/analytics";
 
 const contactSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -125,6 +126,9 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
         toast.error(result.error || "Failed to submit enquiry. Please try again.");
         return;
       }
+
+      // Track successful submission
+      trackGenerateLead("contact");
 
       setIsSubmitted(true);
       toast.success("Thank you for contacting HexaKode. Your enquiry has been received successfully. Our team will respond within 24 business hours.");

@@ -20,7 +20,21 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   
-  const [stats, setStats] = useState<{ total: number; unread: number; recent: any[] }>({
+  const [stats, setStats] = useState<{
+    total: number;
+    unread: number;
+    recent: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      company: string;
+      projectType: string;
+      message: string;
+      date: string;
+      status: "New" | "Reviewed";
+    }[];
+  }>({
     total: 0,
     unread: 0,
     recent: [],
@@ -35,7 +49,9 @@ export default function DashboardPage() {
       setStats(data);
       setIsLoading(false);
     }
-    loadDashboardData();
+    Promise.resolve().then(() => {
+      loadDashboardData();
+    });
   }, []);
 
   const totalEnquiriesCount = stats.total;

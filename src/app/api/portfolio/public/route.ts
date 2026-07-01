@@ -48,10 +48,11 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, projects });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Public fetch error:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to load public portfolio projects.";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to load public portfolio projects." },
+      { success: false, error: errMessage },
       { status: 500 }
     );
   }

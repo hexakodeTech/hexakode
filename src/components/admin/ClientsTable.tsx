@@ -88,7 +88,9 @@ export default function ClientsTable() {
   }, []);
 
   useEffect(() => {
-    loadClients();
+    Promise.resolve().then(() => {
+      loadClients();
+    });
   }, [loadClients]);
 
   // ─── Form Handlers ─────────────────────────────────────────────────────────

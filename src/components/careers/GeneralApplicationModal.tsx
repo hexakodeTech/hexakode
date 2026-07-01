@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useReducedMotion, MotionValue, MotionStyle } from "framer-motion";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import GeneralApplicationForm from "./GeneralApplicationForm";
@@ -102,7 +102,9 @@ export default function GeneralApplicationModal({ isOpen, onClose }: GeneralAppl
   // Reset state on modal open/close
   useEffect(() => {
     if (isOpen) {
-      setIsSubmitted(false);
+      Promise.resolve().then(() => {
+        setIsSubmitted(false);
+      });
     }
   }, [isOpen]);
 
@@ -114,7 +116,7 @@ export default function GeneralApplicationModal({ isOpen, onClose }: GeneralAppl
     mouseY.set(relativeY);
   };
 
-  const parallaxStyle = (x: any, y: any) => {
+  const parallaxStyle = (x: MotionValue<number>, y: MotionValue<number>): MotionStyle => {
     if (isMobile || prefersReducedMotion) return {};
     return { x, y };
   };

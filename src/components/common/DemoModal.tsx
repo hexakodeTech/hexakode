@@ -7,10 +7,10 @@ import * as z from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar } from "lucide-react";
-import { cn } from "../../lib/utils";
 import FormInput from "../ui/FormInput";
 import PrimaryButton from "../ui/PrimaryButton";
 import { submitDemoRequestAction } from "@/lib/demos/actions";
+import { trackScheduleDemo } from "@/lib/analytics";
 
 const demoSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -101,6 +101,9 @@ export function DemoModalProvider({ children }: { children: React.ReactNode }) {
         toast.error(result.error || "Failed to submit demo request.");
         return;
       }
+
+      // Track successful demo request
+      trackScheduleDemo("schedule_demo");
 
       setIsSubmitted(true);
       toast.success("Demo request submitted successfully!");

@@ -23,7 +23,7 @@ export function usePortfolioProjects(initialFilter = "all") {
       } else {
         setError(data.error || "Failed to load portfolio projects.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Unable to load portfolio projects. Please try again later.");
     } finally {
@@ -32,7 +32,9 @@ export function usePortfolioProjects(initialFilter = "all") {
   }, []);
 
   useEffect(() => {
-    fetchProjects();
+    Promise.resolve().then(() => {
+      fetchProjects();
+    });
   }, [fetchProjects]);
 
   return {

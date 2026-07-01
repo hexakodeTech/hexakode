@@ -15,8 +15,6 @@ import {
   Calendar,
   Ticket,
   Building2,
-  FolderKanban,
-  Wrench,
   ChevronRight,
   LayoutGrid,
 } from "lucide-react";

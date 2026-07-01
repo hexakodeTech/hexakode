@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import GalleryViewer from "./GalleryViewer";
 import GalleryNavigation from "./GalleryNavigation";
 import GalleryThumbnail from "./GalleryThumbnail";
@@ -26,6 +26,16 @@ export default function GalleryLightbox({
   const [zoomScale, setZoomScale] = useState(1);
   const lightboxRef = useRef<HTMLDivElement>(null);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleNext = useCallback(() => {
+    setZoomScale(1);
+    setActiveIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const handlePrev = useCallback(() => {
+    setZoomScale(1);
+    setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
 
   // Disable background scrolling when lightbox is active
   useEffect(() => {
@@ -54,7 +64,7 @@ export default function GalleryLightbox({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeIndex]);
+  }, [activeIndex, onClose, handleNext, handlePrev]);
 
   // Auto-scroll active thumbnail into view
   useEffect(() => {
@@ -74,16 +84,6 @@ export default function GalleryLightbox({
       }
     }
   }, [activeIndex]);
-
-  const handleNext = () => {
-    setZoomScale(1);
-    setActiveIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const handlePrev = () => {
-    setZoomScale(1);
-    setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
 
   const currentImage = images[activeIndex];
 

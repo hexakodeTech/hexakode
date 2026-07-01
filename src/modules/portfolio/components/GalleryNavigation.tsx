@@ -2,7 +2,6 @@
 
 import React from "react";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface GalleryNavigationProps {
   onPrev: () => void;

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin, Clock, ArrowRight, Tag } from "lucide-react";
 import { Job } from "@/types/careers";
