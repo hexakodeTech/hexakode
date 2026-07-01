@@ -174,6 +174,35 @@ export function trackDownloadFile(fileName: string, fileType: string) {
 }
 
 /**
+ * Parameters for trackSocialClick
+ */
+export interface SocialClickParams {
+  platform: string;
+  destination: string;
+  location: string;
+  linkText: string;
+}
+
+/**
+ * Track Social Link Click
+ * Event: social_click
+ * Parameters: platform, destination, location, link_text, page_location, page_title
+ */
+export function trackSocialClick({
+  platform,
+  destination,
+  location,
+  linkText,
+}: SocialClickParams) {
+  sendGAEvent("social_click", {
+    platform,
+    destination,
+    location,
+    link_text: linkText,
+  });
+}
+
+/**
  * React Hook for component tracking
  */
 export function useAnalytics() {
@@ -196,6 +225,7 @@ export function useAnalytics() {
     trackExternalLink,
     trackExternalLinkClick,
     trackDownloadFile,
+    trackSocialClick,
   };
 }
 

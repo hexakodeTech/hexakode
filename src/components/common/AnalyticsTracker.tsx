@@ -10,16 +10,57 @@ import {
   trackPortfolioView,
   trackServiceView,
   trackDownloadFile,
+  trackSocialClick,
 } from "@/lib/analytics";
 
 /**
- * Resolves the logical layout location of an element based on its ancestors.
+ * Supported Social Media Platforms configuration map.
+ * Adding a new platform only requires adding an entry here.
  */
-function getButtonLocation(element: HTMLElement): string {
+const SOCIAL_PLATFORMS = [
+  { platform: "instagram", domains: ["instagram.com"] },
+  { platform: "facebook", domains: ["facebook.com", "fb.com"] },
+  { platform: "linkedin", domains: ["linkedin.com"] },
+  { platform: "github", domains: ["github.com"] },
+  { platform: "x", domains: ["x.com", "twitter.com"] },
+  { platform: "youtube", domains: ["youtube.com", "youtu.be"] },
+  { platform: "discord", domains: ["discord.gg", "discord.com"] },
+  { platform: "reddit", domains: ["reddit.com"] },
+  { platform: "medium", domains: ["medium.com"] },
+  { platform: "behance", domains: ["behance.net"] },
+  { platform: "dribbble", domains: ["dribbble.com"] },
+] as const;
+
+/**
+ * Detects if a URL points to a supported social media platform.
+ * Returns the matching platform name or null.
+ */
+function detectSocialPlatform(urlStr: string): string | null {
+  try {
+    const url = new URL(urlStr);
+    const hostname = url.hostname.toLowerCase();
+    const match = SOCIAL_PLATFORMS.find((p) =>
+      p.domains.some((d) => hostname === d || hostname.endsWith("." + d))
+    );
+    return match ? match.platform : null;
+  } catch {
+    const lowercaseUrl = urlStr.toLowerCase();
+    const match = SOCIAL_PLATFORMS.find((p) =>
+      p.domains.some((d) => lowercaseUrl.includes(d))
+    );
+    return match ? match.platform : null;
+  }
+}
+
+/**
+ * Resolves the logical layout location of an element based on its ancestors.
+ * Possible values: navbar, hero, footer, contact, portfolio, services, about, blog, floating_button, cta, unknown
+ */
+function getElementLocation(element: HTMLElement): string {
   const explicit =
     element.getAttribute("data-analytics-location") ||
     element.closest("[data-analytics-location]")?.getAttribute("data-analytics-location");
-  if (explicit) return explicit;
+  if (explicit) return explicit.toLowerCase();
 
   if (
     element.closest("nav") ||
@@ -27,7 +68,7 @@ function getButtonLocation(element: HTMLElement): string {
     element.closest('[class*="Navbar"]') ||
     element.closest('[class*="navbar"]')
   ) {
-    return "Navbar";
+    return "navbar";
   }
   if (
     element.closest("footer") ||
@@ -35,14 +76,14 @@ function getButtonLocation(element: HTMLElement): string {
     element.closest('[class*="Footer"]') ||
     element.closest('[class*="footer"]')
   ) {
-    return "Footer";
+    return "footer";
   }
   if (
     element.closest("#hero") ||
     element.closest('[class*="Hero"]') ||
     element.closest('[class*="hero"]')
   ) {
-    return "Hero";
+    return "hero";
   }
   if (
     element.closest("#contact") ||
@@ -50,10 +91,56 @@ function getButtonLocation(element: HTMLElement): string {
     element.closest('[class*="Contact"]') ||
     element.closest('[class*="contact"]')
   ) {
-    return "Contact Section";
+    return "contact";
+  }
+  if (
+    element.closest("#portfolio") ||
+    element.closest('[class*="Portfolio"]') ||
+    element.closest('[class*="portfolio"]') ||
+    (typeof window !== "undefined" && window.location.pathname.includes("/portfolio"))
+  ) {
+    return "portfolio";
+  }
+  if (
+    element.closest("#services") ||
+    element.closest('[class*="Services"]') ||
+    element.closest('[class*="services"]') ||
+    (typeof window !== "undefined" && window.location.pathname.includes("/services"))
+  ) {
+    return "services";
+  }
+  if (
+    element.closest("#about") ||
+    element.closest('[class*="About"]') ||
+    element.closest('[class*="about"]') ||
+    (typeof window !== "undefined" && window.location.pathname.includes("/about"))
+  ) {
+    return "about";
+  }
+  if (
+    element.closest("#blog") ||
+    element.closest('[class*="Blog"]') ||
+    element.closest('[class*="blog"]') ||
+    (typeof window !== "undefined" && window.location.pathname.includes("/blog"))
+  ) {
+    return "blog";
+  }
+  if (
+    element.closest('[class*="floating"]') ||
+    element.closest('[class*="Floating"]') ||
+    element.closest('[id*="floating"]')
+  ) {
+    return "floating_button";
+  }
+  if (
+    element.closest("#cta") ||
+    element.closest('[class*="cta"]') ||
+    element.closest('[class*="CTA"]')
+  ) {
+    return "cta";
   }
 
-  return "General";
+  return "unknown";
 }
 
 /**
@@ -146,19 +233,44 @@ export default function AnalyticsTracker() {
         href.includes("api.whatsapp.com") ||
         href.includes("whatsapp.com/send")
       ) {
-        const location = getButtonLocation(anchor);
+        const location = getElementLocation(anchor);
         trackWhatsappClick(location);
         return;
       }
 
-      // 7. Repository Tracking (GitHub links)
-      if (href.includes("github.com")) {
-        const projectName = getProjectName(anchor);
-        trackRepositoryClick(projectName, href);
+      // Check if it's a social click first (this intercepts social profiles on GitHub, LinkedIn, etc.)
+      const socialPlatform = detectSocialPlatform(href);
+      if (socialPlatform) {
+        // Backward Compatibility check for github.com:
+        // If it's a repository url (has username + repository name path segments, e.g. length >= 2),
+        // we track it as repository_click. If it's a profile URL (e.g. length = 1), we track as social_click.
+        if (socialPlatform === "github") {
+          try {
+            const url = new URL(href, window.location.origin);
+            const pathSegments = url.pathname.split("/").filter(Boolean);
+            if (pathSegments.length >= 2) {
+              const projectName = getProjectName(anchor);
+              trackRepositoryClick(projectName, href);
+              return;
+            }
+          } catch {
+            // Fallback to social_click if URL fails to parse
+          }
+        }
+
+        const location = getElementLocation(anchor);
+        const linkText = anchor.textContent?.trim() || anchor.getAttribute("aria-label") || href;
+
+        trackSocialClick({
+          platform: socialPlatform,
+          destination: href,
+          location,
+          linkText,
+        });
         return;
       }
 
-      // 9. External Link Tracking
+      // 9. External Link Tracking (Non-social external links)
       if (
         href.startsWith("http://") ||
         href.startsWith("https://") ||
