@@ -159,7 +159,7 @@ export async function logoutAction() {
   redirect('/admin');
 }
 
-export async function requestPasswordResetAction(email: string, ipAddress?: string) {
+export async function requestPasswordResetAction(email: string, ipAddress?: string): Promise<{ success: boolean; message?: string; error?: string }> {
   const localUser = await prisma.user.findUnique({
     where: { email },
   });

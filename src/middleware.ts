@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
   // Apply rate limiting on state-changing (POST) sensitive routes
   if (isPost) {
-    const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    const ip = (request as unknown as { ip?: string }).ip || request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     cleanExpiredRateLimits();
 
     // 1. Auth endpoints (Login / Reset Password)
