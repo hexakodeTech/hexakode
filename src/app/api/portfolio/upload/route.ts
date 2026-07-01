@@ -1,8 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/modules/portfolio/lib/supabaseAdmin";
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/modules/portfolio/validation/schemas";
+import { verifyAdminAuth } from "@/lib/auth/utils";
 
 export async function POST(req: NextRequest) {
+  // CSRF Origin Match Validation
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  if (origin && host) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== host) {
+        return NextResponse.json({ success: false, error: "CSRF check failed: invalid origin." }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ success: false, error: "CSRF check failed: malformed origin." }, { status: 403 });
+    }
+  }
+
+  // Enforce administrative authentication
+  try {
+    await verifyAdminAuth();
+  } catch (authError: unknown) {
+    const msg = authError instanceof Error ? authError.message : "Unauthorized: Admin access is required.";
+    return NextResponse.json({ success: false, error: msg }, { status: 401 });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

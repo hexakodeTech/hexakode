@@ -166,8 +166,8 @@ export async function requestPasswordResetAction(email: string, ipAddress?: stri
 
   if (!localUser) {
     return {
-      success: false,
-      error: 'User with this email does not exist.',
+      success: true,
+      message: 'Password reset request submitted for admin approval.',
     };
   }
 
