@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminEnquiry } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const enquirySchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -138,6 +139,7 @@ export async function submitEnquiryAction(data: EnquiryInput) {
  * Returns all enquiries in the database formatted for the admin panel.
  */
 export async function getEnquiriesAction(): Promise<AdminEnquiry[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.enquiry.findMany({
       orderBy: { createdAt: 'desc' },
@@ -170,6 +172,7 @@ export async function updateEnquiryStatusAction(
   id: string,
   status: 'NEW' | 'IN_PROGRESS' | 'RESPONDED' | 'CLOSED' | 'ARCHIVED'
 ) {
+  await verifyAdminAuth();
   try {
     await prisma.enquiry.update({
       where: { id },
@@ -191,6 +194,7 @@ export async function updateEnquiryStatusAction(
  * Deletes an enquiry from the database.
  */
 export async function deleteEnquiryAction(id: string) {
+  await verifyAdminAuth();
   try {
     // 1. Fetch the enquiry to check if it had a referral/coupon code
     const enquiry = await prisma.enquiry.findUnique({
@@ -251,6 +255,7 @@ export async function deleteEnquiryAction(id: string) {
  * Returns dashboard metrics and the 5 most recent enquiries.
  */
 export async function getDashboardEnquiryStatsAction() {
+  await verifyAdminAuth();
   try {
     const total = await prisma.enquiry.count();
     const unread = await prisma.enquiry.count({

@@ -61,7 +61,11 @@ export default function MaintenanceLogDetailsView({ id }: Props) {
     setIsLoading(false);
   }, [id]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      loadData();
+    });
+  }, [loadData]);
 
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);

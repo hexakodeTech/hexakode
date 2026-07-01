@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useReducedMotion, MotionValue, MotionStyle } from "framer-motion";
 import { X } from "lucide-react";
 import { Job } from "@/types/careers";
 import { toast } from "sonner";
@@ -122,7 +122,7 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
     mouseY.set(relativeY);
   };
 
-  const parallaxStyle = (x: any, y: any) => {
+  const parallaxStyle = (x: MotionValue<number>, y: MotionValue<number>): MotionStyle => {
     if (isMobile || prefersReducedMotion) return {};
     return { x, y };
   };

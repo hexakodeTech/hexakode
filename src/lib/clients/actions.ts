@@ -6,6 +6,7 @@ import { AdminClient, AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { calculateCouponStatus } from '@/lib/coupons/utils';
 import { isValidClientId } from './utils';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const urlSchema = z
   .string()
@@ -31,6 +32,7 @@ export type ClientInput = z.infer<typeof clientSchema>;
  * Returns all clients formatted for the admin table.
  */
 export async function getClientsAction(): Promise<AdminClient[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.client.findMany({
       orderBy: { createdAt: 'desc' },
@@ -62,6 +64,7 @@ export async function getClientsAction(): Promise<AdminClient[]> {
  * Returns a single client with its associated projects.
  */
 export async function getClientByIdAction(id: string) {
+  await verifyAdminAuth();
   if (!isValidClientId(id)) {
     if (process.env.NODE_ENV !== 'production') {
       console.warn(`[getClientByIdAction] Invalid ID format supplied: ${id}`);
@@ -174,18 +177,19 @@ export async function getClientByIdAction(id: string) {
       success: true,
       data: payload,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
     if (process.env.NODE_ENV !== 'production') {
       console.error('[getClientByIdAction] Database Error:', {
         requestedId: id,
-        error: error.message || error,
+        error: errMessage,
       });
     }
     return {
       success: false,
       error: 'Database query failed.',
       code: 'DB_ERROR' as const,
-      reason: error.message || String(error),
+      reason: errMessage,
     };
   }
 }
@@ -194,6 +198,7 @@ export async function getClientByIdAction(id: string) {
  * Creates a new client.
  */
 export async function createClientAction(data: ClientInput) {
+  await verifyAdminAuth();
   const parsed = clientSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -228,6 +233,7 @@ export async function createClientAction(data: ClientInput) {
  * Updates an existing client.
  */
 export async function updateClientAction(id: string, data: ClientInput) {
+  await verifyAdminAuth();
   const parsed = clientSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -269,6 +275,7 @@ export async function updateClientAction(id: string, data: ClientInput) {
  * Deletes a client by ID.
  */
 export async function deleteClientAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing) {

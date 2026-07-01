@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zen_Dots, Kalam, Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 // ─── Font configuration ──────────────────────────────────────────────────────
 //
@@ -74,6 +75,8 @@ export const metadata: Metadata = {
 
 import { DemoModalProvider } from "@/components/common/DemoModal";
 import { Toaster } from "sonner";
+import AnalyticsTracker from "@/components/common/AnalyticsTracker";
+import ClarityTracker from "@/components/common/ClarityTracker";
 
 export default function RootLayout({
   children,
@@ -83,6 +86,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${zenDots.variable} ${kalam.variable} ${poppins.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
@@ -91,6 +95,11 @@ export default function RootLayout({
           {children}
         </DemoModalProvider>
         <Toaster position="bottom-right" richColors />
+        <GoogleAnalytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+        />
+        <AnalyticsTracker />
+        <ClarityTracker />
       </body>
     </html>
   );

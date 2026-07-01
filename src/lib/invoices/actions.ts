@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { AdminInvoice } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { formatCurrency } from '@/lib/currency';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const invoiceSchema = z.object({
   clientId: z.string().uuid({ message: 'Invalid Client ID' }),
@@ -78,8 +79,9 @@ export async function getInvoicesAction(
   clientId?: string,
   projectId?: string
 ): Promise<AdminInvoice[]> {
+  await verifyAdminAuth();
   try {
-    const where: any = {};
+    const where: { clientId?: string; projectId?: string } = {};
     if (clientId) where.clientId = clientId;
     if (projectId) where.projectId = projectId;
 
@@ -132,6 +134,7 @@ export async function getInvoicesAction(
  * Creates a new invoice with an auto-generated invoice number.
  */
 export async function createInvoiceAction(data: InvoiceInput) {
+  await verifyAdminAuth();
   const parsed = invoiceSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -238,6 +241,7 @@ export async function createInvoiceAction(data: InvoiceInput) {
  * Marks an invoice as Paid.
  */
 export async function markInvoicePaidAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.invoice.findUnique({ where: { id } });
     if (!existing) {
@@ -263,6 +267,7 @@ export async function markInvoicePaidAction(id: string) {
  * Deletes an invoice and refunds any applied credits.
  */
 export async function deleteInvoiceAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.invoice.findUnique({ where: { id } });
     if (!existing) {
@@ -309,6 +314,7 @@ export async function updateInvoiceAction(
   id: string,
   data: Partial<InvoiceInput>
 ) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.invoice.findUnique({
       where: { id },
@@ -337,7 +343,20 @@ export async function updateInvoiceAction(
     const amountAfterDiscount = amt - discountAmount;
     const finalAmountDue = Math.max(0, amountAfterDiscount - cred);
 
-    const updateData: any = {
+    const updateData: {
+      amount?: number;
+      discountType?: string;
+      discountValue?: number;
+      discountAmount?: number;
+      creditApplied?: number;
+      finalAmountDue?: number;
+      status?: string;
+      dueDate?: Date;
+      projectId?: string | null;
+      maintenanceLogs?: {
+        set: { id: string }[];
+      };
+    } = {
       discountType,
       discountValue,
       discountAmount,

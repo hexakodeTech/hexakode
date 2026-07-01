@@ -4,12 +4,21 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminPortalProject } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { calculateCouponStatus } from '../coupons/utils';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const urlSchema = z
   .string()
   .url({ message: 'Please enter a valid URL (e.g. https://example.com)' })
   .refine((v) => v.startsWith('http://') || v.startsWith('https://'), {
     message: 'URL must start with http:// or https://',
+  });
+
+const repositoryUrlSchema = z
+  .string()
+  .url({ message: 'Please enter a valid URL (e.g. https://github.com/username/project)' })
+  .refine((v) => v.startsWith('https://'), {
+    message: 'Repository URL must start with https://',
   });
 
 const packageIdRegex = /^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/;
@@ -29,6 +38,7 @@ const projectSchema = z.object({
   iosBundleId: packageIdSchema,
   playStoreUrl: urlSchema.optional().or(z.literal('')),
   appStoreUrl: urlSchema.optional().or(z.literal('')),
+  repositoryUrl: repositoryUrlSchema.optional().or(z.literal('')),
   status: z.string().default('Active'),
   notes: z.string().optional().or(z.literal('')),
 });
@@ -39,6 +49,7 @@ export type ProjectInput = z.infer<typeof projectSchema>;
  * Returns all projects formatted for the admin table.
  */
 export async function getProjectsAction(): Promise<AdminPortalProject[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
@@ -60,6 +71,7 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
       iosBundleId: p.iosBundleId,
       playStoreUrl: p.playStoreUrl,
       appStoreUrl: p.appStoreUrl,
+      repositoryUrl: p.repositoryUrl,
       status: p.status,
       notes: p.notes,
       logCount: p._count.maintenanceLogs,
@@ -75,6 +87,7 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
  * Returns a single project with its maintenance logs.
  */
 export async function getProjectByIdAction(id: string) {
+  await verifyAdminAuth();
   try {
     const project = await prisma.project.findUnique({
       where: { id },
@@ -83,10 +96,42 @@ export async function getProjectByIdAction(id: string) {
         maintenanceLogs: {
           orderBy: { logDate: 'desc' },
         },
+        coupons: {
+          select: {
+            id: true,
+            code: true,
+            referrerName: true,
+            rewardType: true,
+            enabled: true,
+            currentEnquiries: true,
+            maxLimit: true,
+            expiryType: true,
+            expiryDate: true,
+            startDate: true,
+          }
+        }
       },
     });
 
     if (!project) return null;
+
+    const mappedCoupons = project.coupons.map((c) => {
+      const status = calculateCouponStatus(
+        c.enabled,
+        c.currentEnquiries,
+        c.maxLimit,
+        c.expiryType,
+        c.expiryDate,
+        c.startDate
+      );
+      return {
+        id: c.id,
+        code: c.code,
+        referrerName: c.referrerName || '',
+        rewardType: c.rewardType || '',
+        status,
+      };
+    });
 
     return {
       project: {
@@ -102,6 +147,7 @@ export async function getProjectByIdAction(id: string) {
         iosBundleId: project.iosBundleId,
         playStoreUrl: project.playStoreUrl,
         appStoreUrl: project.appStoreUrl,
+        repositoryUrl: project.repositoryUrl,
         status: project.status,
         notes: project.notes,
         logCount: project.maintenanceLogs.length,
@@ -117,6 +163,7 @@ export async function getProjectByIdAction(id: string) {
         logDate: l.logDate.toISOString().split('T')[0],
         createdDate: l.createdAt.toISOString().split('T')[0],
       })),
+      coupons: mappedCoupons,
     };
   } catch (error) {
     console.error('Error fetching project by id:', error);
@@ -128,6 +175,7 @@ export async function getProjectByIdAction(id: string) {
  * Creates a new project.
  */
 export async function createProjectAction(data: ProjectInput) {
+  await verifyAdminAuth();
   const parsed = projectSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -140,7 +188,7 @@ export async function createProjectAction(data: ProjectInput) {
     await prisma.project.create({
       data: {
         name: payload.name,
-        clientId: payload.clientId,
+        client: { connect: { id: payload.clientId } },
         projectType: payload.projectType,
         websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
         adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
@@ -148,6 +196,7 @@ export async function createProjectAction(data: ProjectInput) {
         iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
         playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
         appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
+        repositoryUrl: payload.repositoryUrl || null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },
@@ -167,6 +216,7 @@ export async function createProjectAction(data: ProjectInput) {
  * Updates an existing project.
  */
 export async function updateProjectAction(id: string, data: ProjectInput) {
+  await verifyAdminAuth();
   const parsed = projectSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -185,7 +235,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
       where: { id },
       data: {
         name: payload.name,
-        clientId: payload.clientId,
+        client: { connect: { id: payload.clientId } },
         projectType: payload.projectType,
         websiteUrl: isWeb ? (payload.websiteUrl || null) : null,
         adminPanelUrl: isWeb ? (payload.adminPanelUrl || null) : null,
@@ -193,6 +243,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
         iosBundleId: !isWeb ? (payload.iosBundleId || null) : null,
         playStoreUrl: !isWeb ? (payload.playStoreUrl || null) : null,
         appStoreUrl: !isWeb ? (payload.appStoreUrl || null) : null,
+        repositoryUrl: payload.repositoryUrl || null,
         status: payload.status || 'Active',
         notes: payload.notes || null,
       },
@@ -213,6 +264,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
  * Deletes a project by ID.
  */
 export async function deleteProjectAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.project.findUnique({ where: { id } });
     if (!existing) {
@@ -228,5 +280,29 @@ export async function deleteProjectAction(id: string) {
     console.error('Project deletion error:', error);
     const msg = error instanceof Error ? error.message : 'Database error deleting project.';
     return { success: false, error: msg };
+  }
+}
+
+/**
+ * Fetches all active projects for a specific client.
+ */
+export async function getProjectsByClientAction(clientId: string) {
+  await verifyAdminAuth();
+  try {
+    const list = await prisma.project.findMany({
+      where: {
+        clientId,
+        status: "Active",
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    return { success: true, data: list };
+  } catch (error) {
+    console.error("Error fetching projects by client:", error);
+    return { success: false, error: "Failed to fetch client projects." };
   }
 }

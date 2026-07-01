@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 import {
   Plus,
   Search,
-  LayoutGrid,
   SortAsc,
   Filter,
 } from "lucide-react";
@@ -74,7 +73,6 @@ export default function PortfolioCMSPage() {
 
   const publishedCount = projects.filter((p) => p.status === "Published").length;
   const draftCount = projects.filter((p) => p.status === "Draft").length;
-  const featuredCount = projects.filter((p) => p.settings.featured).length;
 
   return (
     <div className="space-y-6">

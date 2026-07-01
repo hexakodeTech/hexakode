@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminCreditTransaction } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const creditSchema = z.object({
   clientId: z.string().uuid({ message: 'Invalid Client ID' }),
@@ -19,6 +20,7 @@ export type CreditInput = z.infer<typeof creditSchema>;
 export async function getCreditTransactionsAction(
   clientId: string
 ): Promise<AdminCreditTransaction[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.creditTransaction.findMany({
       where: { clientId },
@@ -46,6 +48,12 @@ export async function addCreditTransactionAction(
   amount: number,
   description?: string | null
 ) {
+  await verifyAdminAuth();
+  const parsed = creditSchema.safeParse({ clientId, amount, description });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid credit transaction data.' };
+  }
+  
   try {
     const client = await prisma.client.findUnique({
       where: { id: clientId },

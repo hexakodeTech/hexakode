@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import Badge from "../ui/Badge";
 import Card from "../ui/Card";
@@ -25,7 +24,6 @@ export default function ServiceCard({
   description,
   icon: Icon,
   tags = [],
-  href,
   imageSrc,
   imageAlt = "Service illustration",
   className,

@@ -1,10 +1,10 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { z } from 'zod';
 import { AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { calculateCouponStatus } from './utils';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 function getBudgetNumericValue(budget: string | null): number {
   if (!budget) return 0;
@@ -27,9 +27,15 @@ function getBudgetNumericValue(budget: string | null): number {
  * Fetches all coupons, calculates dynamic status and remaining enquiries.
  */
 export async function getCouponsAction(): Promise<AdminCoupon[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.coupon.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        projects: {
+          select: { id: true, name: true }
+        }
+      }
     });
 
     return list.map((c) => {
@@ -60,6 +66,8 @@ export async function getCouponsAction(): Promise<AdminCoupon[]> {
         createdDate: c.createdAt.toISOString().split('T')[0],
         clientId: c.clientId,
         clientName: c.clientName,
+        projectIds: c.projects.map((p) => p.id),
+        projects: c.projects.map((p) => ({ id: p.id, name: p.name })),
       };
     });
   } catch (error) {
@@ -83,7 +91,9 @@ export async function createCouponAction(data: {
   enabled: boolean;
   clientId?: string | null;
   clientName?: string | null;
+  projectIds?: string[];
 }) {
+  await verifyAdminAuth();
   const uppercasedCode = data.code.toUpperCase().trim();
   
   if (uppercasedCode.length < 3) {
@@ -165,8 +175,11 @@ export async function createCouponAction(data: {
         expiryType: data.expiryType,
         expiryDate: parsedExpiryDate,
         enabled: data.enabled,
-        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
-        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
+        clientId: data.clientId || null,
+        clientName: data.clientName || null,
+        projects: data.projectIds && data.projectIds.length > 0 ? {
+          connect: data.projectIds.map((id) => ({ id })),
+        } : undefined,
       },
     });
 
@@ -211,8 +224,10 @@ export async function updateCouponAction(
     enabled: boolean;
     clientId?: string | null;
     clientName?: string | null;
+    projectIds?: string[];
   }
 ) {
+  await verifyAdminAuth();
   if (!data.referrerName || data.referrerName.trim().length === 0) {
     return { success: false, error: "Referrer name is required." };
   }
@@ -286,8 +301,11 @@ export async function updateCouponAction(
         expiryDate: parsedExpiryDate,
         activeDays,
         enabled: data.enabled,
-        clientId: data.rewardType === "Service Credit" ? data.clientId : null,
-        clientName: data.rewardType === "Service Credit" ? data.clientName : null,
+        clientId: data.clientId || null,
+        clientName: data.clientName || null,
+        projects: data.projectIds ? {
+          set: data.projectIds.map((id) => ({ id })),
+        } : undefined,
       },
     });
 
@@ -320,6 +338,7 @@ export async function updateCouponAction(
  * Deletes a referral code.
  */
 export async function deleteCouponAction(code: string) {
+  await verifyAdminAuth();
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
@@ -365,10 +384,16 @@ export async function deleteCouponAction(code: string) {
  * Fetches specific referral code details and the list of enquiries associated with it.
  */
 export async function getCouponDetailsAction(code: string) {
+  await verifyAdminAuth();
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
-      include: { client: true },
+      include: {
+        client: true,
+        projects: {
+          select: { id: true, name: true }
+        }
+      },
     });
 
     if (!coupon) {
@@ -428,6 +453,8 @@ export async function getCouponDetailsAction(code: string) {
         createdDate: coupon.createdAt.toISOString().split('T')[0],
         clientId: coupon.clientId,
         clientName: coupon.clientName,
+        projectIds: coupon.projects.map((p) => p.id),
+        projects: coupon.projects.map((p) => ({ id: p.id, name: p.name })),
       },
       client: coupon.client ? {
         id: coupon.client.id,
@@ -520,6 +547,7 @@ export async function validateCouponAction(code: string) {
  * Returns statistics dashboard data for the referral program page.
  */
 export async function getReferralStatsAction() {
+  await verifyAdminAuth();
   try {
     const list = await prisma.coupon.findMany();
     const totalCodes = list.length;
@@ -568,6 +596,7 @@ export async function getReferralStatsAction() {
  * Fetches all active clients for dropdown selector.
  */
 export async function getClientsForSelectorAction() {
+  await verifyAdminAuth();
   try {
     const clients = await prisma.client.findMany({
       where: { status: 'Active' },

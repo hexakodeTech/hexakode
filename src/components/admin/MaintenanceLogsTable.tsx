@@ -68,7 +68,11 @@ export default function MaintenanceLogsTable() {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      loadData();
+    });
+  }, [loadData]);
 
   // ─── Form Handlers ──────────────────────────────────────────────────────────
 

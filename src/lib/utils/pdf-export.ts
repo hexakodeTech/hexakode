@@ -28,7 +28,7 @@ interface PDFExportOptions {
   summaryItems?: PDFSummaryItem[];
   creditSection?: PDFCreditSection; // optional credit balance block
   tableHeaders: string[];
-  tableData: any[][];
+  tableData: (string | number | boolean | null)[][];
   emptyMessage?: string;
 }
 
@@ -522,7 +522,7 @@ export async function exportInvoicePDF({
 
   // Build table headers and data
   const tableHeaders = ['Description', 'Qty', 'Unit Price', 'Total'];
-  let tableData: any[][] = [];
+  let tableData: string[][] = [];
 
   if (maintenanceLogs && maintenanceLogs.length > 0) {
     const N = maintenanceLogs.length;
@@ -580,7 +580,7 @@ export async function exportInvoicePDF({
     margin: { left: margin, right: margin }
   });
 
-  currentY = (doc as any).lastAutoTable.finalY + 10;
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
 
   // Prepare calculations for summary block
   const summaryRows: { label: string; value: string; isBold?: boolean; isLarge?: boolean; isDivider?: boolean }[] = [];

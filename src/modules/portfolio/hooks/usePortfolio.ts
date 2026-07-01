@@ -76,7 +76,7 @@ export function usePortfolio() {
       } else {
         toast.error(res.error || "Failed to load projects.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("loadProjects error:", err);
       toast.error("Failed to load portfolio database records.");
     } finally {
@@ -86,7 +86,9 @@ export function usePortfolio() {
 
   // Load projects on filter change
   useEffect(() => {
-    loadProjects();
+    Promise.resolve().then(() => {
+      loadProjects();
+    });
   }, [loadProjects]);
 
   // For the UI, we can just return the filtered database list directly as filteredProjects
@@ -133,8 +135,24 @@ export function usePortfolio() {
     (id: string) => {
       const project = projects.find((p) => p.id === id);
       if (!project) return;
-      const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = project;
-      setFormData(rest as PortfolioFormData);
+      const rest: PortfolioFormData = {
+        title: project.title,
+        slug: project.slug,
+        category: project.category,
+        clientName: project.clientName,
+        projectUrl: project.projectUrl,
+        shortDescription: project.shortDescription,
+        longDescription: project.longDescription,
+        coverImage: project.coverImage,
+        gallery: project.gallery,
+        technologies: project.technologies,
+        features: project.features,
+        seo: project.seo,
+        settings: project.settings,
+        status: project.status,
+        publishedAt: project.publishedAt,
+      };
+      setFormData(rest);
       setActiveProjectId(id);
       setModalMode("edit");
     },
@@ -183,8 +201,9 @@ export function usePortfolio() {
       } else {
         toast.error(res.error || "Failed to save project.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred while saving.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred while saving.";
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -217,8 +236,9 @@ export function usePortfolio() {
       } else {
         toast.error(res.error || "Failed to publish project.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred while publishing.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred while publishing.";
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -236,8 +256,9 @@ export function usePortfolio() {
         } else {
           toast.error(res.error || "Failed to duplicate project.");
         }
-      } catch (err: any) {
-        toast.error(err.message || "An unexpected error occurred while duplicating.");
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : "An unexpected error occurred while duplicating.";
+        toast.error(errMsg);
       } finally {
         setIsLoading(false);
       }
@@ -258,8 +279,9 @@ export function usePortfolio() {
       } else {
         toast.error(res.error || "Failed to delete project.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred while deleting.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred while deleting.";
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
