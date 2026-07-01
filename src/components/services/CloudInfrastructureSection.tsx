@@ -9,6 +9,7 @@ import Card from "../ui/Card";
 import BenefitsCard from "./BenefitsCard";
 import ProcessTimeline from "./ProcessTimeline";
 import { fadeUp, staggerContainer } from "@/lib/motion";
+import { ServiceViewTracker } from "@/components/common/AnalyticsTracker";
 
 const PROCESS_STEPS = [
   {
@@ -28,6 +29,7 @@ const PROCESS_STEPS = [
 export default function CloudInfrastructureSection() {
   return (
     <Section id="cloud-service" variant="white" spacing="medium" className="py-16 md:py-24">
+      <ServiceViewTracker serviceName="Cloud Infrastructure & API Systems" />
       <Container>
         {/* Section Badge above the 2-column grid to allow title-card alignment */}
         <motion.div
