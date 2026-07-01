@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminDemoRequest } from '@/types/admin';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const demoRequestSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -71,6 +72,7 @@ export async function submitDemoRequestAction(data: DemoRequestInput) {
  * Returns all demo requests in the database formatted for the admin panel.
  */
 export async function getDemoRequestsAction(): Promise<AdminDemoRequest[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.demoRequest.findMany({
       orderBy: { createdAt: 'desc' },
@@ -101,6 +103,7 @@ export async function updateDemoRequestStatusAction(
   id: string,
   status: 'NEW' | 'CONTACTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED'
 ) {
+  await verifyAdminAuth();
   try {
     await prisma.demoRequest.update({
       where: { id },
@@ -117,6 +120,7 @@ export async function updateDemoRequestStatusAction(
  * Deletes a demo request from the database.
  */
 export async function deleteDemoRequestAction(id: string) {
+  await verifyAdminAuth();
   try {
     await prisma.demoRequest.delete({
       where: { id },
@@ -137,6 +141,7 @@ export async function scheduleMeetingAction(
   meetingTime: string,
   notes?: string
 ) {
+  await verifyAdminAuth();
   try {
     await prisma.demoRequest.update({
       where: { id },
@@ -158,6 +163,7 @@ export async function scheduleMeetingAction(
  * Returns summary stats of demo requests for dashboard panels.
  */
 export async function getDemoRequestStatsAction() {
+  await verifyAdminAuth();
   try {
     const total = await prisma.demoRequest.count();
     const newReq = await prisma.demoRequest.count({

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { AdminPortalProject } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { calculateCouponStatus } from '../coupons/utils';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const urlSchema = z
   .string()
@@ -48,6 +49,7 @@ export type ProjectInput = z.infer<typeof projectSchema>;
  * Returns all projects formatted for the admin table.
  */
 export async function getProjectsAction(): Promise<AdminPortalProject[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
@@ -85,6 +87,7 @@ export async function getProjectsAction(): Promise<AdminPortalProject[]> {
  * Returns a single project with its maintenance logs.
  */
 export async function getProjectByIdAction(id: string) {
+  await verifyAdminAuth();
   try {
     const project = await prisma.project.findUnique({
       where: { id },
@@ -172,6 +175,7 @@ export async function getProjectByIdAction(id: string) {
  * Creates a new project.
  */
 export async function createProjectAction(data: ProjectInput) {
+  await verifyAdminAuth();
   const parsed = projectSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -212,6 +216,7 @@ export async function createProjectAction(data: ProjectInput) {
  * Updates an existing project.
  */
 export async function updateProjectAction(id: string, data: ProjectInput) {
+  await verifyAdminAuth();
   const parsed = projectSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -259,6 +264,7 @@ export async function updateProjectAction(id: string, data: ProjectInput) {
  * Deletes a project by ID.
  */
 export async function deleteProjectAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.project.findUnique({ where: { id } });
     if (!existing) {
@@ -281,6 +287,7 @@ export async function deleteProjectAction(id: string) {
  * Fetches all active projects for a specific client.
  */
 export async function getProjectsByClientAction(clientId: string) {
+  await verifyAdminAuth();
   try {
     const list = await prisma.project.findMany({
       where: {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { AdminCoupon, AdminEnquiry } from '@/types/admin';
 import DataTable from './DataTable';
@@ -9,15 +9,12 @@ import {
   Ticket,
   Calendar,
   Layers,
-  Inbox,
   Eye,
   Loader2,
   X,
   Mail,
   Landmark,
   Phone,
-  CheckSquare,
-  Archive,
   Trash2,
   Users,
   Download,
@@ -47,18 +44,20 @@ export default function CouponDetailsView({ code }: CouponDetailsViewProps) {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [activeEnquiry, setActiveEnquiry] = useState<AdminEnquiry | null>(null);
 
-  useEffect(() => {
-    loadDetails();
-  }, [code]);
-
-  async function loadDetails() {
+  const loadDetails = useCallback(async () => {
     setIsLoading(true);
     const result = await getCouponDetailsAction(code);
     if (result) {
       setData(result);
     }
     setIsLoading(false);
-  }
+  }, [code]);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      loadDetails();
+    });
+  }, [loadDetails]);
 
   // Handle actions for enquiries table in detail view
   const handleMarkReviewed = async (id: string) => {

@@ -234,7 +234,7 @@ export function CoverImageSection({ formData, updateForm }: CoverImageProps) {
       } else {
         toast.error(res.error || "Failed to upload cover image.", { id: uploadToast });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Failed to upload cover image.", { id: uploadToast });
     } finally {
@@ -425,7 +425,7 @@ export function GallerySection({ formData, updateForm }: GalleryProps) {
       } else {
         toast.error(res.error || "Failed to upload gallery image.", { id: uploadToast });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Failed to upload gallery image.", { id: uploadToast });
     } finally {

@@ -5,9 +5,20 @@ import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
+const requiredServerEnvVars = [
+  'DATABASE_URL',
+  'DIRECT_URL',
+  'NEXT_PUBLIC_SUPABASE_URL',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+];
+
+const missingEnvVars = requiredServerEnvVars.filter(name => !process.env[name]);
+if (missingEnvVars.length > 0) {
+  throw new Error(`[CRITICAL] Missing required environment variables at database initialization: ${missingEnvVars.join(', ')}`);
+}
+
 const prismaClientSingleton = () => {
   const connStr = process.env.DIRECT_URL || process.env.DATABASE_URL;
-  console.log("DEBUG: Prisma Connection String =", connStr);
   const pool = new pg.Pool({
     connectionString: connStr,
   });

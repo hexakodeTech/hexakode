@@ -1,10 +1,10 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { z } from 'zod';
 import { AdminCoupon } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
 import { calculateCouponStatus } from './utils';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 function getBudgetNumericValue(budget: string | null): number {
   if (!budget) return 0;
@@ -27,6 +27,7 @@ function getBudgetNumericValue(budget: string | null): number {
  * Fetches all coupons, calculates dynamic status and remaining enquiries.
  */
 export async function getCouponsAction(): Promise<AdminCoupon[]> {
+  await verifyAdminAuth();
   try {
     const list = await prisma.coupon.findMany({
       orderBy: { createdAt: 'desc' },
@@ -92,6 +93,7 @@ export async function createCouponAction(data: {
   clientName?: string | null;
   projectIds?: string[];
 }) {
+  await verifyAdminAuth();
   const uppercasedCode = data.code.toUpperCase().trim();
   
   if (uppercasedCode.length < 3) {
@@ -225,6 +227,7 @@ export async function updateCouponAction(
     projectIds?: string[];
   }
 ) {
+  await verifyAdminAuth();
   if (!data.referrerName || data.referrerName.trim().length === 0) {
     return { success: false, error: "Referrer name is required." };
   }
@@ -335,6 +338,7 @@ export async function updateCouponAction(
  * Deletes a referral code.
  */
 export async function deleteCouponAction(code: string) {
+  await verifyAdminAuth();
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
@@ -380,6 +384,7 @@ export async function deleteCouponAction(code: string) {
  * Fetches specific referral code details and the list of enquiries associated with it.
  */
 export async function getCouponDetailsAction(code: string) {
+  await verifyAdminAuth();
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { code },
@@ -542,6 +547,7 @@ export async function validateCouponAction(code: string) {
  * Returns statistics dashboard data for the referral program page.
  */
 export async function getReferralStatsAction() {
+  await verifyAdminAuth();
   try {
     const list = await prisma.coupon.findMany();
     const totalCodes = list.length;
@@ -590,6 +596,7 @@ export async function getReferralStatsAction() {
  * Fetches all active clients for dropdown selector.
  */
 export async function getClientsForSelectorAction() {
+  await verifyAdminAuth();
   try {
     const clients = await prisma.client.findMany({
       where: { status: 'Active' },

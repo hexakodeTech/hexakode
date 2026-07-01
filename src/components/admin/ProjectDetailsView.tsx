@@ -21,8 +21,6 @@ import {
   Wrench,
   Plus,
   FileText,
-  Calendar,
-  DollarSign,
   IndianRupee,
   Download,
   CheckCircle2,
@@ -31,7 +29,7 @@ import {
 import { getProjectByIdAction, updateProjectAction, deleteProjectAction } from '@/lib/projects/actions';
 import { createMaintenanceLogAction, updateMaintenanceLogAction, deleteMaintenanceLogAction } from '@/lib/maintenance-logs/actions';
 import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteInvoiceAction, updateInvoiceAction } from '@/lib/invoices/actions';
-import { exportToPDF, exportInvoicePDF } from '@/lib/utils/pdf-export';
+import { exportInvoicePDF } from '@/lib/utils/pdf-export';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -188,8 +186,10 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
   }, [clientId, projectId]);
 
   useEffect(() => {
-    loadData();
-    loadInvoices();
+    Promise.resolve().then(() => {
+      loadData();
+      loadInvoices();
+    });
   }, [loadData, loadInvoices]);
 
   const handleCopy = (text: string, key: string) => {
@@ -1408,7 +1408,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                           <button
                             onClick={() => {
                               setIsViewLogOpen(false);
-                              setSelectedInvoiceForDetails(inv as any);
+                              setSelectedInvoiceForDetails(inv as unknown as AdminInvoice);
                               setIsInvoiceDetailsOpen(true);
                             }}
                             className="text-[10px] text-primary hover:text-secondary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
@@ -1438,7 +1438,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 <FileText className="w-4 h-4 text-secondary" />
                 <h3 className="font-headline-sm text-sm font-semibold text-primary">Link Project Invoice</h3>
               </div>
-              <button onClick={() => setIsInvoiceFormOpen(false)} className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={handleCloseInvoiceModal} className="rounded p-1 text-on-surface-variant hover:bg-surface-container cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleSubmitInvoice} noValidate className="space-y-3 text-xs">
               {invoiceFormError && <div className="text-xs text-error bg-error-container/10 p-2.5 rounded-lg border border-error/25">{invoiceFormError}</div>}
@@ -1700,7 +1700,7 @@ export default function ProjectDetailsView({ clientId, projectId }: ProjectDetai
                 </select>
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/20">
-                <button type="button" disabled={isSubmitting} onClick={() => setIsInvoiceFormOpen(false)} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
+                <button type="button" disabled={isSubmitting} onClick={handleCloseInvoiceModal} className="px-4 py-2 border border-outline-variant/40 text-xs font-semibold rounded-lg hover:bg-surface-container-low cursor-pointer text-on-surface">Cancel</button>
                 <button type="submit" disabled={isSubmitting || !invoiceAmount || isNaN(parseFloat(invoiceAmount)) || parseFloat(invoiceAmount) <= 0 || !invoiceDueDate} className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:shadow-lg flex items-center gap-1 cursor-pointer">
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Link Invoice</span>

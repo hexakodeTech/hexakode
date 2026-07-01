@@ -22,17 +22,13 @@ import {
   Trash2,
   X,
   Plus,
-  Calendar,
   FileText,
-  DollarSign,
   IndianRupee,
   TrendingUp,
   Coins,
-  AlertCircle,
   Download,
   CheckCircle2,
   Ticket,
-  User,
   Sparkles,
   GitBranch,
   Search,
@@ -44,7 +40,7 @@ import { getInvoicesAction, createInvoiceAction, markInvoicePaidAction, deleteIn
 import { getMaintenanceLogsAction } from '@/lib/maintenance-logs/actions';
 import { getCreditTransactionsAction, addCreditTransactionAction } from '@/lib/credits/actions';
 import { createCouponAction, updateCouponAction, deleteCouponAction } from '@/lib/coupons/actions';
-import { exportToPDF, exportInvoicePDF } from '@/lib/utils/pdf-export';
+import { exportInvoicePDF } from '@/lib/utils/pdf-export';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -412,14 +408,14 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         setErrorState({
           code: result?.code || 'DB_ERROR',
           error: result?.error || 'Failed to load client details.',
-          reason: (result as any)?.reason || 'An unexpected error occurred during database access.',
+          reason: (result as { reason?: string })?.reason || 'An unexpected error occurred during database access.',
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrorState({
         code: 'DB_ERROR',
         error: 'An unexpected connection or runtime error occurred.',
-        reason: err.message || String(err),
+        reason: err instanceof Error ? err.message : String(err),
       });
     } finally {
       setIsLoading(false);
@@ -441,7 +437,9 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
   }, [id]);
 
   useEffect(() => {
-    loadData();
+    Promise.resolve().then(() => {
+      loadData();
+    });
   }, [loadData]);
 
   useEffect(() => {
@@ -450,21 +448,25 @@ export default function ClientDetailsView({ id }: ClientDetailsViewProps) {
         setAvailableLogs(logs);
       });
     } else {
-      setAvailableLogs([]);
-      if (!editingInvoice) {
-        setSelectedLogIds([]);
-      }
+      Promise.resolve().then(() => {
+        setAvailableLogs([]);
+        if (!editingInvoice) {
+          setSelectedLogIds([]);
+        }
+      });
     }
   }, [selectedProjectId, editingInvoice]);
 
   useEffect(() => {
-    if (activeTab === 'invoices') {
-      loadInvoices();
-    } else if (activeTab === 'credits') {
-      loadCredits();
-    }
-    setSearchQuery('');
-    setCurrentPage(1);
+    Promise.resolve().then(() => {
+      if (activeTab === 'invoices') {
+        loadInvoices();
+      } else if (activeTab === 'credits') {
+        loadCredits();
+      }
+      setSearchQuery('');
+      setCurrentPage(1);
+    });
   }, [activeTab, loadInvoices, loadCredits]);
 
   useEffect(() => {

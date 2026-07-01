@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,21 +35,21 @@ export default function GalleryViewer({
 
   const isSupabase = url.includes("supabase.co") || url.includes("/storage/v1/object/");
 
-  // Reset panning position when URL or zoom changes
-  useEffect(() => {
+  // Adapt state when url or zoomScale change during rendering
+  const [prevUrl, setPrevUrl] = useState(url);
+  if (url !== prevUrl) {
+    setPrevUrl(url);
     setPosition({ x: 0, y: 0 });
-  }, [url]);
+    setIsLoading(true);
+  }
 
-  useEffect(() => {
+  const [prevZoomScale, setPrevZoomScale] = useState(zoomScale);
+  if (zoomScale !== prevZoomScale) {
+    setPrevZoomScale(zoomScale);
     if (zoomScale === 1) {
       setPosition({ x: 0, y: 0 });
     }
-  }, [zoomScale]);
-
-  // Reset loading state when source image changes
-  useEffect(() => {
-    setIsLoading(true);
-  }, [url]);
+  }
 
   // Mouse wheel zoom handler
   const handleWheel = (e: React.WheelEvent) => {

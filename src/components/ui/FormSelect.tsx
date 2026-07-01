@@ -121,8 +121,14 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
               }
             }}
             value={selectedValue}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onFocus={(e) => {
+              setIsFocused(true);
+              if (onFocus) onFocus(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              if (onBlur) onBlur(e);
+            }}
             onChange={(e) => {
               setSelectedValue(e.target.value);
               if (props.onChange) props.onChange(e);

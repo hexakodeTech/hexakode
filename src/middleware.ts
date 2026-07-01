@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { updateSession } from './lib/supabase/proxy';
-import prisma from './lib/prisma';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 
@@ -27,28 +26,6 @@ export async function proxy(request: NextRequest) {
       // Redirect unauthenticated users to login
       const loginUrl = new URL('/admin', request.url);
       return NextResponse.redirect(loginUrl);
-    }
-
-    // Authenticated: check local user profile status
-    try {
-      if (process.env.NODE_ENV !== 'development' && user) {
-        const localUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { supabaseId: user.id },
-              { email: user.email! },
-            ],
-          },
-        });
-
-        if (!localUser || localUser.status !== 'ACTIVE') {
-          return NextResponse.redirect(new URL('/admin', request.url));
-        }
-      }
-    } catch (dbError) {
-      console.error('Database check error in proxy:', dbError);
-      // Fallback: redirect to login to prevent leaks
-      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 

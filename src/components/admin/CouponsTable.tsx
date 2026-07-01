@@ -71,9 +71,13 @@ export default function CouponsTable() {
   // Fetch client projects whenever selectedClientId changes
   useEffect(() => {
     if (selectedClientId) {
-      loadProjectsForClient(selectedClientId);
+      Promise.resolve().then(() => {
+        loadProjectsForClient(selectedClientId);
+      });
     } else {
-      setProjectsList([]);
+      Promise.resolve().then(() => {
+        setProjectsList([]);
+      });
     }
   }, [selectedClientId]);
 

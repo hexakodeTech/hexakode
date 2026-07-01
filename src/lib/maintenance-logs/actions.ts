@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { AdminMaintenanceLog } from '@/types/admin';
 import { revalidatePath } from 'next/cache';
+import { verifyAdminAuth } from '@/lib/auth/utils';
 
 const logSchema = z.object({
   projectId: z.string().uuid({ message: 'Project ID is required' }),
@@ -18,8 +19,9 @@ export type MaintenanceLogInput = z.infer<typeof logSchema>;
  * Returns all maintenance logs formatted for the admin table.
  */
 export async function getMaintenanceLogsAction(projectId?: string): Promise<AdminMaintenanceLog[]> {
+  await verifyAdminAuth();
   try {
-    const where: any = {};
+    const where: { projectId?: string } = {};
     if (projectId) {
       where.projectId = projectId;
     }
@@ -52,7 +54,7 @@ export async function getMaintenanceLogsAction(projectId?: string): Promise<Admi
         discountAmount: inv.discountAmount ?? 0,
         creditApplied: inv.creditApplied,
         finalAmountDue: inv.finalAmountDue,
-        status: inv.status as any,
+        status: inv.status as 'Paid' | 'Pending' | 'Overdue',
         dueDate: inv.dueDate.toISOString().split('T')[0],
         issuedDate: inv.issuedDate.toISOString().split('T')[0],
         createdAt: inv.createdAt.toISOString().split('T')[0],
@@ -68,6 +70,7 @@ export async function getMaintenanceLogsAction(projectId?: string): Promise<Admi
  * Returns a single maintenance log with project details.
  */
 export async function getMaintenanceLogByIdAction(id: string) {
+  await verifyAdminAuth();
   try {
     const log = await prisma.maintenanceLog.findUnique({
       where: { id },
@@ -99,7 +102,7 @@ export async function getMaintenanceLogByIdAction(id: string) {
         discountAmount: inv.discountAmount ?? 0,
         creditApplied: inv.creditApplied,
         finalAmountDue: inv.finalAmountDue,
-        status: inv.status as any,
+        status: inv.status as 'Paid' | 'Pending' | 'Overdue',
         dueDate: inv.dueDate.toISOString().split('T')[0],
         issuedDate: inv.issuedDate.toISOString().split('T')[0],
         createdAt: inv.createdAt.toISOString().split('T')[0],
@@ -115,6 +118,7 @@ export async function getMaintenanceLogByIdAction(id: string) {
  * Creates a new maintenance log entry.
  */
 export async function createMaintenanceLogAction(data: MaintenanceLogInput) {
+  await verifyAdminAuth();
   const parsed = logSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -155,6 +159,7 @@ export async function createMaintenanceLogAction(data: MaintenanceLogInput) {
  * Updates an existing maintenance log.
  */
 export async function updateMaintenanceLogAction(id: string, data: MaintenanceLogInput) {
+  await verifyAdminAuth();
   const parsed = logSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input.' };
@@ -198,6 +203,7 @@ export async function updateMaintenanceLogAction(id: string, data: MaintenanceLo
  * Deletes a maintenance log entry.
  */
 export async function deleteMaintenanceLogAction(id: string) {
+  await verifyAdminAuth();
   try {
     const existing = await prisma.maintenanceLog.findUnique({
       where: { id },

@@ -1,39 +1,77 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "../lib/supabaseAdmin";
 import {
   PortfolioProjectSchema,
-  ALLOWED_IMAGE_TYPES,
-  MAX_FILE_SIZE,
 } from "../validation/schemas";
-import { PortfolioProject, PortfolioFilters, PortfolioFormData } from "../types";
+import { PortfolioProject, PortfolioFilters, PortfolioFormData, PortfolioCategory, PortfolioStatus } from "../types";
+import { verifyAdminAuth } from "../../../lib/auth/utils";
+
+interface DbProject {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  clientName: string;
+  projectUrl: string;
+  shortDescription: string;
+  fullDescription: string;
+  coverImage: string;
+  featured: boolean;
+  showOnHomepage: boolean;
+  allowPreview: boolean;
+  status: string;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  gallery: {
+    id: string;
+    imageUrl: string;
+    alt: string;
+    displayOrder: number;
+  }[];
+  technologies: {
+    id: string;
+    name: string;
+  }[];
+  features: {
+    id: string;
+    title: string;
+    description: string;
+    displayOrder: number;
+  }[];
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+}
 
 // Helper function to map Prisma project model to frontend PortfolioProject interface
-function mapToFrontend(dbProj: any): PortfolioProject {
+function mapToFrontend(dbProj: DbProject): PortfolioProject {
   return {
     id: dbProj.id,
     title: dbProj.title,
     slug: dbProj.slug,
-    category: dbProj.category as any,
+    category: dbProj.category as PortfolioCategory,
     clientName: dbProj.clientName || "",
     projectUrl: dbProj.projectUrl || "",
     shortDescription: dbProj.shortDescription,
     longDescription: dbProj.fullDescription || "",
     coverImage: dbProj.coverImage || "",
     gallery: (dbProj.gallery || [])
-      .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
-      .map((g: any) => ({
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((g) => ({
         id: g.id,
         url: g.imageUrl,
         alt: g.alt || "",
         isCover: g.displayOrder === 0,
       })),
-    technologies: (dbProj.technologies || []).map((t: any) => t.name),
+    technologies: (dbProj.technologies || []).map((t) => t.name),
     features: (dbProj.features || [])
-      .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
-      .map((f: any) => ({
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((f) => ({
         id: f.id,
         title: f.title,
         description: f.description,
@@ -48,7 +86,7 @@ function mapToFrontend(dbProj: any): PortfolioProject {
       showOnHomepage: dbProj.showOnHomepage,
       allowPreview: dbProj.allowPreview,
     },
-    status: dbProj.status as any,
+    status: dbProj.status as PortfolioStatus,
     publishedAt: dbProj.publishedAt ? dbProj.publishedAt.toISOString() : null,
     createdAt: dbProj.createdAt.toISOString(),
     updatedAt: dbProj.updatedAt.toISOString(),
@@ -63,8 +101,9 @@ export async function getPortfolioListAction(filters: PortfolioFilters): Promise
   projects?: PortfolioProject[];
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
-    const where: any = {};
+    const where: Prisma.PortfolioProjectWhereInput = {};
 
     // 1. Search filter (title, description, client name, technologies)
     if (filters.search?.trim()) {
@@ -88,7 +127,7 @@ export async function getPortfolioListAction(filters: PortfolioFilters): Promise
     }
 
     // 4. Sorting
-    let orderBy: any = { createdAt: "desc" };
+    let orderBy: Record<string, "asc" | "desc"> | Record<string, "asc" | "desc">[] = { createdAt: "desc" };
     if (filters.sort === "oldest") {
       orderBy = { createdAt: "asc" };
     } else if (filters.sort === "featured") {
@@ -107,13 +146,14 @@ export async function getPortfolioListAction(filters: PortfolioFilters): Promise
 
     return {
       success: true,
-      projects: list.map(mapToFrontend),
+      projects: list.map((p) => mapToFrontend(p as unknown as DbProject)),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching portfolio projects:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to fetch portfolio list.";
     return {
       success: false,
-      error: error.message || "Failed to fetch portfolio list.",
+      error: errMessage,
     };
   }
 }
@@ -126,6 +166,7 @@ export async function getPortfolioDetailsAction(id: string): Promise<{
   project?: PortfolioProject;
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
     const project = await prisma.portfolioProject.findUnique({
       where: { id },
@@ -142,13 +183,14 @@ export async function getPortfolioDetailsAction(id: string): Promise<{
 
     return {
       success: true,
-      project: mapToFrontend(project),
+      project: mapToFrontend(project as unknown as DbProject),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching portfolio project details:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to fetch project details.";
     return {
       success: false,
-      error: error.message || "Failed to fetch project details.",
+      error: errMessage,
     };
   }
 }
@@ -161,6 +203,7 @@ export async function createPortfolioAction(data: PortfolioFormData): Promise<{
   project?: PortfolioProject;
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
     // 1. Validate inputs using Zod
     const validated = PortfolioProjectSchema.safeParse(data);
@@ -237,11 +280,12 @@ export async function createPortfolioAction(data: PortfolioFormData): Promise<{
       success: true,
       project: mapToFrontend(created),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating portfolio project:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to create portfolio project.";
     return {
       success: false,
-      error: error.message || "Failed to create portfolio project.",
+      error: errMessage,
     };
   }
 }
@@ -257,6 +301,7 @@ export async function updatePortfolioAction(
   project?: PortfolioProject;
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
     // 1. Validate inputs using Zod
     const validated = PortfolioProjectSchema.safeParse(data);
@@ -356,11 +401,12 @@ export async function updatePortfolioAction(
       success: true,
       project: mapToFrontend(updated),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating portfolio project:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to update portfolio project.";
     return {
       success: false,
-      error: error.message || "Failed to update portfolio project.",
+      error: errMessage,
     };
   }
 }
@@ -372,6 +418,7 @@ export async function deletePortfolioAction(id: string): Promise<{
   success: boolean;
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
     const project = await prisma.portfolioProject.findUnique({
       where: { id },
@@ -416,11 +463,12 @@ export async function deletePortfolioAction(id: string): Promise<{
 
     revalidatePath("/admin/cms/portfolio");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting portfolio project:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to delete portfolio project.";
     return {
       success: false,
-      error: error.message || "Failed to delete portfolio project.",
+      error: errMessage,
     };
   }
 }
@@ -433,6 +481,7 @@ export async function duplicatePortfolioAction(id: string): Promise<{
   project?: PortfolioProject;
   error?: string;
 }> {
+  await verifyAdminAuth();
   try {
     const source = await prisma.portfolioProject.findUnique({
       where: { id },
@@ -460,8 +509,6 @@ export async function duplicatePortfolioAction(id: string): Promise<{
       });
       counter++;
     }
-
-    const now = new Date();
 
     // Duplicate project
     const duplicated = await prisma.portfolioProject.create({
@@ -512,11 +559,12 @@ export async function duplicatePortfolioAction(id: string): Promise<{
       success: true,
       project: mapToFrontend(duplicated),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error duplicating portfolio project:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to duplicate project.";
     return {
       success: false,
-      error: error.message || "Failed to duplicate project.",
+      error: errMessage,
     };
   }
 }

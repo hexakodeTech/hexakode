@@ -71,10 +71,11 @@ export async function POST(req: NextRequest) {
       success: true,
       url: data.publicUrl,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Upload error:", error);
+    const errMessage = error instanceof Error ? error.message : "Failed to upload image to Supabase Storage.";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to upload image to Supabase Storage." },
+      { success: false, error: errMessage },
       { status: 500 }
     );
   }

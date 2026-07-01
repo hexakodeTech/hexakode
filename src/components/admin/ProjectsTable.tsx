@@ -131,7 +131,9 @@ export default function ProjectsTable() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    Promise.resolve().then(() => {
+      loadData();
+    });
   }, [loadData]);
 
   // ─── Form Handlers ──────────────────────────────────────────────────────────

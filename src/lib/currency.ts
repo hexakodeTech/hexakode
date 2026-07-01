@@ -28,11 +28,11 @@ export function formatCurrency(value: number | null | undefined, includeSymbol: 
       maximumFractionDigits: 2,
     });
     return formatter.format(value);
-  } catch (error) {
+  } catch {
     // Fail-safe manual formatting if locale is unsupported
     const formattedDec = value.toFixed(2);
     const parts = formattedDec.split('.');
-    let numStr = parts[0];
+    const numStr = parts[0];
     const decStr = parts[1];
 
     let lastThree = numStr.substring(numStr.length - 3);

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PublicProject } from "../../types/portfolio";
 import PortfolioCard from "./PortfolioCard";
 import { fadeUp, staggerContainer } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 
 import Section from "@/components/ui/Section";
 import Container from "@/components/ui/Container";
