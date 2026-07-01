@@ -5,7 +5,7 @@ let supabaseHost = "fmgpntelhwanasrtvhoj.supabase.co";
 if (supabaseUrl) {
   try {
     supabaseHost = new URL(supabaseUrl).hostname;
-  } catch (e) {
+  } catch {
     // Fallback
   }
 }
@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
   },
   images: {
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: "https",
