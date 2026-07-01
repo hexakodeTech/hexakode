@@ -195,7 +195,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
   return (
     <>
       <Navbar />
-      <PortfolioViewTracker projectName={project.title} projectSlug={project.slug} />
+      <PortfolioViewTracker projectName={project.title} projectSlug={project.slug} category={project.category} />
       <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-0">
         
         {/* Hero Section */}

@@ -4,11 +4,12 @@ import { useEffect, useRef } from "react";
 import {
   trackEmailClick,
   trackPhoneClick,
-  trackWhatsAppClick,
+  trackWhatsappClick,
   trackRepositoryClick,
-  trackExternalLinkClick,
+  trackExternalLink,
   trackPortfolioView,
   trackServiceView,
+  trackDownloadFile,
 } from "@/lib/analytics";
 
 /**
@@ -82,6 +83,16 @@ function getProjectName(element: HTMLElement): string {
   return "HexaKode";
 }
 
+/**
+ * Helper to slugify service names.
+ */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export default function AnalyticsTracker() {
   useEffect(() => {
     const handleGlobalClick = (event: MouseEvent) => {
@@ -92,39 +103,62 @@ export default function AnalyticsTracker() {
       const href = anchor.getAttribute("href");
       if (!href) return;
 
-      // 5. Track Email Clicks (mailto:)
+      // 10. Download Tracking (PDF, Brochure, Company Profile, Portfolio PDF)
+      const lowercaseHref = href.toLowerCase();
+      const isDownload =
+        anchor.hasAttribute("download") ||
+        lowercaseHref.endsWith(".pdf") ||
+        lowercaseHref.endsWith(".zip") ||
+        lowercaseHref.endsWith(".docx") ||
+        lowercaseHref.endsWith(".xlsx") ||
+        lowercaseHref.endsWith(".pptx") ||
+        lowercaseHref.includes("/download/");
+
+      if (isDownload) {
+        // Extract filename and type
+        const urlParts = href.split("?")[0].split("/");
+        const fileName =
+          urlParts[urlParts.length - 1] || anchor.textContent?.trim() || "downloaded_file";
+        const fileExtension = fileName.split(".").pop() || "PDF";
+        const fileType = fileExtension.toUpperCase();
+
+        trackDownloadFile(fileName, fileType);
+        return;
+      }
+
+      // 4. Email Tracking (mailto: links)
       if (href.startsWith("mailto:")) {
         const email = href.substring(7).split("?")[0];
         trackEmailClick(email);
         return;
       }
 
-      // 6. Track Phone Clicks (tel:)
+      // 5. Phone Tracking (tel: links)
       if (href.startsWith("tel:")) {
         const phone = href.substring(4).split("?")[0];
         trackPhoneClick(phone);
         return;
       }
 
-      // 4. Track WhatsApp Clicks
+      // 3. WhatsApp Tracking
       if (
         href.includes("wa.me") ||
         href.includes("api.whatsapp.com") ||
         href.includes("whatsapp.com/send")
       ) {
         const location = getButtonLocation(anchor);
-        trackWhatsAppClick(location);
+        trackWhatsappClick(location);
         return;
       }
 
-      // 8. Track Repository Link Clicks (GitHub links)
+      // 7. Repository Tracking (GitHub links)
       if (href.includes("github.com")) {
         const projectName = getProjectName(anchor);
-        trackRepositoryClick(href, projectName);
+        trackRepositoryClick(projectName, href);
         return;
       }
 
-      // 9. Track External Link Clicks
+      // 9. External Link Tracking
       if (
         href.startsWith("http://") ||
         href.startsWith("https://") ||
@@ -135,7 +169,7 @@ export default function AnalyticsTracker() {
           if (url.origin !== window.location.origin) {
             const linkText =
               anchor.textContent?.trim() || anchor.getAttribute("aria-label") || href;
-            trackExternalLinkClick(href, linkText);
+            trackExternalLink(href, linkText);
           }
         } catch {
           // Ignore malformed URL parsing errors
@@ -153,17 +187,19 @@ export default function AnalyticsTracker() {
 }
 
 /**
- * 7. Client-side Tracker for Portfolio Detail Page Views.
+ * 6. Client-side Tracker for Portfolio Detail Page Views.
  * Ensures the event is fired once per mount.
  */
 interface PortfolioViewTrackerProps {
   projectName: string;
   projectSlug: string;
+  category: string;
 }
 
 export function PortfolioViewTracker({
   projectName,
   projectSlug,
+  category,
 }: PortfolioViewTrackerProps) {
   const hasTracked = useRef(false);
 
@@ -171,37 +207,39 @@ export function PortfolioViewTracker({
     if (hasTracked.current) return;
     hasTracked.current = true;
 
-    trackPortfolioView(projectName, projectSlug);
+    trackPortfolioView(projectName, projectSlug, category);
 
     return () => {
       hasTracked.current = false;
     };
-  }, [projectName, projectSlug]);
+  }, [projectName, projectSlug, category]);
 
   return null;
 }
 
 /**
- * 10. Client-side Tracker for Service Page/Section Views.
+ * 8. Client-side Tracker for Service Page/Section Views.
  * Ensures the event is fired once per mount.
  */
 interface ServiceViewTrackerProps {
   serviceName: string;
+  serviceSlug?: string;
 }
 
-export function ServiceViewTracker({ serviceName }: ServiceViewTrackerProps) {
+export function ServiceViewTracker({ serviceName, serviceSlug }: ServiceViewTrackerProps) {
   const hasTracked = useRef(false);
 
   useEffect(() => {
     if (hasTracked.current) return;
     hasTracked.current = true;
 
-    trackServiceView(serviceName);
+    const slug = serviceSlug || slugify(serviceName);
+    trackServiceView(serviceName, slug);
 
     return () => {
       hasTracked.current = false;
     };
-  }, [serviceName]);
+  }, [serviceName, serviceSlug]);
 
   return null;
 }

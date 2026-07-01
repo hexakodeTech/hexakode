@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useCallback } from "react";
+
 // TypeScript declarations for Google Analytics gtag function on window
 declare global {
   interface Window {
@@ -20,25 +22,39 @@ export function sendGAEvent(eventName: string, params?: Record<string, unknown>)
     return;
   }
 
-  // Get current page location dynamically
+  // Get current page location and page title dynamically
   const pageLocation = window.location.href;
+  const pageTitle = document.title;
 
   const eventParams = {
     page_location: pageLocation,
+    page_title: pageTitle,
     ...params,
   };
 
   if (typeof window.gtag === "function") {
     window.gtag("event", eventName, eventParams);
-  } else if (process.env.NODE_ENV === "development") {
-    console.log(`[GA4 Track Event (gtag missing/Dev)] Event: "${eventName}"`, eventParams);
+  }
+
+  // Debug console logging in development mode
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      `GA Event:\nEvent: ${eventName}\nParameters:\n${JSON.stringify(eventParams, null, 2)}`
+    );
   }
 }
 
 /**
- * 2. Track Contact Form Submission
- * Event Name: generate_lead
- * Parameters: form_name: "contact", page_location
+ * Expose general track event function
+ */
+export function trackEvent(eventName: string, params?: Record<string, unknown>) {
+  sendGAEvent(eventName, params);
+}
+
+/**
+ * 1. Contact Form Tracking
+ * Event: generate_lead
+ * Parameters: form_name, page_location, page_title
  */
 export function trackGenerateLead(formName: string = "contact") {
   sendGAEvent("generate_lead", {
@@ -47,9 +63,9 @@ export function trackGenerateLead(formName: string = "contact") {
 }
 
 /**
- * 3. Track Schedule Demo Submission
- * Event Name: schedule_demo
- * Parameters: form_name: "schedule_demo", page_location
+ * 2. Schedule Demo Tracking
+ * Event: schedule_demo
+ * Parameters: form_name, page_location, page_title
  */
 export function trackScheduleDemo(formName: string = "schedule_demo") {
   sendGAEvent("schedule_demo", {
@@ -58,81 +74,154 @@ export function trackScheduleDemo(formName: string = "schedule_demo") {
 }
 
 /**
- * 4. Track WhatsApp Button/Link Clicks
- * Event Name: whatsapp_click
- * Parameters: button_location, page_location
+ * 3. WhatsApp Tracking
+ * Event: whatsapp_click
+ * Parameters: button_location, page_location, page_title
  */
-export function trackWhatsAppClick(buttonLocation: string) {
+export function trackWhatsappClick(buttonLocation: string) {
   sendGAEvent("whatsapp_click", {
     button_location: buttonLocation,
   });
 }
 
+// Alias for capitalization compatibility
+export const trackWhatsAppClick = trackWhatsappClick;
+
 /**
- * 5. Track Email Click (mailto: links)
- * Event Name: email_click
- * Parameters: email, page_location
+ * 4. Email Tracking (mailto: links)
+ * Event: email_click
+ * Parameters: email, page_location, page_title
  */
 export function trackEmailClick(email: string) {
   sendGAEvent("email_click", {
-    email: email,
+    email,
   });
 }
 
 /**
- * 6. Track Phone Number Clicks (tel: links)
- * Event Name: phone_click
- * Parameters: phone, page_location
+ * 5. Phone Tracking (tel: links)
+ * Event: phone_click
+ * Parameters: phone, page_location, page_title
  */
 export function trackPhoneClick(phone: string) {
   sendGAEvent("phone_click", {
-    phone: phone,
+    phone,
   });
 }
 
 /**
- * 7. Track Portfolio Views (fired once per page load)
- * Event Name: portfolio_view
- * Parameters: project_name, project_slug, page_location
+ * 6. Portfolio Tracking (fired once per page load)
+ * Event: portfolio_view
+ * Parameters: project_name, project_slug, category
  */
-export function trackPortfolioView(projectName: string, projectSlug: string) {
+export function trackPortfolioView(projectName: string, projectSlug: string, category: string) {
   sendGAEvent("portfolio_view", {
     project_name: projectName,
     project_slug: projectSlug,
+    category,
   });
 }
 
 /**
- * 8. Track Repository Link Clicks (GitHub links)
- * Event Name: repository_click
- * Parameters: repository_url, project_name, page_location
+ * 7. Repository Tracking
+ * Event: repository_click
+ * Parameters: project_name, repository_url, page_location
  */
-export function trackRepositoryClick(repositoryUrl: string, projectName: string) {
+export function trackRepositoryClick(projectName: string, repositoryUrl: string) {
   sendGAEvent("repository_click", {
-    repository_url: repositoryUrl,
     project_name: projectName,
+    repository_url: repositoryUrl,
   });
 }
 
 /**
- * 9. Track External Link Clicks (when leaving the site)
- * Event Name: external_link_click
+ * 8. Service Tracking (fired once per section/page load)
+ * Event: service_view
+ * Parameters: service_name, service_slug
+ */
+export function trackServiceView(serviceName: string, serviceSlug: string) {
+  sendGAEvent("service_view", {
+    service_name: serviceName,
+    service_slug: serviceSlug,
+  });
+}
+
+/**
+ * 9. External Link Tracking
+ * Event: external_link_click
  * Parameters: destination, link_text, page_location
  */
-export function trackExternalLinkClick(destination: string, linkText: string) {
+export function trackExternalLink(destination: string, linkText: string) {
   sendGAEvent("external_link_click", {
-    destination: destination,
+    destination,
     link_text: linkText,
   });
 }
 
+// Alias for standard naming pattern
+export const trackExternalLinkClick = trackExternalLink;
+
 /**
- * 10. Track Service Page/Section Views (fired once per section load)
- * Event Name: service_view
- * Parameters: service_name, page_location
+ * 10. Download Tracking
+ * Event: download_file
+ * Parameters: file_name, file_type, page_location
  */
-export function trackServiceView(serviceName: string) {
-  sendGAEvent("service_view", {
-    service_name: serviceName,
+export function trackDownloadFile(fileName: string, fileType: string) {
+  sendGAEvent("download_file", {
+    file_name: fileName,
+    file_type: fileType,
+  });
+}
+
+/**
+ * React Hook for component tracking
+ */
+export function useAnalytics() {
+  const track = useCallback((eventName: string, parameters?: Record<string, unknown>) => {
+    sendGAEvent(eventName, parameters);
+  }, []);
+
+  return {
+    track,
+    trackEvent,
+    trackGenerateLead,
+    trackScheduleDemo,
+    trackWhatsappClick,
+    trackWhatsAppClick,
+    trackPhoneClick,
+    trackEmailClick,
+    trackPortfolioView,
+    trackRepositoryClick,
+    trackServiceView,
+    trackExternalLink,
+    trackExternalLinkClick,
+    trackDownloadFile,
+  };
+}
+
+/**
+ * Reusable React Component for tracking clicks on nested elements
+ */
+interface TrackClickProps {
+  eventName: string;
+  parameters?: Record<string, unknown>;
+  children: React.ReactElement<{ onClick?: (e: React.MouseEvent<HTMLElement>) => void }>;
+}
+
+export function TrackClick({ eventName, parameters, children }: TrackClickProps) {
+  const child = React.Children.only(children);
+
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    // Fire GA event
+    sendGAEvent(eventName, parameters);
+
+    // Call child onClick if it was provided
+    if (child.props.onClick) {
+      child.props.onClick(e);
+    }
+  };
+
+  return React.cloneElement(child, {
+    onClick: handleClick,
   });
 }
