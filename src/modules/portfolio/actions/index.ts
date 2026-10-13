@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createSupabaseAdminClient } from "../lib/supabaseAdmin";
 import {
   PortfolioProjectSchema,
@@ -276,6 +276,8 @@ export async function createPortfolioAction(data: PortfolioFormData): Promise<{
     });
 
     revalidatePath("/admin/cms/portfolio");
+    revalidatePath("/portfolio");
+    try { revalidateTag("public-projects", "max"); } catch {}
     return {
       success: true,
       project: mapToFrontend(created),
@@ -397,6 +399,8 @@ export async function updatePortfolioAction(
     });
 
     revalidatePath("/admin/cms/portfolio");
+    revalidatePath("/portfolio");
+    try { revalidateTag("public-projects", "max"); } catch {}
     return {
       success: true,
       project: mapToFrontend(updated),
@@ -462,6 +466,8 @@ export async function deletePortfolioAction(id: string): Promise<{
     }
 
     revalidatePath("/admin/cms/portfolio");
+    revalidatePath("/portfolio");
+    try { revalidateTag("public-projects", "max"); } catch {}
     return { success: true };
   } catch (error: unknown) {
     console.error("Error deleting portfolio project:", error);
@@ -555,6 +561,8 @@ export async function duplicatePortfolioAction(id: string): Promise<{
     });
 
     revalidatePath("/admin/cms/portfolio");
+    revalidatePath("/portfolio");
+    try { revalidateTag("public-projects", "max"); } catch {}
     return {
       success: true,
       project: mapToFrontend(duplicated),

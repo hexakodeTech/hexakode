@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { verifyAdminAuth } from "@/lib/auth/utils";
 import { getBlogs, createBlog } from "@/modules/blog/services/blog.service";
 import { createBlogSchema } from "@/modules/blog/validation/schemas";
@@ -45,6 +46,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: parsed.error.flatten() }, { status: 400 });
     }
     const blog = await createBlog(parsed.data as any);
+    try {
+      revalidateTag("recent-posts", "max");
+      revalidatePath("/", "layout");
+    } catch {}
     return NextResponse.json({ success: true, blog }, { status: 201 });
   } catch (error: any) {
     if (error?.code === "P2002") {

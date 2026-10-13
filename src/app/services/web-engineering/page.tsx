@@ -1,6 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import ServiceLandingPageTemplate from "@/components/services/ServiceLandingPageTemplate";
+import Footer from "@/components/layout/Footer";
 import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.service";
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
@@ -367,6 +368,7 @@ export default async function WebEngineeringPage() {
       benefits={BENEFITS}
       faqs={FAQS}
       projects={mappedProjects}
+      footer={<Footer />}
     />
   );
 }

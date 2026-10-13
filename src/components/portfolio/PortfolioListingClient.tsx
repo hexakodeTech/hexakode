@@ -9,10 +9,18 @@ import PortfolioSkeleton from "@/modules/portfolio/components/public/PortfolioSk
 import EmptyPortfolio from "@/modules/portfolio/components/public/EmptyPortfolio";
 import ErrorState from "@/modules/portfolio/components/public/ErrorState";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
-import Footer from "@/components/layout/Footer";
 import { usePortfolioProjects } from "@/modules/portfolio/hooks/usePortfolioProjects";
+import { PublicProject } from "@/modules/portfolio/types/portfolio";
 
-export default function PortfolioListingClient() {
+interface PortfolioListingClientProps {
+  initialProjects?: PublicProject[];
+  footer?: React.ReactNode;
+}
+
+export default function PortfolioListingClient({
+  initialProjects,
+  footer,
+}: PortfolioListingClientProps = {}) {
   const {
     projects,
     isLoading,
@@ -20,7 +28,7 @@ export default function PortfolioListingClient() {
     activeFilter,
     setActiveFilter,
     retry,
-  } = usePortfolioProjects();
+  } = usePortfolioProjects("all", initialProjects);
 
   // Normalize inputs and filter projects dynamically using useMemo based on the latest projects state
   const filteredProjects = useMemo(() => {
@@ -64,7 +72,7 @@ export default function PortfolioListingClient() {
         {renderContent()}
         <PortfolioCTA />
       </main>
-      <Footer />
+      {footer}
     </>
   );
 }

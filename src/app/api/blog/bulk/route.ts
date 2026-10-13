@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { verifyAdminAuth } from "@/lib/auth/utils";
 import { bulkDeleteBlogs, bulkUpdateBlogStatus } from "@/modules/blog/services/blog.service";
 import { BlogStatus } from "@/modules/blog/types/blog";
@@ -23,6 +24,10 @@ export async function POST(req: NextRequest) {
     } else {
       await bulkUpdateBlogStatus(ids, action === "publish" ? "PUBLISHED" : "DRAFT");
     }
+    try {
+      revalidateTag("recent-posts", "max");
+      revalidatePath("/", "layout");
+    } catch {}
     return NextResponse.json({ success: true, count: ids.length });
   } catch (error) {
     console.error("[POST /api/blog/bulk]", error);

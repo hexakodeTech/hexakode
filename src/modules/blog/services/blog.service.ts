@@ -1,7 +1,53 @@
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 import { GetBlogsParams, GetBlogsResult, CreateBlogInput, UpdateBlogInput } from "@/modules/blog/types/blog";
 import { BlogStatus } from "../../../generated/prisma/client";
 import { calculateReadingTime } from "@/modules/blog/utils/helpers";
+
+export interface FooterRecentPost {
+  id: string;
+  title: string;
+  slug: string;
+  publishedAt?: string | null;
+}
+
+/**
+ * Fetch the 3 most recent published blog posts for the shared footer.
+ * Uses unstable_cache with a 60-second TTL and tag 'recent-posts'
+ * so all pages share the same cached query without unnecessary DB load.
+ */
+export const getRecentPostsForFooter = unstable_cache(
+  async (): Promise<FooterRecentPost[]> => {
+    try {
+      const posts = await prisma.blog.findMany({
+        where: { status: BlogStatus.PUBLISHED },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          publishedAt: true,
+        },
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+      });
+
+      return posts.map((p) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+      }));
+    } catch (error) {
+      console.error("Failed to query recent posts for footer:", error);
+      return [];
+    }
+  },
+  ["footer-recent-posts"],
+  {
+    revalidate: 60,
+    tags: ["recent-posts", "blogs"],
+  }
+);
 
 const blogInclude = {
   category: { select: { id: true, name: true, slug: true } },

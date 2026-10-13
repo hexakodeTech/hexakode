@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ArrowRight, CheckCircle, Globe, Gauge, TrendingDown, ShieldAlert, Smartphone, Activity, Layers, Users, Compass, ShoppingCart, LayoutGrid, EyeOff, Search, ClipboardList, Palette, Code, TestTube, Rocket, Wrench, TrendingUp, Target, Megaphone } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import Section from "../common/Section";
 import Container from "../common/Container";
 import SectionHeading from "../common/SectionHeading";
@@ -89,6 +88,7 @@ export interface ServiceLandingPageTemplateProps {
   
   projects: any[]; // Already filtered by the caller
   otherServices?: { name: string; url: string }[];
+  footer?: React.ReactNode;
 }
 
 const SERVICE_INFOS = {
@@ -153,6 +153,7 @@ export default function ServiceLandingPageTemplate({
   benefits,
   faqs,
   projects,
+  footer,
 }: ServiceLandingPageTemplateProps) {
   const { openDemoModal } = useDemoModal();
   const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(0);
@@ -1125,7 +1126,7 @@ export default function ServiceLandingPageTemplate({
 
       </main>
 
-      <Footer />
+      {footer}
     </>
   );
 }

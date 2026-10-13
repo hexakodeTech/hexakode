@@ -1,6 +1,10 @@
 import React from "react";
 import { Metadata } from "next";
 import PortfolioListingClient from "@/components/portfolio/PortfolioListingClient";
+import Footer from "@/components/layout/Footer";
+import { getPublicPortfolioProjects } from "@/modules/portfolio/services/portfolio.service";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Portfolio | HexaKode Engineering",
@@ -19,7 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PortfolioPage() {
-  return <PortfolioListingClient />;
+export default async function PortfolioPage() {
+  const projects = await getPublicPortfolioProjects();
+  return <PortfolioListingClient initialProjects={projects} footer={<Footer />} />;
 }
 

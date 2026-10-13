@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { PublicProject } from "../types/portfolio";
 
-export function usePortfolioProjects(initialFilter = "all") {
-  const [projects, setProjects] = useState<PublicProject[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export function usePortfolioProjects(initialFilter = "all", initialProjects?: PublicProject[]) {
+  const [projects, setProjects] = useState<PublicProject[]>(initialProjects ?? []);
+  const [isLoading, setIsLoading] = useState<boolean>(initialProjects === undefined);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>(initialFilter);
 
@@ -32,10 +32,12 @@ export function usePortfolioProjects(initialFilter = "all") {
   }, []);
 
   useEffect(() => {
-    Promise.resolve().then(() => {
-      fetchProjects();
-    });
-  }, [fetchProjects]);
+    if (initialProjects === undefined) {
+      Promise.resolve().then(() => {
+        fetchProjects();
+      });
+    }
+  }, [fetchProjects, initialProjects]);
 
   return {
     projects,
