@@ -12,39 +12,23 @@ import CareersFAQ from "@/components/careers/CareersFAQ";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Careers | HexaKode",
   description:
     "Join HexaKode and help build world-class software products. Explore open roles in engineering, design, product, and technology.",
-  alternates: {
-    canonical: "/careers",
-  },
-  openGraph: {
-    title: "Careers | HexaKode",
-    description:
-      "Join HexaKode and help build world-class software products. Explore open roles in engineering, design, product, and technology.",
-    url: "/careers",
-    siteName: "HexaKode",
-    locale: "en_IN",
-    type: "website",
-    images: [
-      {
-        url: "/careers-hero-bg.png",
-        width: 1200,
-        height: 630,
-        alt: "Careers at HexaKode",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Careers | HexaKode",
-    description:
-      "Build world-class software with HexaKode. Explore open roles in engineering, design, and product.",
-    images: ["/careers-hero-bg.png"],
-  },
-  robots: { index: true, follow: true },
-};
+  path: "/careers",
+  image: "/og-image.png",
+  imageAlt: "Careers at HexaKode",
+  keywords: [
+    "Careers at HexaKode",
+    "Engineering Jobs Kerala",
+    "Developer Jobs Palakkad",
+    "Tech Careers",
+    "Software Engineering Jobs",
+  ],
+});
 
 // ─── JSON-LD Organization + JobPosting schema ────────────────────────────────
 

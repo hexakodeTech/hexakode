@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "404 | Page Not Found | HexaKode",
   description:
     "The page you're looking for could not be found. Explore our software development services and return to the HexaKode homepage.",
+  robots: { index: false, follow: false },
 };
 
 export default function NotFound() {

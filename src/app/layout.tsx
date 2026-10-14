@@ -58,7 +58,23 @@ export const metadata: Metadata = {
       "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
     type: "website",
     url: "https://hexakode.in",
+    siteName: "HexaKode",
     locale: "en_US",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "HexaKode — Code That Powers Growth",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HexaKode | Code that powers growth",
+    description:
+      "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
+    images: ["/og-image.png"],
   },
 };
 

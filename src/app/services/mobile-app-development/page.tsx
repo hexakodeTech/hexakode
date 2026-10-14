@@ -6,9 +6,15 @@ import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.ser
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Mobile App Development Company in Kerala | App Developers | HexaKode",
-  description: "Seeking a Mobile App Development Company in Kerala? HexaKode designs high-performance iOS and Android applications using Flutter and clean architecture.",
+  description:
+    "Seeking a Mobile App Development Company in Kerala? HexaKode designs high-performance iOS and Android applications using Flutter and clean architecture.",
+  path: "/services/mobile-app-development",
+  image: "/og-mobile-development.png",
+  imageAlt: "HexaKode Mobile App Development Services",
   keywords: [
     "Mobile App Development Company in Kerala",
     "App Developers Kerala",
@@ -25,10 +31,7 @@ export const metadata: Metadata = {
     "Custom Mobile App Development",
     "React Native Developers",
   ],
-  alternates: {
-    canonical: "/services/mobile-app-development",
-  }
-};
+});
 
 const CHALLENGES = [
   {

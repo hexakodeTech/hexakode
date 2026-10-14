@@ -6,10 +6,15 @@ import { getPublicPortfolioProjects } from "@/modules/portfolio/services/portfol
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Portfolio | HexaKode Engineering",
   description:
     "Explore HexaKode's portfolio of enterprise software, high-performance web systems, intuitive mobile products, and custom UI/UX engineering case studies.",
+  path: "/portfolio",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Software Portfolio and Case Studies",
   keywords: [
     "Software Architecture",
     "Web Engineering",
@@ -18,10 +23,7 @@ export const metadata: Metadata = {
     "Enterprise Solutions",
     "HexaKode Portfolio",
   ],
-  alternates: {
-    canonical: "/portfolio",
-  },
-};
+});
 
 export default async function PortfolioPage() {
   const projects = await getPublicPortfolioProjects();

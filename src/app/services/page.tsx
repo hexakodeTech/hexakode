@@ -7,22 +7,26 @@ import CloudInfrastructureSection from "@/components/services/CloudInfrastructur
 import CTASection from "@/components/services/CTASection";
 import Footer from "@/components/layout/Footer";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Services | HexaKode Engineering",
   description:
     "HexaKode delivers high-performance engineering solutions designed for scale. From cloud-native architectures to intuitive user experiences, explore our web, mobile, design, and API competencies.",
+  path: "/services",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Software & Engineering Services",
   keywords: [
     "Web Engineering",
+    "Website Development",
     "Mobile Apps",
     "UI/UX Design",
+    "Digital Marketing",
     "Cloud Infrastructure",
     "API Development",
     "HexaKode Services",
   ],
-  alternates: {
-    canonical: "/services",
-  },
-};
+});
 
 export default function ServicesPage() {
   return (

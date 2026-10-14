@@ -18,6 +18,8 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+import { constructMetadata } from "@/lib/seo";
+
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
   const post = await getPublishedBlogBySlug(slug).catch(() => null);
@@ -29,30 +31,19 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const canonical = rawCanonical
     ? rawCanonical.replace(/^https?:\/\/www\.hexakode\.in/, "https://hexakode.in")
     : `/blog/${post.slug}`;
-  const ogImage = post.ogImage || post.featuredImage || undefined;
+  const image = post.ogImage || post.featuredImage;
 
-  return {
+  return constructMetadata({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      title,
-      description,
-      url: canonical,
-      type: "article",
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt.toISOString(),
-      authors: [post.authorName],
-      ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      ...(ogImage ? { images: [ogImage] } : {}),
-    },
-    robots: { index: true, follow: true },
-  };
+    path: canonical,
+    image,
+    imageAlt: title,
+    type: "article",
+    publishedTime: post.publishedAt?.toISOString(),
+    modifiedTime: post.updatedAt.toISOString(),
+    authors: [post.authorName],
+  });
 }
 
 export async function generateStaticParams() {

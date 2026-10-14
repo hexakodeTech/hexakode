@@ -6,10 +6,15 @@ import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.ser
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Digital Marketing Company in Kerala | SEO & Ads | HexaKode",
   description:
     "HexaKode provides data-driven Digital Marketing services in Kerala including Technical SEO, Google Ads, Local SEO, Social Media Marketing & conversion campaigns.",
+  path: "/services/digital-marketing",
+  image: "/og-digital-marketing.png",
+  imageAlt: "HexaKode Digital Marketing & Technical SEO Services",
   keywords: [
     "Digital Marketing Kerala",
     "Digital Marketing Company Kerala",
@@ -28,23 +33,7 @@ export const metadata: Metadata = {
     "Digital Growth",
     "Marketing Agency Kerala",
   ],
-  alternates: {
-    canonical: "/services/digital-marketing",
-  },
-  openGraph: {
-    title: "Digital Marketing Company in Kerala | SEO & Ads | HexaKode",
-    description:
-      "Drive qualified leads and accelerate revenue with data-driven SEO, Google Ads, local search, and performance marketing strategies in Kerala.",
-    url: "/services/digital-marketing",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Digital Marketing Company in Kerala | SEO & Ads | HexaKode",
-    description:
-      "Drive qualified leads and accelerate revenue with data-driven SEO, Google Ads, local search, and performance marketing strategies in Kerala.",
-  },
-};
+});
 
 const CHALLENGES = [
   {

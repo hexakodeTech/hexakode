@@ -17,14 +17,25 @@ const ProcessSection = dynamic(() => import("@/components/home/ProcessSection"))
 const CTASection = dynamic(() => import("@/components/home/CTASection"));
 const GoogleReviewCTA = dynamic(() => import("@/components/common/GoogleReviewCTA"));
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "HexaKode | Code that powers growth",
   description:
     "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
-  alternates: {
-    canonical: "/",
-  },
-};
+  path: "/",
+  image: "/og-image.png",
+  imageAlt: "HexaKode — Code That Powers Growth",
+  keywords: [
+    "Software Development",
+    "Web App Development",
+    "Mobile Apps",
+    "UI/UX Design",
+    "API Integrations",
+    "HexaKode",
+    "SaaS Platform",
+  ],
+});
 
 export const revalidate = 3600;
 

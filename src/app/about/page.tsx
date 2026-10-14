@@ -8,13 +8,17 @@ import TeamSection from "../../components/about/TeamSection";
 import TrustMetrics from "../../components/about/TrustMetrics";
 import FinalCTA from "../../components/about/FinalCTA";
 
-export const metadata = {
+import { constructMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = constructMetadata({
   title: "About Us | HexaKode Engineering",
-  description: "We bridge the gap between complex engineering challenges and elegant digital solutions, delivering scalable excellence for global enterprises.",
-  alternates: {
-    canonical: "/about",
-  },
-};
+  description:
+    "We bridge the gap between complex engineering challenges and elegant digital solutions, delivering scalable excellence for global enterprises.",
+  path: "/about",
+  image: "/og-image.png",
+  imageAlt: "About HexaKode Engineering",
+});
 
 export default function AboutPage() {
   return (

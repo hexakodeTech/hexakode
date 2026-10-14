@@ -7,13 +7,17 @@ import FAQSection from "../../components/contact/FAQSection";
 import GoogleReviewCTA from "../../components/common/GoogleReviewCTA";
 import { FAQ_ITEMS } from "../../constants/contact";
 
-export const metadata = {
+import { constructMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = constructMetadata({
   title: "Contact Us | HexaKode Engineering",
-  description: "Ready to engineer excellence? Contact HexaKode to scope your project, hire a dedicated development team, or schedule a free consultation.",
-  alternates: {
-    canonical: "/contact",
-  },
-};
+  description:
+    "Ready to engineer excellence? Contact HexaKode to scope your project, hire a dedicated development team, or schedule a free consultation.",
+  path: "/contact",
+  image: "/og-image.png",
+  imageAlt: "Contact HexaKode Engineering",
+});
 
 const contactJsonLd = {
   "@context": "https://schema.org",

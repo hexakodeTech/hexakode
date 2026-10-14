@@ -14,12 +14,23 @@ import { BlogStatus } from "@/modules/blog/types/blog";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "HexaKode Blog | Engineering & Product Design Insights",
   description:
     "Read the latest articles on web engineering, mobile apps, UI/UX design, technology consulting, and software development insights from the HexaKode team.",
-  alternates: { canonical: "/blog" },
-};
+  path: "/blog",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Blog — Engineering & Product Design Insights",
+  keywords: [
+    "Software Engineering Blog",
+    "Web Development Insights",
+    "Mobile App Architecture",
+    "UI/UX Design Trends",
+    "HexaKode Blog",
+  ],
+});
 
 interface PageProps {
   searchParams: Promise<{

@@ -8,30 +8,16 @@ import { privacyMeta, privacySections } from "@/data/privacy-policy";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Privacy Policy | HexaKode",
   description:
     "Learn how HexaKode collects, uses, stores, and protects your personal information when you visit our website or use our services.",
-  alternates: {
-    canonical: "/privacy-policy",
-  },
-  openGraph: {
-    title: "Privacy Policy | HexaKode",
-    description:
-      "Learn how HexaKode collects, uses, stores, and protects your personal information when you visit our website or use our services.",
-    url: "/privacy-policy",
-    siteName: "HexaKode",
-    locale: "en_IN",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "Privacy Policy | HexaKode",
-    description:
-      "Learn how HexaKode collects, uses, stores, and protects your personal information.",
-  },
-  robots: { index: true, follow: true },
-};
+  path: "/privacy-policy",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Privacy Policy",
+});
 
 // ─── JSON-LD ─────────────────────────────────────────────────────────────────
 

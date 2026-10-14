@@ -91,6 +91,8 @@ export async function generateStaticParams() {
   }));
 }
 
+import { constructMetadata } from "@/lib/seo";
+
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
   const project = await getPublishedProjectBySlug(params.slug);
@@ -98,16 +100,22 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   if (!project) {
     return {
       title: "Project Not Found | HexaKode",
+      robots: { index: false, follow: false },
     };
   }
 
-  return {
-    title: `${project.title} | HexaKode Portfolio`,
-    description: project.shortDescription,
-    alternates: {
-      canonical: `/portfolio/${project.slug}`,
-    },
-  };
+  const title = project.metaTitle || `${project.title} | HexaKode Case Study`;
+  const description = project.metaDescription || project.shortDescription;
+  const image = project.ogImage || project.coverImage;
+
+  return constructMetadata({
+    title,
+    description,
+    path: `/portfolio/${project.slug}`,
+    image,
+    imageAlt: `${project.title} — HexaKode Case Study`,
+    keywords: project.technologies?.map((t) => t.name),
+  });
 }
 
 /**

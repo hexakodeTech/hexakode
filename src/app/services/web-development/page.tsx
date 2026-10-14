@@ -6,9 +6,15 @@ import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.ser
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Website Development & Web Engineering Company in Kerala | HexaKode",
-  description: "Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS.",
+  description:
+    "Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS.",
+  path: "/services/web-development",
+  image: "/og-web-development.png",
+  imageAlt: "HexaKode Website Development & Web Engineering",
   keywords: [
     "Website Development Company in Kerala",
     "Web Engineering Company in Kerala",
@@ -28,23 +34,9 @@ export const metadata: Metadata = {
     "SEO Friendly Web Engineering",
     "Next.js Development Company",
     "Website Development Services Kerala",
-    "Scalable Web Applications"
+    "Scalable Web Applications",
   ],
-  alternates: {
-    canonical: "/services/web-development",
-  },
-  openGraph: {
-    title: "Website Development & Web Engineering Company in Kerala | HexaKode",
-    description: "HexaKode delivers high-performance website development and scalable web engineering solutions designed for business growth using React, Next.js, and headless CMS.",
-    url: "/services/web-development",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Website Development & Web Engineering Company in Kerala | HexaKode",
-    description: "HexaKode delivers high-performance website development and scalable web engineering solutions designed for business growth using React, Next.js, and headless CMS.",
-  },
-};
+});
 
 const CHALLENGES = [
   {

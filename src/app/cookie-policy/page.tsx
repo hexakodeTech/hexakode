@@ -8,30 +8,16 @@ import { cookieMeta, cookieSections } from "@/data/cookie-policy";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Cookie Policy | HexaKode",
   description:
     "Learn how HexaKode uses cookies and similar technologies to improve website functionality, performance, security, and user experience.",
-  alternates: {
-    canonical: "/cookie-policy",
-  },
-  openGraph: {
-    title: "Cookie Policy | HexaKode",
-    description:
-      "Learn how HexaKode uses cookies and similar technologies to improve website functionality, performance, security, and user experience.",
-    url: "/cookie-policy",
-    siteName: "HexaKode",
-    locale: "en_IN",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "Cookie Policy | HexaKode",
-    description:
-      "Learn how HexaKode uses cookies and similar technologies on its website.",
-  },
-  robots: { index: true, follow: true },
-};
+  path: "/cookie-policy",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Cookie Policy",
+});
 
 // ─── JSON-LD ─────────────────────────────────────────────────────────────────
 

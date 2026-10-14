@@ -8,30 +8,16 @@ import { termsMeta, termsSections } from "@/data/terms-of-service";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Terms of Service | HexaKode",
   description:
     "Read the Terms of Service governing the use of HexaKode's website, services, software solutions, and digital platforms.",
-  alternates: {
-    canonical: "/terms-of-service",
-  },
-  openGraph: {
-    title: "Terms of Service | HexaKode",
-    description:
-      "Read the Terms of Service governing the use of HexaKode's website, services, software solutions, and digital platforms.",
-    url: "/terms-of-service",
-    siteName: "HexaKode",
-    locale: "en_IN",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "Terms of Service | HexaKode",
-    description:
-      "Read the Terms of Service governing the use of HexaKode's website and services.",
-  },
-  robots: { index: true, follow: true },
-};
+  path: "/terms-of-service",
+  image: "/og-image.png",
+  imageAlt: "HexaKode Terms of Service",
+});
 
 // ─── JSON-LD ─────────────────────────────────────────────────────────────────
 

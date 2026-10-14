@@ -6,9 +6,15 @@ import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.ser
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "UI UX Design Company in Kerala | UI UX Designers | HexaKode",
-  description: "Looking for a top UI UX Design Company in Kerala? HexaKode creates beautiful, intuitive, and WCAG-accessible digital interfaces in Figma to boost engagement.",
+  description:
+    "Looking for a top UI UX Design Company in Kerala? HexaKode creates beautiful, intuitive, and WCAG-accessible digital interfaces in Figma to boost engagement.",
+  path: "/services/ui-ux-design",
+  image: "/og-ui-ux-design.png",
+  imageAlt: "HexaKode UI/UX and Product Design Services",
   keywords: [
     "UI UX Design Company in Kerala",
     "UI UX Design Company in Palakkad",
@@ -23,12 +29,9 @@ export const metadata: Metadata = {
     "Figma Designers",
     "Product Design Company",
     "UX Research",
-    "UI Design Services Kerala"
+    "UI Design Services Kerala",
   ],
-  alternates: {
-    canonical: "/services/ui-ux-design",
-  }
-};
+});
 
 const CHALLENGES = [
   {
