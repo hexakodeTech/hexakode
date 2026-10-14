@@ -26,13 +26,13 @@ interface CompetencyData {
 
 const COMPETENCIES_DATA: CompetencyData[] = [
   {
-     id: "web-engineering",
-     title: "Web Engineering",
+     id: "web-development",
+     title: "Web Development & Engineering",
      description:
        "We build robust, scalable web applications using modern frameworks that prioritize speed, SEO, and maintainability. Our frontend and backend architectures are decoupled for maximum flexibility.",
      icon: Monitor,
      tags: ["NEXT.JS", "TYPESCRIPT", "PYTHON"],
-     href: "/services/web-engineering",
+     href: "/services/web-development",
      imageSrc:
        "https://lh3.googleusercontent.com/aida-public/AB6AXuB2YxLvd3x5jPAxgZFL6XMO5u3FKnZOqm3Sw5jiYFwt6C_1rbby046caqliXpWGTpjLpPwnIvaeaOmdE4lDZVyZ_sdZvktvMtR48G9PDwq9PdT4z5dmEyDZmvTGdtk0tGLYG3aND_F-CKnXlxCnvDioVyszWJ-5hrLBoAQmefvVnmK51ys89hcKnm770jq6SVjM3Pg-onRL9YM_DO5PLioIGZ3Onw3JrHAYxnPC4ePN8pVa9SN1k4ErAvN0hneQVUTOK8JkgL9fql8e",
      imageAlt: "A high-contrast, professional overhead shot of a clean developer workspace.",

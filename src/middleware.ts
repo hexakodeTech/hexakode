@@ -41,7 +41,14 @@ function isRateLimited(ip: string, actionKey: string, limit: number, windowMs: n
 }
 
 export async function middleware(request: NextRequest) {
-  // Canonical host consolidation: 301 permanent redirect from www.hexakode.in to hexakode.in
+  const pathname = request.nextUrl.pathname;
+
+  // 1. Retired service route consolidation: 301 permanent redirect to /services/web-development
+  if (pathname === '/services/web-engineering' || pathname.startsWith('/services/web-engineering/')) {
+    return NextResponse.redirect(new URL('/services/web-development', 'https://hexakode.in'), { status: 301 });
+  }
+
+  // 2. Canonical host consolidation: 301 permanent redirect from www.hexakode.in to hexakode.in
   const host = request.headers.get('host') || request.nextUrl.host;
   if (host && host.toLowerCase().startsWith('www.hexakode.in')) {
     const url = request.nextUrl.clone();
@@ -51,7 +58,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, { status: 301 });
   }
 
-  const pathname = request.nextUrl.pathname;
   const isPost = request.method === 'POST';
 
   // Apply rate limiting on state-changing (POST) sensitive routes

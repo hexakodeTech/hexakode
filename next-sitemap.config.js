@@ -11,6 +11,8 @@ module.exports = {
         "/studio",
         "/studio/*",
         "/api/*",
+        "/services/web-engineering",
+        "/services/web-engineering/*",
     ],
     robotsTxtOptions: {
         policies: [

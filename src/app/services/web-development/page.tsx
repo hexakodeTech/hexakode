@@ -7,27 +7,43 @@ import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
 export const metadata: Metadata = {
-  title: "Website Development Company in Kerala | Web Designers Kerala | HexaKode",
-  description: "Looking for a premier Web Development Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites using React, Next.js, and headless CMS.",
+  title: "Website Development & Web Engineering Company in Kerala | HexaKode",
+  description: "Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS.",
   keywords: [
     "Website Development Company in Kerala",
+    "Web Engineering Company in Kerala",
     "Website Development Company in Palakkad",
     "Website Development Company Near me",
     "Web Development Company Kerala",
+    "Web Engineering Services Kerala",
     "Website Designers Kerala",
     "Custom Website Development",
+    "Custom Web Engineering",
     "Business Website Development",
+    "Business Web Applications",
     "Corporate Website Development",
     "Responsive Website Design",
     "Professional Website Development",
     "SEO Friendly Website Development",
+    "SEO Friendly Web Engineering",
     "Next.js Development Company",
     "Website Development Services Kerala",
-    "Website Development Company in Palakkad"
+    "Scalable Web Applications"
   ],
   alternates: {
     canonical: "/services/web-development",
-  }
+  },
+  openGraph: {
+    title: "Website Development & Web Engineering Company in Kerala | HexaKode",
+    description: "HexaKode delivers high-performance website development and scalable web engineering solutions designed for business growth using React, Next.js, and headless CMS.",
+    url: "/services/web-development",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Website Development & Web Engineering Company in Kerala | HexaKode",
+    description: "HexaKode delivers high-performance website development and scalable web engineering solutions designed for business growth using React, Next.js, and headless CMS.",
+  },
 };
 
 const CHALLENGES = [
@@ -253,20 +269,24 @@ const BENEFITS = [
 
 const FAQS = [
   {
-    question: "Why does my business need a professional website?",
-    answer: "A professional website acts as your primary digital storefront. It builds trust, communicates your brand value, and ensures that customers looking for your services on Google or social media find a secure, credible platform instead of a broken generic page.",
+    question: "Why does my business need a professional website or web application?",
+    answer: "A professional website or web application acts as your primary digital storefront and operational engine. It builds credibility, communicates your brand value, and ensures that customers looking for your services find a secure, fast, and scalable platform instead of a slow generic template.",
   },
   {
-    question: "How much does website development cost in Kerala?",
-    answer: "The cost of developing a custom website depends entirely on the features, integrations, page volume, and CMS requirements. Custom Next.js projects require dedicated engineering but offer extreme long-term value, high security, and near-zero hosting costs compared to heavy subscription templates.",
+    question: "How much does website development and web engineering cost in Kerala?",
+    answer: "The cost depends on project scope, architecture, integrations, page volume, and headless CMS requirements. Custom Next.js projects require dedicated engineering but offer extreme long-term value, robust security, and minimal hosting overhead compared to bloated subscription-based platforms.",
   },
   {
-    question: "How long does it take to build a custom website?",
-    answer: "Timeline spans depend on complexity. A custom corporate or business landing page project typically takes 2 to 4 weeks. Larger web applications with backend portals, client dashboards, or advanced database integrations may take 6 to 12 weeks from discovery to final deploy.",
+    question: "How long does it take to build a custom website or web platform?",
+    answer: "Timelines depend on scope and complexity. A custom corporate or business landing site typically takes 2 to 4 weeks. Larger web applications with backend portals, client dashboards, or advanced database integrations take 6 to 12 weeks from discovery to production launch.",
   },
   {
     question: "What is the difference between a custom website and a template-based site?",
-    answer: "Template-based websites (like generic WordPress or Wix) contain bloated, pre-written code, resulting in slow load speeds, poor security, and restrictive layout changes. Custom Next.js sites are coded from scratch, resulting in flawless performance, custom designs, robust security, and top-tier SEO flexibility.",
+    answer: "Template-based websites (like generic WordPress or Wix) contain bloated, pre-written code, resulting in slow load speeds, poor security, and restrictive layout changes. Custom Next.js and React sites are coded from scratch, delivering flawless performance, custom UX, robust security, and top-tier SEO flexibility.",
+  },
+  {
+    question: "What is the difference between web design, web development, and web engineering?",
+    answer: "While web design focuses on visual aesthetics and user experience, and basic web development covers building frontend layouts, web engineering applies rigorous software engineering principles—including decoupled micro-architectures, automated CI/CD pipelines, strict type safety with TypeScript, enterprise database modeling, and technical SEO—to ensure web platforms remain maintainable, secure, and lightning-fast as your business scales.",
   },
   {
     question: "Will my website be mobile-friendly and responsive?",
@@ -320,11 +340,11 @@ export default async function WebDevelopmentPage() {
   return (
     <ServiceLandingPageTemplate
       badge="WEB DEVELOPMENT KERALA"
-      h1="Website Development"
-      heroDescription="We build fast, high-performance, and SEO-friendly websites that convert visitors into customers. Leverage our React, Next.js, and headless CMS expertise to grow your digital presence with speed and scale."
-      serviceName="Custom Web Development"
+      h1="Website Development & Engineering"
+      heroDescription="We engineer fast, high-performance, and SEO-friendly websites and scalable web applications that convert visitors into customers. Leverage our React, Next.js, and headless CMS expertise to grow your digital presence with speed and scale."
+      serviceName="Custom Web Development & Engineering"
       serviceUrl="/services/web-development"
-      metaDescription="Looking for a premier Web Development Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites using React, Next.js, and headless CMS."
+      metaDescription="Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS."
       challenges={CHALLENGES}
       whyChooseDesc="At HexaKode, we do not believe in cheap templates. We write bespoke, performance-tuned React and Next.js codes tailored to your business operations."
       whyChoosePoints={WHY_CHOOSE_POINTS}

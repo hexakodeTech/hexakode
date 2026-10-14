@@ -80,6 +80,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/services/web-engineering",
+        destination: "https://hexakode.in/services/web-development",
+        statusCode: 301,
+      },
+      {
+        source: "/services/web-engineering/:path*",
+        destination: "https://hexakode.in/services/web-development",
+        statusCode: 301,
+      },
+      {
         source: "/:path*",
         has: [
           {

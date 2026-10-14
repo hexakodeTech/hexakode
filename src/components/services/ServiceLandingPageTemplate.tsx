@@ -97,11 +97,6 @@ const SERVICE_INFOS = {
     desc: "High-performance web apps built with Next.js & React.",
     iconName: "globe",
   },
-  "/services/web-engineering": {
-    name: "Web Engineering",
-    desc: "High-performance web apps built with Next.js & React.",
-    iconName: "globe",
-  },
   "/services/mobile-app-development": {
     name: "Mobile App Development",
     desc: "Cross-platform Android & iOS apps powered by Flutter.",
@@ -121,7 +116,6 @@ const SERVICE_INFOS = {
 
 const SERVICE_PARAM_MAP: Record<string, string> = {
   "/services/web-development": "website-development",
-  "/services/web-engineering": "web-engineering",
   "/services/mobile-app-development": "mobile-app-development",
   "/services/ui-ux-design": "ui-ux-design",
   "/services/digital-marketing": "digital-marketing",
