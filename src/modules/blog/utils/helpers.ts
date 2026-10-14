@@ -93,6 +93,59 @@ export function extractTableOfContents(htmlContent: string): TocHeading[] {
 }
 
 /**
+ * Injects deterministic id attributes and scroll-margin classes into H2, H3, and H4 tags.
+ * Ensures initial server-rendered HTML matches extractTableOfContents for deep linking, TOC navigation, and SEO.
+ */
+export function injectHeadingIds(htmlContent: string): string {
+  if (!htmlContent) return "";
+  const usedCounts = new Map<string, number>();
+
+  return htmlContent.replace(
+    /<h([234])(\b[^>]*)>([\s\S]*?)<\/h\1>/gi,
+    (match, level, attrs, innerContent) => {
+      const text = innerContent
+        .replace(/<[^>]*>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, " ")
+        .trim();
+
+      if (!text) return match;
+
+      const baseSlug = slugifyHeading(text) || "heading";
+      const count = (usedCounts.get(baseSlug) || 0) + 1;
+      usedCounts.set(baseSlug, count);
+
+      const id = count === 1 ? baseSlug : `${baseSlug}-${count}`;
+
+      let newAttrs = attrs;
+      if (/id=["'][^"']*["']/i.test(newAttrs)) {
+        newAttrs = newAttrs.replace(/id=["'][^"']*["']/i, `id="${id}"`);
+      } else {
+        newAttrs = `${newAttrs} id="${id}"`;
+      }
+
+      if (/class=["'][^"']*["']/i.test(newAttrs)) {
+        newAttrs = newAttrs.replace(
+          /class=["']([^"']*)["']/i,
+          (clsMatch: string, classNames: string) => {
+            if (classNames.includes("scroll-mt-28")) return clsMatch;
+            return `class="${classNames} scroll-mt-28"`;
+          }
+        );
+      } else {
+        newAttrs = `${newAttrs} class="scroll-mt-28"`;
+      }
+
+      return `<h${level}${newAttrs}>${innerContent}</h${level}>`;
+    }
+  );
+}
+
+/**
  * Extract FAQ entries from HTML for JSON-LD FAQPage schema.
  * Looks for question headings followed by paragraph answers.
  */

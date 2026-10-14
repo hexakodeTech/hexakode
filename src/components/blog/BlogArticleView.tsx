@@ -61,9 +61,9 @@ export default function BlogArticleView({
 
   const normalizedTags = useMemo(() => {
     if (!post.tags) return [];
-    return post.tags.map((t: any, idx: number) => {
-      if (t.name) return { id: t.id || `tag-${idx}`, name: t.name };
-      if (t.tag?.name) return { id: t.tagId || `tag-${idx}`, name: t.tag.name };
+    return post.tags.map((t, idx: number) => {
+      if ("name" in t && typeof t.name === "string") return { id: t.id || `tag-${idx}`, name: t.name };
+      if ("tag" in t && t.tag?.name) return { id: t.tagId || `tag-${idx}`, name: t.tag.name };
       return { id: `tag-${idx}`, name: String(t) };
     });
   }, [post.tags]);
@@ -138,7 +138,7 @@ export default function BlogArticleView({
 
             {/* Rich Content Renderer */}
             <div className="mt-2">
-              <HTMLRenderer html={post.content || "<p className='text-slate-400 italic'>No content written yet.</p>"} />
+              <HTMLRenderer html={post.content || "<p class='text-slate-400 italic'>No content written yet.</p>"} />
             </div>
 
             {/* Article Tags */}

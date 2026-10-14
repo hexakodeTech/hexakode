@@ -7,7 +7,6 @@ import ReadingProgress from "@/components/blog/ReadingProgress";
 import BlogArticleView from "@/components/blog/BlogArticleView";
 import {
   getPublishedBlogBySlug,
-  getRelatedBlogs,
   getAllPublishedBlogSlugs,
   incrementBlogViews,
 } from "@/modules/blog/services/blog.service";
@@ -22,7 +21,7 @@ interface PageProps {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
   const post = await getPublishedBlogBySlug(slug).catch(() => null);
-  if (!post) return { title: "Article Not Found | HexaKode" };
+  if (!post) notFound();
 
   const title = post.seoTitle || `${post.title} | HexaKode Blog`;
   const description = post.metaDescription || post.excerpt || "";
