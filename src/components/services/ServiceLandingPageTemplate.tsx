@@ -13,7 +13,7 @@ import ProjectCard from "../common/ProjectCard";
 import PrimaryButton from "../common/PrimaryButton";
 import { cn } from "@/lib/utils";
 import { useDemoModal } from "../common/DemoModal";
-import { MOCK_TESTIMONIALS } from "@/mock-data/testimonials";
+import { Project } from "@/types/home";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 import CTASection from "./CTASection";
 
@@ -86,7 +86,7 @@ export interface ServiceLandingPageTemplateProps {
   benefits: { title: string; desc: string }[];
   faqs: FAQItem[];
   
-  projects: any[]; // Already filtered by the caller
+  projects: Project[]; // Already filtered by the caller
   otherServices?: { name: string; url: string }[];
   footer?: React.ReactNode;
 }
@@ -163,9 +163,6 @@ export default function ServiceLandingPageTemplate({
     setActiveFaqIndex(activeFaqIndex === index ? null : index);
   };
 
-  // Filter mock testimonials to active ones
-  const activeTestimonials = MOCK_TESTIMONIALS.filter((t) => t.status === "Active").slice(0, 3);
-
   // Dynamically calculate related services to display
   const relatedServices = Object.entries(SERVICE_INFOS)
     .filter(([url]) => url !== serviceUrl)
@@ -203,6 +200,7 @@ export default function ServiceLandingPageTemplate({
     "name": "HexaKode",
     "url": "https://www.hexakode.in",
     "logo": "https://www.hexakode.in/logo-icon.png",
+    "telephone": "+91 95398 28694",
     "sameAs": [
       "https://www.linkedin.com/company/hexakode-tech",
       "https://www.instagram.com/hexakodetech"

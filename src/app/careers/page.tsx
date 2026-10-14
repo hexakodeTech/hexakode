@@ -57,6 +57,7 @@ const jsonLd = {
       url: "https://www.hexakode.in",
       logo: "/logo-icon.png",
       email: "contact@hexakode.in",
+      telephone: "+91 95398 28694",
       description:
         "HexaKode is a software engineering company that builds custom web applications, mobile apps, SaaS platforms, and digital solutions.",
       sameAs: [

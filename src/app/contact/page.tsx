@@ -14,9 +14,30 @@ export const metadata = {
   },
 };
 
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Contact Us | HexaKode Engineering",
+  url: "https://www.hexakode.in/contact",
+  description:
+    "Ready to engineer excellence? Contact HexaKode to scope your project, hire a dedicated development team, or schedule a free consultation.",
+  mainEntity: {
+    "@type": "Organization",
+    name: "HexaKode",
+    url: "https://www.hexakode.in",
+    logo: "https://www.hexakode.in/logo-icon.png",
+    email: "contact@hexakode.in",
+    telephone: "+91 95398 28694",
+  },
+};
+
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-on-surface">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <Navbar />
 
       <main className="flex-1 pt-[112px] md:pt-[100px]">

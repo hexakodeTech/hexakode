@@ -47,6 +47,7 @@ const jsonLd = {
     name: "HexaKode",
     url: "https://www.hexakode.in",
     email: "contact@hexakode.in",
+    telephone: "+91 95398 28694",
     logo: { "@type": "ImageObject", url: "/logo-icon.png" },
   },
   dateModified: "2026-06-01",
