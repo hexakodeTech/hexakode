@@ -15,6 +15,7 @@ const enquirySchema = z.object({
   budget: z.string().min(1, { message: "Please select a budget range" }),
   couponCode: z.string().optional().nullable(),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
+  botField: z.string().optional().nullable(),
 });
 
 export type EnquiryInput = z.infer<typeof enquirySchema>;
@@ -23,8 +24,30 @@ export type EnquiryInput = z.infer<typeof enquirySchema>;
  * Submits a new contact form enquiry, writes it to the database,
  * and records an ENQUIRY_CREATED audit log.
  */
-export async function submitEnquiryAction(data: EnquiryInput) {
-  const parsed = enquirySchema.safeParse(data);
+export async function submitEnquiryAction(data: EnquiryInput | FormData) {
+  let raw: Record<string, unknown>;
+  if (typeof FormData !== 'undefined' && data instanceof FormData) {
+    raw = {
+      name: data.get('name') ?? '',
+      email: data.get('email') ?? '',
+      phone: data.get('phone') || null,
+      company: data.get('company') || null,
+      service: data.get('projectType') || data.get('service') || '',
+      budget: data.get('budget') || '',
+      couponCode: data.get('couponCode') || null,
+      message: data.get('message') ?? '',
+      botField: data.get('botField') || null,
+    };
+  } else {
+    raw = data as Record<string, unknown>;
+  }
+
+  // Honeypot spam protection
+  if (raw.botField && String(raw.botField).trim().length > 0) {
+    return { success: true };
+  }
+
+  const parsed = enquirySchema.safeParse(raw);
   if (!parsed.success) {
     return {
       success: false,
@@ -123,9 +146,13 @@ export async function submitEnquiryAction(data: EnquiryInput) {
     }
 
     // Revalidate paths to clear Next.js caches
-    revalidatePath('/admin/dashboard');
-    revalidatePath('/admin/enquiries');
-    revalidatePath('/admin/coupons');
+    try {
+      revalidatePath('/admin/dashboard');
+      revalidatePath('/admin/enquiries');
+      revalidatePath('/admin/coupons');
+    } catch {
+      // Revalidation may fail gracefully outside an active HTTP request context (e.g. testing)
+    }
 
     return { success: true };
   } catch (error: unknown) {

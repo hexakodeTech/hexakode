@@ -289,9 +289,7 @@ export default function ContactGridSection() {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start relative z-10">
-          <React.Suspense fallback={<div className="lg:col-span-8 bg-slate-50/50 rounded-2xl h-[500px] animate-pulse" />}>
-            <ContactForm isDark={isDark} />
-          </React.Suspense>
+          <ContactForm isDark={isDark} />
           <ContactSidebar isDark={isDark} />
         </div>
       </Container>

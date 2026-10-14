@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,9 +15,8 @@ import LoadingOverlay from "../ui/LoadingOverlay";
 import { PROJECT_TYPES, BUDGET_RANGES } from "../../constants/contact";
 import { submitEnquiryAction } from "@/lib/enquiries/actions";
 import { useReferralVerification } from "@/lib/hooks/useReferralVerification";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { trackGenerateLead } from "@/lib/analytics";
-import { useSearchParams } from "next/navigation";
 
 // ── Form schema ─────────────────────────────────────────────────────────
 const contactSchema = z.object({
@@ -31,13 +30,17 @@ const contactSchema = z.object({
     message: "Referral code must have a minimum of 3 characters",
   }),
   message: z.string().min(10, { message: "Project details must be at least 10 characters" }),
+  botField: z.string().optional(),
 });
 
 type ContactFormFields = z.infer<typeof contactSchema>;
 
+
+
 // ── Component ───────────────────────────────────────────────────────────
 export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Overlay loading state — one continuous loading sequence for the entire
   // verify-then-submit flow. Title changes smoothly without hiding overlay.
@@ -48,7 +51,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   >(undefined);
 
   // Guard against double-click / Enter-spam / re-entrant submit calls.
-  const isSubmittingRef = useRef(false);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   // ── Referral verification hook ──────────────────────────────────────
   // All debounce, blur, caching, and race-condition logic is isolated here.
@@ -62,7 +65,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
     setValue,
     setError,
     clearErrors,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ContactFormFields>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -74,26 +77,26 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
       budget: "",
       couponCode: "",
       message: "",
+      botField: "",
     },
   });
 
   // Whether the form is in a busy state (overlay visible or submitting).
-  const isBusy = showOverlay || isSubmittingRef.current;
+  const isBusy = showOverlay || isSubmitting || isSubmittingForm;
 
-  // ── Service Query Param Handler ──────────────────────────────────────
-  const searchParams = useSearchParams();
-  
+  // Sync service preselection from query param on client mount
   useEffect(() => {
-    const serviceParam = searchParams?.get("service");
-    if (serviceParam) {
-      const matchedType = PROJECT_TYPES.find(
-        (t) => t.value === serviceParam
-      );
-      if (matchedType) {
-        setValue("projectType", matchedType.value);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const serviceParam = params.get("service");
+      if (serviceParam) {
+        const matched = PROJECT_TYPES.find((t) => t.value === serviceParam);
+        if (matched) {
+          setValue("projectType", matched.value);
+        }
       }
     }
-  }, [searchParams, setValue]);
+  }, [setValue]);
 
   // ── Referral input handlers ─────────────────────────────────────────
   // onChange: sanitize input, sync with react-hook-form, delegate to hook.
@@ -110,10 +113,11 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
       setValue("couponCode", sanitized, { shouldValidate: false });
       // Clear any previous form-level coupon errors when the user edits.
       clearErrors("couponCode");
+      if (submitError) setSubmitError(null);
       // Delegate change to the verification hook (manages debounce + cache).
       referral.handleChange(sanitized);
     },
-    [setValue, clearErrors, referral]
+    [setValue, clearErrors, referral, submitError]
   );
 
   // onBlur: cancel debounce and verify immediately if needed.
@@ -129,8 +133,16 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
   const onSubmit = useCallback(
     async (data: ContactFormFields) => {
       // Prevent duplicate submissions.
-      if (isSubmittingRef.current) return;
-      isSubmittingRef.current = true;
+      if (isSubmittingForm) return;
+      setIsSubmittingForm(true);
+      setSubmitError(null);
+
+      // Bot honeypot check
+      if (data.botField && data.botField.trim().length > 0) {
+        setIsSubmitted(true);
+        setIsSubmittingForm(false);
+        return;
+      }
 
       const couponValue = data.couponCode?.trim() || "";
       const needsVerification = couponValue.length > 0;
@@ -151,17 +163,17 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
             const errorMsg =
               referral.verificationError || "Invalid referral code.";
             setError("couponCode", { type: "custom", message: errorMsg });
-            isSubmittingRef.current = false;
+            setIsSubmittingForm(false);
             return;
           }
 
           // Verification passed — keep overlay visible, transition the title
           // smoothly to the submission phase.
-          setOverlayTitle("Sending your message...");
+          setOverlayTitle("Sending your enquiry...");
           setOverlayDescription("Almost there...");
         } else {
           // No referral code — show overlay for the submission phase only.
-          setOverlayTitle("Sending your message...");
+          setOverlayTitle("Sending your enquiry...");
           setOverlayDescription(undefined);
           setShowOverlay(true);
         }
@@ -176,13 +188,16 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
           budget: data.budget,
           couponCode: couponValue || null,
           message: data.message,
+          botField: data.botField || null,
         });
 
         if (!result.success) {
           setShowOverlay(false);
-          toast.error(
-            result.error || "Failed to submit enquiry. Please try again."
-          );
+          const errorMsg =
+            result.error ||
+            "We couldn't submit your enquiry right now. Your entered details have been preserved. Please try again.";
+          setSubmitError(errorMsg);
+          toast.error(errorMsg);
           return;
         }
 
@@ -192,18 +207,22 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
         // ── Success ──────────────────────────────────────────────────
         setShowOverlay(false);
         setIsSubmitted(true);
+        setSubmitError(null);
         toast.success(
-          "Thank you for contacting HexaKode. Your enquiry has been received successfully. Our team will respond within 24 business hours."
+          "Thank you for contacting HexaKode! Your enquiry has been submitted successfully."
         );
       } catch (err) {
         console.error("Enquiry submission error:", err);
         setShowOverlay(false);
-        toast.error("An unexpected error occurred. Please try again later.");
+        const errorMsg =
+          "We couldn't submit your enquiry right now. Your entered details have been preserved. Please try again.";
+        setSubmitError(errorMsg);
+        toast.error(errorMsg);
       } finally {
-        isSubmittingRef.current = false;
+        setIsSubmittingForm(false);
       }
     },
-    [referral, setError]
+    [referral, setError, isSubmittingForm]
   );
 
   // ── Form reset (after success state) ────────────────────────────────
@@ -212,6 +231,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
     referral.reset();
     setIsSubmitted(false);
     setShowOverlay(false);
+    setSubmitError(null);
   }, [reset, referral]);
 
   // ── Derive referral field status for display ────────────────────────
@@ -237,7 +257,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
       <div
         id="contact-form"
         className={cn(
-          "lg:col-span-8 p-8 md:p-12 rounded-xl transition-all duration-300 ease-out",
+          "lg:col-span-8 p-8 md:p-12 rounded-xl transition-all duration-300 ease-out scroll-mt-28 md:scroll-mt-36",
           isDark
             ? "glass-form-premium text-white"
             : "glass-card text-on-background border border-outline-variant/10 shadow-sm"
@@ -246,20 +266,54 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
         <AnimatePresence mode="wait">
           {!isSubmitted ? (
             <motion.form
-              key="contact-form"
-              initial={{ opacity: 0 }}
+              key="contact-form-element"
+              initial={false}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-8"
+              aria-busy={isBusy}
               noValidate
             >
+              {/* Submission Error Alert */}
+              {submitError && (
+                <div
+                  role="alert"
+                  aria-live="polite"
+                  className="p-4 rounded-xl bg-error/10 border border-error/25 text-error flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="text-body-sm leading-relaxed">
+                    <p className="font-semibold mb-0.5">Submission failed</p>
+                    <p>{submitError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Bot Honeypot Field */}
+              <div
+                className="hidden"
+                aria-hidden="true"
+                style={{ display: "none" }}
+              >
+                <label htmlFor="botField">Leave this field blank</label>
+                <input
+                  id="botField"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  {...register("botField")}
+                />
+              </div>
+
               {/* Row 1 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput
                   label="Full Name"
                   id="name"
                   placeholder="John Doe"
+                  required={true}
+                  autoComplete="name"
                   error={errors.name?.message}
                   {...register("name")}
                   disabled={isBusy}
@@ -270,6 +324,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   id="email"
                   type="email"
                   placeholder="john@company.com"
+                  required={true}
+                  autoComplete="email"
                   error={errors.email?.message}
                   {...register("email")}
                   disabled={isBusy}
@@ -284,6 +340,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   id="phone"
                   type="tel"
                   placeholder="+1 (555) 000-0000"
+                  required={false}
+                  autoComplete="tel"
                   error={errors.phone?.message}
                   {...register("phone")}
                   disabled={isBusy}
@@ -293,6 +351,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   label="Company Name"
                   id="company"
                   placeholder="HexaKode Engineering"
+                  required={false}
+                  autoComplete="organization"
                   error={errors.company?.message}
                   {...register("company")}
                   disabled={isBusy}
@@ -306,6 +366,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   label="Project Type"
                   id="project_type"
                   placeholder="Select an option"
+                  required={true}
                   options={PROJECT_TYPES}
                   error={errors.projectType?.message}
                   {...register("projectType")}
@@ -316,6 +377,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   label="Estimated Budget"
                   id="budget"
                   placeholder="Select range"
+                  required={true}
                   options={BUDGET_RANGES}
                   error={errors.budget?.message}
                   {...register("budget")}
@@ -331,6 +393,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                     label="Referral Code"
                     id="couponCode"
                     placeholder="Enter referral code (optional)"
+                    required={false}
+                    autoComplete="off"
                     error={referralInlineError ?? undefined}
                     value={referral.referralCode}
                     onChange={handleReferralChange}
@@ -377,7 +441,9 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                 label="Project Details"
                 id="message"
                 placeholder="Tell us about your technical requirements and objectives..."
+                required={true}
                 rows={5}
+                autoComplete="off"
                 error={errors.message?.message}
                 {...register("message")}
                 disabled={isBusy}
@@ -390,8 +456,8 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   type="submit"
                   size="lg"
                   variant={isDark ? undefined : "primary"}
-                  shimmer={true}
-                  magnetic={true}
+                  shimmer={!isBusy}
+                  magnetic={!isBusy}
                   disabled={isBusy}
                   className={cn(
                     "w-full sm:w-auto font-headline-sm px-10 py-4 shadow-md",
@@ -400,7 +466,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                       : "bg-primary text-white disabled:opacity-50"
                   )}
                 >
-                  {isBusy ? "Sending..." : "Send Message"}
+                  {isBusy ? "Sending your enquiry..." : "Send Message"}
                 </PrimaryButton>
                 <p
                   className={cn(
@@ -415,26 +481,16 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
           ) : (
             <motion.div
               key="success-message"
+              role="status"
+              aria-live="polite"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center justify-center py-12 text-center"
             >
-              <div className="w-16 h-16 bg-secondary-container/20 rounded-full flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-secondary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+              <div className="w-16 h-16 bg-secondary-container/20 rounded-full flex items-center justify-center mb-6 text-secondary">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3
                 className={cn(
@@ -442,7 +498,7 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   isDark ? "text-white" : "text-primary"
                 )}
               >
-                Message Sent!
+                Thank you for contacting HexaKode!
               </h3>
               <p
                 className={cn(
@@ -450,9 +506,9 @@ export default function ContactForm({ isDark = false }: { isDark?: boolean }) {
                   isDark ? "text-slate-400" : "text-on-surface-variant"
                 )}
               >
-                Thank you for reaching out. An engineering expert from HexaKode will review your project details and get in touch with you shortly.
+                Your enquiry has been submitted successfully. Our team will review your message and get back to you.
               </p>
-               <PrimaryButton
+              <PrimaryButton
                 onClick={handleReset}
                 variant={isDark ? undefined : "white"}
                 size="md"

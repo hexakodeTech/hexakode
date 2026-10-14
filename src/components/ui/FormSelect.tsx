@@ -13,10 +13,11 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
   placeholder?: string;
   error?: string;
   isDark?: boolean;
+  required?: boolean;
 }
 
 const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
-  ({ label, options, placeholder, error, className, id, onFocus, onBlur, isDark = false, value, defaultValue, ...props }, ref) => {
+  ({ label, options, placeholder, error, className, id, onFocus, onBlur, isDark = false, required, value, defaultValue, ...props }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [selectedValue, setSelectedValue] = useState<string>((value || defaultValue || "") as string);
@@ -106,6 +107,11 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
           }}
         >
           {label}
+          {required && (
+            <span className="text-secondary ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </label>
 
         <div className="relative w-full">
@@ -134,6 +140,10 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
               if (props.onChange) props.onChange(e);
             }}
             className="sr-only"
+            required={required}
+            aria-required={required ? "true" : undefined}
+            aria-invalid={error ? "true" : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
             {...props}
           >
             {placeholder && (
@@ -159,6 +169,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             onKeyDown={handleKeyDown}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
+            aria-describedby={error ? `${id}-error` : undefined}
             className={cn(
               "w-full border rounded-lg pl-4 pr-10 py-3 font-body-md text-left transition-all outline-none appearance-none cursor-pointer duration-250 ease-out flex items-center justify-between",
               isDark
@@ -228,7 +239,13 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
         </div>
 
         {error && (
-          <span className="text-error font-body-sm mt-1 text-left">{error}</span>
+          <span
+            id={`${id}-error`}
+            role="alert"
+            className="text-error font-body-sm mt-1 text-left"
+          >
+            {error}
+          </span>
         )}
       </div>
     );

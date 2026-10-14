@@ -5,10 +5,11 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
   label: string;
   error?: string;
   isDark?: boolean;
+  required?: boolean;
 }
 
 const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ label, error, className, id, onFocus, onBlur, isDark = false, ...props }, ref) => {
+  ({ label, error, className, id, onFocus, onBlur, isDark = false, required, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
 
     const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
@@ -35,10 +36,19 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           )}
         >
           {label}
+          {required && (
+            <span className="text-secondary ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </label>
         <textarea
           id={id}
           ref={ref}
+          required={required}
+          aria-required={required ? "true" : undefined}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           onFocus={handleFocus}
           onBlur={handleBlur}
           className={cn(
@@ -52,7 +62,13 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           {...props}
         />
         {error && (
-          <span className="text-error font-body-sm mt-1 text-left">{error}</span>
+          <span
+            id={`${id}-error`}
+            role="alert"
+            className="text-error font-body-sm mt-1 text-left"
+          >
+            {error}
+          </span>
         )}
       </div>
     );
