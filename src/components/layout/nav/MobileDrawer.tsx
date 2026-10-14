@@ -235,14 +235,14 @@ export default function MobileDrawer({ isOpen, onClose, pathname }: MobileDrawer
               {/* Social Media Links */}
               <div className="flex items-center justify-center gap-4 mt-3.5">
                 <a
-                  href="mailto:hello@hexakode.com"
+                  href="mailto:contact@hexakode.in"
                   className="p-2.5 rounded-full hover:bg-slate-100 text-on-surface-variant/80 hover:text-secondary transition-all flex items-center justify-center"
                   aria-label="Email Us"
                 >
                   <Mail className="w-4.5 h-4.5" />
                 </a>
                 <a
-                  href="https://linkedin.com/company/hexakode"
+                  href="https://in.linkedin.com/company/hexakodeteh"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full hover:bg-slate-100 text-on-surface-variant/80 hover:text-secondary transition-all flex items-center justify-center"
@@ -253,7 +253,7 @@ export default function MobileDrawer({ isOpen, onClose, pathname }: MobileDrawer
                   </svg>
                 </a>
                 <a
-                  href="https://instagram.com/hexakode"
+                  href="https://www.instagram.com/hexakode_tech/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full hover:bg-slate-100 text-on-surface-variant/80 hover:text-secondary transition-all flex items-center justify-center"
@@ -266,7 +266,7 @@ export default function MobileDrawer({ isOpen, onClose, pathname }: MobileDrawer
                   </svg>
                 </a>
                 <a
-                  href="https://facebook.com/hexakode"
+                  href="https://www.facebook.com/profile.php?id=61589246312714"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full hover:bg-slate-100 text-on-surface-variant/80 hover:text-secondary transition-all flex items-center justify-center"
@@ -277,7 +277,7 @@ export default function MobileDrawer({ isOpen, onClose, pathname }: MobileDrawer
                   </svg>
                 </a>
                 <a
-                  href="https://x.com/hexakode"
+                  href="https://x.com/HexaKode98190"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full hover:bg-slate-100 text-on-surface-variant/80 hover:text-secondary transition-all flex items-center justify-center"

@@ -28,11 +28,11 @@ const contactJsonLd = {
     "Ready to engineer excellence? Contact HexaKode to scope your project, hire a dedicated development team, or schedule a free consultation.",
   mainEntity: {
     "@type": "Organization",
+    "@id": "https://hexakode.in/#organization",
     name: "HexaKode",
     url: "https://hexakode.in",
-    logo: "https://hexakode.in/logo-icon.png",
-    email: "contact@hexakode.in",
     telephone: "+91 95398 28694",
+    email: "contact@hexakode.in",
   },
 };
 
@@ -54,11 +54,11 @@ export default function ContactPage() {
     <div className="flex flex-col min-h-screen bg-background text-on-surface">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd).replace(/</g, "\\u003c") }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }}
       />
       <Navbar />
 

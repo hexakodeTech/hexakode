@@ -110,3 +110,83 @@ export function constructMetadata({
     robots: robots || { index: true, follow: true },
   };
 }
+
+export const ORGANIZATION_ID = `${SITE_URL}/#organization`;
+export const WEBSITE_ID = `${SITE_URL}/#website`;
+
+/**
+ * Safely serialize JSON-LD structured data escaping angle brackets to prevent XSS.
+ */
+export function safeJsonLdStringify(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+/**
+ * Authoritative sitewide JSON-LD describing HexaKode as an Organization
+ * and ProfessionalService, plus the primary WebSite entity.
+ */
+export function getSitewideJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["Organization", "ProfessionalService"],
+        "@id": ORGANIZATION_ID,
+        name: "HexaKode",
+        alternateName: "HexaKode Engineering",
+        url: SITE_URL,
+        logo: `${SITE_URL}/logo.png`,
+        image: `${SITE_URL}/og-image.png`,
+        description:
+          "HexaKode is a premier software engineering company and professional services provider specializing in custom web applications, mobile apps, UI/UX design, and digital marketing.",
+        slogan: "Code That Powers Growth",
+        telephone: "+91 95398 28694",
+        email: "contact@hexakode.in",
+        address: {
+          "@type": "PostalAddress",
+          addressRegion: "Kerala",
+          addressCountry: "IN",
+        },
+        areaServed: [
+          {
+            "@type": "State",
+            name: "Kerala",
+            alternateName: "KL",
+          },
+          {
+            "@type": "Country",
+            name: "India",
+          },
+        ],
+        sameAs: [
+          "https://in.linkedin.com/company/hexakodeteh",
+          "https://www.instagram.com/hexakode_tech/",
+          "https://www.facebook.com/profile.php?id=61589246312714",
+          "https://x.com/HexaKode98190",
+          "https://github.com/hexakode",
+        ],
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            telephone: "+91 95398 28694",
+            contactType: "customer service",
+            email: "contact@hexakode.in",
+            areaServed: ["IN", "Worldwide"],
+            availableLanguage: ["en", "ml"],
+          },
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": WEBSITE_ID,
+        url: SITE_URL,
+        name: "HexaKode",
+        description: "Code That Powers Growth",
+        publisher: {
+          "@id": ORGANIZATION_ID,
+        },
+        inLanguage: "en",
+      },
+    ],
+  };
+}

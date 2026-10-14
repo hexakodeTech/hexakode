@@ -34,33 +34,17 @@ export const metadata: Metadata = constructMetadata({
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      name: "HexaKode",
-      url: "https://hexakode.in",
-      logo: "/logo-icon.png",
-      email: "contact@hexakode.in",
-      telephone: "+91 95398 28694",
-      description:
-        "HexaKode is a software engineering company that builds custom web applications, mobile apps, SaaS platforms, and digital solutions.",
-      sameAs: [
-        "https://www.linkedin.com/company/hexakode",
-        "https://twitter.com/hexakode",
-      ],
-    },
-    {
-      "@type": "WebPage",
-      name: "Careers — HexaKode",
-      url: "/careers",
-      description:
-        "Explore open engineering, design, and product roles at HexaKode.",
-      publisher: {
-        "@type": "Organization",
-        name: "HexaKode",
-      },
-    },
-  ],
+  "@type": "WebPage",
+  name: "Careers — HexaKode",
+  url: "https://hexakode.in/careers",
+  description:
+    "Explore open engineering, design, and product roles at HexaKode.",
+  publisher: {
+    "@type": "Organization",
+    "@id": "https://hexakode.in/#organization",
+    name: "HexaKode",
+    url: "https://hexakode.in",
+  },
 };
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -70,7 +54,7 @@ export default function CareersPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
       <div className="flex flex-col min-h-screen">

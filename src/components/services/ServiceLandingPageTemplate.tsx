@@ -176,9 +176,9 @@ export default function ServiceLandingPageTemplate({
     "name": serviceName,
     "provider": {
       "@type": "Organization",
+      "@id": "https://hexakode.in/#organization",
       "name": "HexaKode",
-      "url": "https://hexakode.in",
-      "logo": "https://hexakode.in/logo-icon.png"
+      "url": "https://hexakode.in"
     },
     "description": metaDescription,
     "areaServed": {
@@ -186,19 +186,6 @@ export default function ServiceLandingPageTemplate({
       "name": "Kerala",
       "alternateName": "KL"
     }
-  };
-
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "HexaKode",
-    "url": "https://hexakode.in",
-    "logo": "https://hexakode.in/logo-icon.png",
-    "telephone": "+91 95398 28694",
-    "sameAs": [
-      "https://www.linkedin.com/company/hexakode-tech",
-      "https://www.instagram.com/hexakodetech"
-    ]
   };
 
   const breadcrumbSchema = {
@@ -244,11 +231,7 @@ export default function ServiceLandingPageTemplate({
       {/* Dynamic JSON-LD Structured Data Injection */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema).replace(/</g, "\\u003c") }}
       />
       <script
         type="application/ld+json"

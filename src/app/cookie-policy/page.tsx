@@ -30,11 +30,9 @@ const jsonLd = {
   url: "/cookie-policy",
   publisher: {
     "@type": "Organization",
+    "@id": "https://hexakode.in/#organization",
     name: "HexaKode",
     url: "https://hexakode.in",
-    email: "contact@hexakode.in",
-    telephone: "+91 95398 28694",
-    logo: { "@type": "ImageObject", url: "/logo-icon.png" },
   },
   dateModified: "2026-06-01",
   inLanguage: "en",
@@ -47,7 +45,7 @@ export default function CookiePolicyPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="flex flex-col min-h-screen">
         <Navbar />

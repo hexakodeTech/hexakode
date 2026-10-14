@@ -76,8 +76,10 @@ export default async function BlogDetailPage(props: PageProps) {
     author: { "@type": "Person", name: post.authorName },
     publisher: {
       "@type": "Organization",
+      "@id": "https://hexakode.in/#organization",
       name: "HexaKode",
-      logo: { "@type": "ImageObject", url: "/logo.svg" },
+      url: "https://hexakode.in",
+      logo: { "@type": "ImageObject", url: "https://hexakode.in/logo.png" },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
   };
@@ -121,9 +123,9 @@ export default async function BlogDetailPage(props: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }} />
+      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />}
 
       <Navbar />
       <ReadingProgress />

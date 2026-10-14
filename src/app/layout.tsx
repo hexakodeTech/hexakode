@@ -82,18 +82,20 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 import { DemoModalProvider } from "@/components/common/DemoModal";
 import { Toaster } from "sonner";
 import AnalyticsProvider from "@/components/common/AnalyticsProvider";
+import { getSitewideJsonLd, safeJsonLdStringify } from "@/lib/seo";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const sitewideJsonLd = getSitewideJsonLd();
+
   return (
     <html
       lang="en"
@@ -101,6 +103,14 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${zenDots.variable} ${kalam.variable} ${poppins.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLdStringify(sitewideJsonLd),
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background font-sans text-on-background antialiased">
         <DemoModalProvider>
           {children}
