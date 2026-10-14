@@ -41,7 +41,7 @@ interface BlogArticleViewProps {
 export default function BlogArticleView({
   post,
   isPreview = false,
-  pageUrl = "https://www.hexakode.in/blog/preview",
+  pageUrl = "https://hexakode.in/blog/preview",
 }: BlogArticleViewProps) {
   const displayTitle = post.title || "Untitled Article";
   const displayImage =

@@ -99,7 +99,7 @@ export default function BlogLivePreview({
 
   const readingTime = calculateReadingTime(post.content || "");
   const pageSlug = post.slug || "your-article-slug";
-  const previewUrl = `https://www.hexakode.in/blog/${pageSlug}`;
+  const previewUrl = `https://hexakode.in/blog/${pageSlug}`;
   const displaySeoTitle = post.seoTitle || post.title || "Article Title";
   const displaySeoDesc =
     post.metaDescription || post.excerpt || "Article preview description will appear here as search result snippet.";

@@ -77,6 +77,21 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "20mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.hexakode.in",
+          },
+        ],
+        destination: "https://hexakode.in/:path*",
+        statusCode: 301,
+      },
+    ];
+  },
   async headers() {
     return [
       {

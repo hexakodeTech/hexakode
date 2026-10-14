@@ -183,8 +183,8 @@ export default function ServiceLandingPageTemplate({
     "provider": {
       "@type": "Organization",
       "name": "HexaKode",
-      "url": "https://www.hexakode.in",
-      "logo": "https://www.hexakode.in/logo-icon.png"
+      "url": "https://hexakode.in",
+      "logo": "https://hexakode.in/logo-icon.png"
     },
     "description": metaDescription,
     "areaServed": {
@@ -198,8 +198,8 @@ export default function ServiceLandingPageTemplate({
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "HexaKode",
-    "url": "https://www.hexakode.in",
-    "logo": "https://www.hexakode.in/logo-icon.png",
+    "url": "https://hexakode.in",
+    "logo": "https://hexakode.in/logo-icon.png",
     "telephone": "+91 95398 28694",
     "sameAs": [
       "https://www.linkedin.com/company/hexakode-tech",
@@ -215,19 +215,19 @@ export default function ServiceLandingPageTemplate({
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://www.hexakode.in"
+        "item": "https://hexakode.in"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Services",
-        "item": "https://www.hexakode.in/services"
+        "item": "https://hexakode.in/services"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": serviceName,
-        "item": `https://www.hexakode.in${serviceUrl}`
+        "item": `https://hexakode.in${serviceUrl}`
       }
     ]
   };

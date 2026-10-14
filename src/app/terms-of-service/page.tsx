@@ -45,7 +45,7 @@ const jsonLd = {
   publisher: {
     "@type": "Organization",
     name: "HexaKode",
-    url: "https://www.hexakode.in",
+    url: "https://hexakode.in",
     email: "contact@hexakode.in",
     telephone: "+91 95398 28694",
     logo: { "@type": "ImageObject", url: "/logo-icon.png" },

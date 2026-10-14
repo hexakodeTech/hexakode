@@ -493,8 +493,8 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
               <a href="mailto:contact@hexakode.in" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
                 contact@hexakode.in
               </a>
-              <a href="https://www.hexakode.in" target="_blank" rel="noopener noreferrer" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                www.hexakode.in
+              <a href="https://hexakode.in" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
+                hexakode.in
               </a>
             </div>
           </div>

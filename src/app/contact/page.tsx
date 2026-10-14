@@ -19,14 +19,14 @@ const contactJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
   name: "Contact Us | HexaKode Engineering",
-  url: "https://www.hexakode.in/contact",
+  url: "https://hexakode.in/contact",
   description:
     "Ready to engineer excellence? Contact HexaKode to scope your project, hire a dedicated development team, or schedule a free consultation.",
   mainEntity: {
     "@type": "Organization",
     name: "HexaKode",
-    url: "https://www.hexakode.in",
-    logo: "https://www.hexakode.in/logo-icon.png",
+    url: "https://hexakode.in",
+    logo: "https://hexakode.in/logo-icon.png",
     email: "contact@hexakode.in",
     telephone: "+91 95398 28694",
   },

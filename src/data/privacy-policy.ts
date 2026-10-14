@@ -4,7 +4,7 @@ export const privacyMeta: PolicyMeta = {
   title: "Privacy Policy",
   lastUpdated: "June 2026",
   company: "HexaKode",
-  website: "https://www.hexakode.in",
+  website: "https://hexakode.in",
   email: "contact@hexakode.in",
 };
 
@@ -220,8 +220,8 @@ export const privacySections: PolicySection[] = [
       },
       {
         type: "link",
-        text: "www.hexakode.in",
-        href: "https://www.hexakode.in",
+        text: "hexakode.in",
+        href: "https://hexakode.in",
       },
     ],
   },

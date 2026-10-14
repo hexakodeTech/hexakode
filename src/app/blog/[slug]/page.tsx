@@ -25,7 +25,10 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   const title = post.seoTitle || `${post.title} | HexaKode Blog`;
   const description = post.metaDescription || post.excerpt || "";
-  const canonical = post.canonicalUrl || `/blog/${post.slug}`;
+  const rawCanonical = post.canonicalUrl?.trim();
+  const canonical = rawCanonical
+    ? rawCanonical.replace(/^https?:\/\/www\.hexakode\.in/, "https://hexakode.in")
+    : `/blog/${post.slug}`;
   const ogImage = post.ogImage || post.featuredImage || undefined;
 
   return {
@@ -89,7 +92,7 @@ export default async function BlogDetailPage(props: PageProps) {
   };
 
   // Breadcrumb JSON-LD
-  const SITE_URL = "https://www.hexakode.in";
+  const SITE_URL = "https://hexakode.in";
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
