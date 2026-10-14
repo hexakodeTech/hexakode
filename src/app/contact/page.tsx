@@ -5,6 +5,7 @@ import ContactHero from "../../components/contact/ContactHero";
 import ContactGridSection from "../../components/contact/ContactGridSection";
 import FAQSection from "../../components/contact/FAQSection";
 import GoogleReviewCTA from "../../components/common/GoogleReviewCTA";
+import { FAQ_ITEMS } from "../../constants/contact";
 
 export const metadata = {
   title: "Contact Us | HexaKode Engineering",
@@ -31,12 +32,29 @@ const contactJsonLd = {
   },
 };
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
+
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-on-surface">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <Navbar />
 

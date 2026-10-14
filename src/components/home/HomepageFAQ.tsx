@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Section from "../common/Section";
 import Container from "../common/Container";
@@ -98,7 +98,7 @@ const FAQ_ITEMS = [
     answerText: "Simply book a free consultation or contact us through our website. We'll discuss your goals, understand your requirements, and recommend the best solution for your business.",
     answer: (
       <span>
-        Simply book a free consultation or contact us through our website. We'll discuss your goals, understand your requirements, and recommend the best solution for your business.
+        Simply book a free consultation or contact us through our website. We&apos;ll discuss your goals, understand your requirements, and recommend the best solution for your business.
       </span>
     ),
   },
@@ -161,52 +161,37 @@ export default function HomepageFAQ() {
             {FAQ_ITEMS.map((item, idx) => {
               const isOpen = activeIndex === idx;
               return (
-                <div
+                <details
                   key={idx}
-                  className="rounded-xl border border-outline-variant/30 bg-white/70 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-secondary/35 shadow-sm"
+                  name="homepage-faq"
+                  open={isOpen}
+                  className="group rounded-xl border border-outline-variant/30 bg-white/70 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-secondary/35 shadow-sm open:border-secondary/40"
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleAccordion(idx)}
+                  <summary
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleAccordion(idx);
+                    }}
                     id={`faq-btn-${idx}`}
-                    aria-expanded={isOpen}
                     aria-controls={`faq-content-${idx}`}
-                    className="w-full flex justify-between items-center px-6 py-5 text-left font-headline-sm text-[16px] md:text-[18px] font-semibold text-navy-dark hover:text-primary transition-colors cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:bg-secondary/5 rounded-t-xl"
+                    className="w-full flex justify-between items-center px-6 py-5 text-left font-headline-sm text-[16px] md:text-[18px] font-semibold text-navy-dark hover:text-primary transition-colors cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:bg-secondary/5 list-none [&::-webkit-details-marker]:hidden"
                   >
-                    <span>{item.question}</span>
+                    <span className="pr-4">{item.question}</span>
                     <ChevronDown
-                      className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ease-in-out ${
-                        isOpen ? "rotate-180 text-secondary" : ""
-                      }`}
+                      className="w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ease-in-out group-open:rotate-180 group-open:text-secondary"
+                      aria-hidden="true"
                     />
-                  </button>
+                  </summary>
 
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        id={`faq-content-${idx}`}
-                        role="region"
-                        aria-labelledby={`faq-btn-${idx}`}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{
-                          height: "auto",
-                          opacity: 1,
-                          transition: { height: { duration: 0.35, ease: "easeOut" }, opacity: { duration: 0.25 } }
-                        }}
-                        exit={{
-                          height: 0,
-                          opacity: 0,
-                          transition: { height: { duration: 0.3, ease: "easeIn" }, opacity: { duration: 0.2 } }
-                        }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-6 pb-6 pt-1 text-on-surface-variant font-body-md leading-relaxed border-t border-outline-variant/10 bg-slate-50/20">
-                          {item.answer}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                  <div
+                    id={`faq-content-${idx}`}
+                    role="region"
+                    aria-labelledby={`faq-btn-${idx}`}
+                    className="px-6 pb-6 pt-1 text-on-surface-variant font-body-md leading-relaxed border-t border-outline-variant/10 bg-slate-50/20"
+                  >
+                    {item.answer}
+                  </div>
+                </details>
               );
             })}
           </motion.div>
