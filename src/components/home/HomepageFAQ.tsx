@@ -8,11 +8,12 @@ import Container from "../common/Container";
 import SectionHeading from "../common/SectionHeading";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 import Link from "next/link";
+import { constructFaqPageJsonLd, safeJsonLdStringify } from "@/lib/seo";
 
 const FAQ_ITEMS = [
   {
     question: "What services does HexaKode provide?",
-    answerText: "We design and develop custom websites, mobile applications, business management systems, enterprise software, UI/UX solutions, and cloud-based digital products tailored to your business needs.",
+    answerText: "We design and develop custom websites, high-performance mobile applications, business management systems, enterprise software, custom UI/UX solutions, and cloud-based digital products tailored to your business needs.",
     answer: (
       <span>
         We design and develop custom{" "}
@@ -112,25 +113,20 @@ export default function HomepageFAQ() {
   };
 
   // Generate structured FAQ JSON-LD data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": FAQ_ITEMS.map((item) => ({
-      "@type": "Question",
-      "name": item.question,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": item.answerText,
-      },
+  const faqJsonLd = constructFaqPageJsonLd({
+    path: "/",
+    faqs: FAQ_ITEMS.map((item) => ({
+      question: item.question,
+      answer: item.answerText,
     })),
-  };
+  });
 
   return (
     <Section id="faq" variant="muted" spacing="large" className="border-b border-outline-variant/30">
       {/* JSON-LD Schema structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(faqJsonLd) }}
       />
 
       {/* Subtle absolute glowing decorative graphic */}

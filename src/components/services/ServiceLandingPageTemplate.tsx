@@ -16,7 +16,7 @@ import { useDemoModal } from "../common/DemoModal";
 import { Project } from "@/types/home";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 import CTASection from "./CTASection";
-import { constructServiceJsonLd, safeJsonLdStringify } from "@/lib/seo";
+import { constructServiceJsonLd, constructFaqPageJsonLd, safeJsonLdStringify } from "@/lib/seo";
 
 export interface Challenge {
   title: string;
@@ -227,18 +227,13 @@ export default function ServiceLandingPageTemplate({
     ]
   };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqs.map((faq) => ({
-      "@type": "Question",
-      "name": faq.question,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": faq.answer
-      }
-    }))
-  };
+  const faqSchema = constructFaqPageJsonLd({
+    path: serviceUrl,
+    faqs: faqs.map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+    })),
+  });
 
   return (
     <>

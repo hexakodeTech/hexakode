@@ -309,3 +309,42 @@ export function constructBlogPostingJsonLd({
     image: getAbsoluteImageUrl(image),
   };
 }
+
+export interface FaqItemOption {
+  question: string;
+  answer: string;
+}
+
+export interface FaqPageJsonLdOptions {
+  path: string;
+  faqs: FaqItemOption[];
+}
+
+/**
+ * Builds page-specific FAQPage JSON-LD.
+ */
+export function constructFaqPageJsonLd({
+  path,
+  faqs,
+}: FaqPageJsonLdOptions) {
+  const canonicalUrl = getCanonicalUrl(path);
+  const faqPageId = path === "/" || canonicalUrl === SITE_URL
+    ? `${SITE_URL}/#faq`
+    : `${canonicalUrl}#faq`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": faqPageId,
+    url: canonicalUrl,
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+

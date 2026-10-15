@@ -7,7 +7,7 @@ import FAQSection from "../../components/contact/FAQSection";
 import GoogleReviewCTA from "../../components/common/GoogleReviewCTA";
 import { FAQ_ITEMS } from "../../constants/contact";
 
-import { constructMetadata } from "@/lib/seo";
+import { constructMetadata, constructFaqPageJsonLd, safeJsonLdStringify } from "@/lib/seo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
@@ -36,29 +36,24 @@ const contactJsonLd = {
   },
 };
 
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ_ITEMS.map((faq) => ({
-    "@type": "Question",
-    name: faq.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: faq.answer,
-    },
+const faqJsonLd = constructFaqPageJsonLd({
+  path: "/contact",
+  faqs: FAQ_ITEMS.map((faq) => ({
+    question: faq.question,
+    answer: faq.answer,
   })),
-};
+});
 
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-on-surface">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(contactJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(faqJsonLd) }}
       />
       <Navbar />
 
