@@ -18,7 +18,12 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-import { constructMetadata } from "@/lib/seo";
+import {
+  constructMetadata,
+  constructBlogPostingJsonLd,
+  safeJsonLdStringify,
+  SITE_URL,
+} from "@/lib/seo";
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
@@ -64,28 +69,18 @@ export default async function BlogDetailPage(props: PageProps) {
   const pageUrl = `/blog/${post.slug}`;
   const displayImage = post.featuredImage || "/images/blog-placeholder.svg";
 
-  // Article JSON-LD
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
+  // BlogPosting JSON-LD
+  const blogPostingJsonLd = constructBlogPostingJsonLd({
+    slug: post.slug,
     headline: post.title,
     description: post.excerpt || post.metaDescription,
+    datePublished: post.publishedAt || post.createdAt,
+    dateModified: post.updatedAt || post.publishedAt || post.createdAt,
+    authorName: post.authorName,
     image: displayImage,
-    datePublished: post.publishedAt?.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: { "@type": "Person", name: post.authorName },
-    publisher: {
-      "@type": "Organization",
-      "@id": "https://hexakode.in/#organization",
-      name: "HexaKode",
-      url: "https://hexakode.in",
-      logo: { "@type": "ImageObject", url: "https://hexakode.in/logo.png" },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
-  };
+  });
 
   // Breadcrumb JSON-LD
-  const SITE_URL = "https://hexakode.in";
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -94,18 +89,19 @@ export default async function BlogDetailPage(props: PageProps) {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: new URL("/", SITE_URL).toString(),
+        item: SITE_URL,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Blog",
-        item: new URL("/blog", SITE_URL).toString(),
+        item: `${SITE_URL}/blog`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: post.title,
+        item: `${SITE_URL}/blog/${post.slug}`,
       },
     ],
   };
@@ -123,9 +119,20 @@ export default async function BlogDetailPage(props: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }} />
-      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(blogPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(breadcrumbJsonLd) }}
+      />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(faqJsonLd) }}
+        />
+      )}
 
       <Navbar />
       <ReadingProgress />

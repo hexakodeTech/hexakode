@@ -240,3 +240,72 @@ export function constructServiceJsonLd({
     termsOfService: `${SITE_URL}/terms-of-service`,
   };
 }
+
+export interface BlogPostingJsonLdOptions {
+  slug: string;
+  headline: string;
+  description?: string | null;
+  datePublished?: string | Date | null;
+  dateModified?: string | Date | null;
+  authorName?: string | null;
+  image?: string | null;
+}
+
+/**
+ * Builds page-specific BlogPosting JSON-LD linked to the canonical sitewide Organization entity.
+ */
+export function constructBlogPostingJsonLd({
+  slug,
+  headline,
+  description,
+  datePublished,
+  dateModified,
+  authorName,
+  image,
+}: BlogPostingJsonLdOptions) {
+  const canonicalUrl = getCanonicalUrl(`/blog/${slug}`);
+  const blogPostingId = `${canonicalUrl}#blogposting`;
+
+  // ISO 8601 date resolution
+  const publishedIso = datePublished
+    ? new Date(datePublished).toISOString()
+    : undefined;
+  const modifiedIso = dateModified
+    ? new Date(dateModified).toISOString()
+    : publishedIso;
+
+  const author = authorName && authorName.trim() ? authorName.trim() : "HexaKode Team";
+  const isOrgAuthor = author.toLowerCase().includes("hexakode");
+
+  const authorEntity = isOrgAuthor
+    ? {
+        "@type": "Organization",
+        "@id": ORGANIZATION_ID,
+        name: author,
+        url: SITE_URL,
+      }
+    : {
+        "@type": "Person",
+        name: author,
+      };
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": blogPostingId,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
+    headline,
+    ...(description ? { description } : {}),
+    ...(publishedIso ? { datePublished: publishedIso } : {}),
+    ...(modifiedIso ? { dateModified: modifiedIso } : {}),
+    author: authorEntity,
+    publisher: {
+      "@type": "Organization",
+      "@id": ORGANIZATION_ID,
+    },
+    image: getAbsoluteImageUrl(image),
+  };
+}
