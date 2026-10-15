@@ -16,6 +16,7 @@ import { useDemoModal } from "../common/DemoModal";
 import { Project } from "@/types/home";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 import CTASection from "./CTASection";
+import { constructServiceJsonLd, safeJsonLdStringify } from "@/lib/seo";
 
 export interface Challenge {
   title: string;
@@ -77,6 +78,8 @@ export interface ServiceLandingPageTemplateProps {
   serviceName: string;
   serviceUrl: string;
   metaDescription: string;
+  serviceType?: string;
+  serviceImage?: string;
   
   challenges: Challenge[];
   whyChooseDesc: string;
@@ -121,6 +124,20 @@ const SERVICE_PARAM_MAP: Record<string, string> = {
   "/services/digital-marketing": "digital-marketing",
 };
 
+const SERVICE_TYPE_DEFAULTS: Record<string, string> = {
+  "/services/web-development": "Website Development & Web Engineering",
+  "/services/mobile-app-development": "Mobile Application Development",
+  "/services/ui-ux-design": "UI/UX & Product Design",
+  "/services/digital-marketing": "Digital Marketing & Technical SEO",
+};
+
+const SERVICE_IMAGE_DEFAULTS: Record<string, string> = {
+  "/services/web-development": "https://hexakode.in/og-web-development.png",
+  "/services/mobile-app-development": "https://hexakode.in/og-mobile-development.png",
+  "/services/ui-ux-design": "https://hexakode.in/og-ui-ux-design.png",
+  "/services/digital-marketing": "https://hexakode.in/og-digital-marketing.png",
+};
+
 const INDUSTRIES = [
   { name: "Manufacturing", icon: "🏭", desc: "Automating factory floors and supply chains." },
   { name: "Healthcare", icon: "🏥", desc: "Compliant applications and patient portals." },
@@ -139,6 +156,8 @@ export default function ServiceLandingPageTemplate({
   serviceName,
   serviceUrl,
   metaDescription,
+  serviceType,
+  serviceImage,
   challenges,
   whyChooseDesc,
   whyChoosePoints,
@@ -170,23 +189,18 @@ export default function ServiceLandingPageTemplate({
   const hasPortfolio = projects && projects.length > 0;
 
   // JSON-LD Structured Data
-  const serviceSchema = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": serviceName,
-    "provider": {
-      "@type": "Organization",
-      "@id": "https://hexakode.in/#organization",
-      "name": "HexaKode",
-      "url": "https://hexakode.in"
-    },
-    "description": metaDescription,
-    "areaServed": {
-      "@type": "State",
-      "name": "Kerala",
-      "alternateName": "KL"
-    }
-  };
+  const effectiveServiceType =
+    serviceType || SERVICE_TYPE_DEFAULTS[serviceUrl] || serviceName;
+  const effectiveServiceImage =
+    serviceImage || SERVICE_IMAGE_DEFAULTS[serviceUrl];
+
+  const serviceSchema = constructServiceJsonLd({
+    name: serviceName,
+    url: serviceUrl,
+    description: metaDescription || heroDescription,
+    serviceType: effectiveServiceType,
+    image: effectiveServiceImage,
+  });
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -231,15 +245,15 @@ export default function ServiceLandingPageTemplate({
       {/* Dynamic JSON-LD Structured Data Injection */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(serviceSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(breadcrumbSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(faqSchema) }}
       />
 
       <Navbar />

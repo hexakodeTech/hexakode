@@ -333,6 +333,8 @@ export default async function DigitalMarketingPage() {
       heroDescription="Grow your business with data-driven digital marketing. We help ambitious companies attract qualified customers through technical SEO, local search optimization, Google Ads, social media marketing, and high-converting sales funnels."
       serviceName="Digital Marketing & SEO"
       serviceUrl="/services/digital-marketing"
+      serviceType="Digital Marketing & Technical SEO"
+      serviceImage="/og-digital-marketing.png"
       metaDescription="HexaKode provides data-driven Digital Marketing services in Kerala including Technical SEO, Google Ads, Local SEO, Social Media Marketing & conversion campaigns."
       challenges={CHALLENGES}
       whyChooseDesc="At HexaKode, we do not rely on vanity impressions. We execute data-backed marketing strategies engineered to increase inbound lead flow and maximize your return on investment."

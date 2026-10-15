@@ -192,3 +192,51 @@ export function getSitewideJsonLd() {
     ],
   };
 }
+
+export interface ServiceJsonLdOptions {
+  name: string;
+  url: string;
+  description: string;
+  serviceType?: string;
+  image?: string;
+}
+
+/**
+ * Builds page-specific Service JSON-LD linked to the canonical sitewide Organization entity.
+ */
+export function constructServiceJsonLd({
+  name,
+  url,
+  description,
+  serviceType,
+  image,
+}: ServiceJsonLdOptions) {
+  const canonicalUrl = getCanonicalUrl(url);
+  const serviceId = `${canonicalUrl}#service`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": serviceId,
+    name,
+    url: canonicalUrl,
+    description,
+    provider: {
+      "@id": ORGANIZATION_ID,
+    },
+    areaServed: [
+      {
+        "@type": "State",
+        name: "Kerala",
+        alternateName: "KL",
+      },
+      {
+        "@type": "Country",
+        name: "India",
+      },
+    ],
+    ...(serviceType ? { serviceType } : {}),
+    ...(image ? { image: getAbsoluteImageUrl(image) } : {}),
+    termsOfService: `${SITE_URL}/terms-of-service`,
+  };
+}

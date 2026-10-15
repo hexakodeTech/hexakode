@@ -327,6 +327,8 @@ export default async function UiUxDesignPage() {
       heroDescription="Design products that people love. We combine deep user research, wireframing, and interactive prototyping to build beautiful, intuitive, and accessible digital interfaces that drive business conversions and engagement."
       serviceName="UI/UX Design"
       serviceUrl="/services/ui-ux-design"
+      serviceType="UI/UX & Product Design"
+      serviceImage="/og-ui-ux-design.png"
       metaDescription="Looking for a top UI UX Design Company in Kerala? HexaKode creates beautiful, intuitive, and WCAG-accessible digital interfaces in Figma to boost engagement."
       challenges={CHALLENGES}
       whyChooseDesc="We do not sketch generic visuals. We study actual user behavior to engineer clear, accessible component-based design systems."

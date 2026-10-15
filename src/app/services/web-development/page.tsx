@@ -336,6 +336,8 @@ export default async function WebDevelopmentPage() {
       heroDescription="We engineer fast, high-performance, and SEO-friendly websites and scalable web applications that convert visitors into customers. Leverage our React, Next.js, and headless CMS expertise to grow your digital presence with speed and scale."
       serviceName="Custom Web Development & Engineering"
       serviceUrl="/services/web-development"
+      serviceType="Website Development & Web Engineering"
+      serviceImage="/og-web-development.png"
       metaDescription="Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS."
       challenges={CHALLENGES}
       whyChooseDesc="At HexaKode, we do not believe in cheap templates. We write bespoke, performance-tuned React and Next.js codes tailored to your business operations."

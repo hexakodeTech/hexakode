@@ -331,6 +331,8 @@ export default async function MobileAppDevelopmentPage() {
       heroDescription="High-performance, cross-platform Android and iOS applications built with Flutter and React Native. We develop feature-rich mobile apps that stream live data, operate offline, and deliver native-like user experiences for startups and enterprises."
       serviceName="Mobile App Development"
       serviceUrl="/services/mobile-app-development"
+      serviceType="Mobile Application Development"
+      serviceImage="/og-mobile-development.png"
       metaDescription="Seeking a Mobile App Development Company in Kerala? HexaKode designs high-performance iOS and Android applications using Flutter and clean architecture."
       challenges={CHALLENGES}
       whyChooseDesc="We do not compromise on mobile performance. We compile Flutter apps directly to native machine code using clean, testable architectural patterns."
