@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Tag, User } from "lucide-react";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import Breadcrumb from "@/components/blog/Breadcrumb";
@@ -12,6 +12,7 @@ import TableOfContents from "@/components/blog/TableOfContents";
 import ShareButtons from "@/components/blog/ShareButtons";
 import AuthorCard from "@/components/blog/AuthorCard";
 import NewsletterCTA from "@/components/blog/NewsletterCTA";
+import { resolveAuthor } from "@/modules/blog/constants/authors";
 import {
   formatBlogDate,
   calculateReadingTime,
@@ -53,6 +54,11 @@ export default function BlogArticleView({
   const normalizedContent = useMemo(
     () => normalizeBlogHeadingHierarchy(post.content || "", displayTitle),
     [post.content, displayTitle]
+  );
+
+  const resolvedAuthor = useMemo(
+    () => resolveAuthor(post.authorName),
+    [post.authorName]
   );
 
   const readingTime = useMemo(
@@ -99,7 +105,16 @@ export default function BlogArticleView({
                 {post.category.name}
               </span>
             )}
-            <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-400">
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <User className="w-4 h-4 text-secondary" />
+                <Link
+                  href={`/blog/authors/${resolvedAuthor.slug}`}
+                  className="hover:text-primary transition-colors font-medium underline-offset-2 hover:underline"
+                >
+                  {resolvedAuthor.name}
+                </Link>
+              </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
                 {displayDate}
@@ -166,8 +181,10 @@ export default function BlogArticleView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 pt-8 border-t border-slate-100 items-center">
               <AuthorCard
                 author={{
-                  name: post.authorName || "HexaKode Team",
-                  avatar: post.authorAvatar || undefined,
+                  name: resolvedAuthor.name,
+                  slug: resolvedAuthor.slug,
+                  role: resolvedAuthor.role,
+                  bio: resolvedAuthor.bio,
                 }}
               />
               <div className="flex md:justify-end">

@@ -351,3 +351,23 @@ export async function getBlogStats() {
     return { total: 0, published: 0, drafts: 0, featured: 0, totalViews: 0 };
   }
 }
+
+/**
+ * Fetch all published blogs for a specific author by name or matching aliases.
+ */
+export async function getPublishedBlogsByAuthor(authorNames: string[]) {
+  try {
+    return await prisma.blog.findMany({
+      where: {
+        status: BlogStatus.PUBLISHED,
+        authorName: { in: authorNames },
+      },
+      include: blogInclude,
+      orderBy: { publishedAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Failed to query blogs by author:", error);
+    return [];
+  }
+}
+

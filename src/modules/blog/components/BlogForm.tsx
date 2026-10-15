@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { getAllAuthors } from "@/modules/blog/constants/authors";
 
 interface BlogFormProps {
   initialData?: BlogListItem & {
@@ -898,10 +899,27 @@ export default function BlogForm({ initialData }: BlogFormProps) {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-primary">Author Display Name</label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {getAllAuthors().map((a) => (
+                    <button
+                      key={a.slug}
+                      type="button"
+                      onClick={() => setAuthorName(a.name)}
+                      className={`px-2.5 py-1 text-[11px] rounded-lg border transition-all ${
+                        authorName === a.name
+                          ? "bg-secondary text-primary font-bold border-secondary shadow-xs"
+                          : "bg-surface-container-lowest text-on-surface-variant border-outline-variant/30 hover:border-secondary/40"
+                      }`}
+                    >
+                      {a.name}
+                    </button>
+                  ))}
+                </div>
                 <input
                   type="text"
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
+                  placeholder="e.g. Navaneeth P P, Prajosh C, Prajith"
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2 text-xs text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15 transition-all"
                 />
               </div>

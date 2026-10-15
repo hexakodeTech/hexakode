@@ -11,6 +11,7 @@ import {
   incrementBlogViews,
 } from "@/modules/blog/services/blog.service";
 import { extractFaqEntries } from "@/modules/blog/utils/helpers";
+import { resolveAuthor } from "@/modules/blog/constants/authors";
 
 export const revalidate = 60;
 
@@ -50,7 +51,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     type: "article",
     publishedTime: post.publishedAt?.toISOString(),
     modifiedTime: post.updatedAt.toISOString(),
-    authors: [post.authorName],
+    authors: [resolveAuthor(post.authorName).name],
   });
 }
 
@@ -68,6 +69,7 @@ export default async function BlogDetailPage(props: PageProps) {
   // Async: increment views (non-blocking)
   incrementBlogViews(post.id).catch(() => {});
 
+  const resolvedAuthor = resolveAuthor(post.authorName);
   const faqEntries = extractFaqEntries(post.content);
   const pageUrl = `/blog/${post.slug}`;
   const displayImage = post.featuredImage || "/images/blog-placeholder.svg";
@@ -79,7 +81,8 @@ export default async function BlogDetailPage(props: PageProps) {
     description: post.excerpt || post.metaDescription,
     datePublished: post.publishedAt || post.createdAt,
     dateModified: post.updatedAt || post.publishedAt || post.createdAt,
-    authorName: post.authorName,
+    authorName: resolvedAuthor.name,
+    authorSlug: resolvedAuthor.slug,
     image: displayImage,
   });
 

@@ -12,7 +12,7 @@ export interface MetadataOptions {
   path: string;
   image?: string | null;
   imageAlt?: string;
-  type?: "website" | "article";
+  type?: "website" | "article" | "profile";
   publishedTime?: string;
   modifiedTime?: string;
   authors?: string[];
@@ -276,6 +276,7 @@ export interface BlogPostingJsonLdOptions {
   datePublished?: string | Date | null;
   dateModified?: string | Date | null;
   authorName?: string | null;
+  authorSlug?: string | null;
   image?: string | null;
 }
 
@@ -289,6 +290,7 @@ export function constructBlogPostingJsonLd({
   datePublished,
   dateModified,
   authorName,
+  authorSlug,
   image,
 }: BlogPostingJsonLdOptions) {
   const canonicalUrl = getCanonicalUrl(`/blog/${slug}`);
@@ -303,7 +305,16 @@ export function constructBlogPostingJsonLd({
     : publishedIso;
 
   const author = authorName && authorName.trim() ? authorName.trim() : "HexaKode Team";
-  const isOrgAuthor = author.toLowerCase().includes("hexakode");
+  const isOrgAuthor = author.toLowerCase().includes("hexakode team") || author.toLowerCase() === "hexakode";
+
+  // Derive author slug if not explicitly passed
+  const slugFromName = author
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  const effectiveAuthorSlug = authorSlug || slugFromName;
+  const authorProfileUrl = `${SITE_URL}/blog/authors/${effectiveAuthorSlug}`;
+  const authorPersonId = `${authorProfileUrl}#person`;
 
   const authorEntity = isOrgAuthor
     ? {
@@ -314,7 +325,9 @@ export function constructBlogPostingJsonLd({
       }
     : {
         "@type": "Person",
+        "@id": authorPersonId,
         name: author,
+        url: authorProfileUrl,
       };
 
   return {
@@ -335,6 +348,54 @@ export function constructBlogPostingJsonLd({
       "@id": ORGANIZATION_ID,
     },
     image: getAbsoluteImageUrl(image),
+  };
+}
+
+export interface AuthorProfileJsonLdOptions {
+  slug: string;
+  name: string;
+  role?: string;
+  bio?: string;
+  socialUrl?: string;
+}
+
+/**
+ * Builds ProfilePage and Person JSON-LD for a dedicated author profile page.
+ */
+export function constructAuthorProfileJsonLd(author: AuthorProfileJsonLdOptions) {
+  const authorUrl = `${SITE_URL}/blog/authors/${author.slug}`;
+  const personId = `${authorUrl}#person`;
+  const webpageId = `${authorUrl}#webpage`;
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "@id": webpageId,
+        url: authorUrl,
+        name: `${author.name} — Author Profile | HexaKode`,
+        ...(author.bio ? { description: author.bio } : {}),
+        isPartOf: {
+          "@id": WEBSITE_ID,
+        },
+        mainEntity: {
+          "@id": personId,
+        },
+      },
+      {
+        "@type": "Person",
+        "@id": personId,
+        name: author.name,
+        url: authorUrl,
+        ...(author.role ? { jobTitle: author.role } : {}),
+        ...(author.bio ? { description: author.bio } : {}),
+        ...(author.socialUrl ? { sameAs: author.socialUrl } : {}),
+        worksFor: {
+          "@id": ORGANIZATION_ID,
+        },
+      },
+    ],
   };
 }
 
