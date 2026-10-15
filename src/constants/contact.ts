@@ -18,27 +18,39 @@ export const BUDGET_RANGES = [
   { value: "not_sure", label: "Not Sure Yet" },
 ];
 
+export const GOOGLE_BUSINESS_PROFILE_URL =
+  "https://www.google.com/search?kgmid=%2Fg%2F11npyfhq8b&hl=ml-IN&q=HexaKode&shem=epsd1%2Cesd2e%2Cltae%2Crimspwouoe%2Csdpie&shndl=30&source=sh%2Fx%2Floc%2Fosrp%2Fm5%2F1&kgs=73fee9171bc13cab";
+
 export const CONTACT_DETAILS: ContactDetail[] = [
   {
-    id: "cd1",
-    label: "Email Us",
-    value: "contact@hexakode.in",
-    type: "email",
-    href: "mailto:contact@hexakode.in",
+    id: "cd-location",
+    label: "Location",
+    value: "Kerala, India",
+    type: "location",
+    href: GOOGLE_BUSINESS_PROFILE_URL,
+    description: "Service Area: Kerala, India (Remote-first)",
+    isExternal: true,
   },
   {
-    id: "cd2",
-    label: "Call Us",
+    id: "cd-phone",
+    label: "Phone",
     value: "+91 95398 28694",
     type: "phone",
     href: "tel:+919539828694",
   },
   {
-    id: "cd3",
-    label: "Our Office",
-    value: "Kerala, India",
-    type: "location",
-    href: "https://maps.google.com/?q=Kerala,+India",
+    id: "cd-email",
+    label: "Email",
+    value: "contact@hexakode.in",
+    type: "email",
+    href: "mailto:contact@hexakode.in",
+  },
+  {
+    id: "cd-website",
+    label: "Website",
+    value: "https://hexakode.in",
+    type: "website",
+    href: "https://hexakode.in",
   },
 ];
 

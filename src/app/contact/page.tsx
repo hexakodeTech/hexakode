@@ -7,7 +7,7 @@ import FAQSection from "../../components/contact/FAQSection";
 import GoogleReviewCTA from "../../components/common/GoogleReviewCTA";
 import { FAQ_ITEMS } from "../../constants/contact";
 
-import { constructMetadata, constructFaqPageJsonLd, safeJsonLdStringify } from "@/lib/seo";
+import { constructMetadata, constructFaqPageJsonLd, safeJsonLdStringify, GOOGLE_BUSINESS_PROFILE_URL } from "@/lib/seo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
@@ -33,6 +33,12 @@ const contactJsonLd = {
     url: "https://hexakode.in",
     telephone: "+91 95398 28694",
     email: "contact@hexakode.in",
+    address: {
+      "@type": "PostalAddress",
+      addressRegion: "Kerala",
+      addressCountry: "IN",
+    },
+    sameAs: [GOOGLE_BUSINESS_PROFILE_URL],
   },
 };
 

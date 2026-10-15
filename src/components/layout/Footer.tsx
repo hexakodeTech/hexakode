@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SOCIAL_LINKS } from "@/constants/contact";
+import { SOCIAL_LINKS, GOOGLE_BUSINESS_PROFILE_URL } from "@/constants/contact";
 import Brand from "../common/Brand";
 import GoogleReviewCTA from "../common/GoogleReviewCTA";
 import { getRecentPostsForFooter, FooterRecentPost } from "@/modules/blog/services/blog.service";
@@ -53,6 +53,45 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
               {/* Column 2: Company name + tagline stacked */}
               <Brand variant="footer-desktop" />
+            </div>
+
+            {/* Business Location & Contact Details */}
+            <div className="space-y-2 mb-6 font-body-sm text-body-sm text-on-primary-container/80">
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Location:</span>
+                <span className="text-white font-medium">Kerala, India</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Phone:</span>
+                <a href="tel:+919539828694" className="hover:text-white transition-colors duration-200">
+                  +91 95398 28694
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Email:</span>
+                <a href="mailto:contact@hexakode.in" className="hover:text-white transition-colors duration-200">
+                  contact@hexakode.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Website:</span>
+                <a href="https://hexakode.in" className="hover:text-white transition-colors duration-200">
+                  https://hexakode.in
+                </a>
+              </div>
+              <div className="pt-1.5">
+                <a
+                  href={GOOGLE_BUSINESS_PROFILE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#5dcafd] hover:text-white hover:underline transition-colors duration-200"
+                >
+                  <span>View Google Business Profile</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
             <div className="flex gap-4">
               {SOCIAL_LINKS.filter(
@@ -484,18 +523,47 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
           {/* Legal → Contact: 24px spacing */}
           <div className="w-full border-t border-outline-variant/10 my-3" />
 
-          {/* SECTION 5 — CONTACT */}
-          <div className="flex flex-col items-center">
+          {/* SECTION 5 — CONTACT & LOCATION */}
+          <div className="flex flex-col items-center text-center">
             <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
-              Contact
+              Contact &amp; Location
             </p>
-            <div className="flex flex-col items-center space-y-3 font-body-sm text-body-sm">
-              <a href="mailto:contact@hexakode.in" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                contact@hexakode.in
-              </a>
-              <a href="https://hexakode.in" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
-                hexakode.in
-              </a>
+            <div className="flex flex-col items-center space-y-2 font-body-sm text-body-sm text-on-primary-container/80">
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Location:</span>
+                <span className="text-white font-medium">Kerala, India</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Phone:</span>
+                <a href="tel:+919539828694" className="hover:text-white transition-colors duration-200">
+                  +91 95398 28694
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Email:</span>
+                <a href="mailto:contact@hexakode.in" className="hover:text-white transition-colors duration-200">
+                  contact@hexakode.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 font-label-mono text-[11px] uppercase tracking-wider">Website:</span>
+                <a href="https://hexakode.in" className="hover:text-white transition-colors duration-200">
+                  https://hexakode.in
+                </a>
+              </div>
+              <div className="pt-2">
+                <a
+                  href={GOOGLE_BUSINESS_PROFILE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#5dcafd] hover:text-white hover:underline transition-colors duration-200"
+                >
+                  <span>View Google Business Profile</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
 

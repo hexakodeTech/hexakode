@@ -11,9 +11,11 @@ export interface TeamMember {
   id: string;
   name: string;
   role: string;
-  imageAlt: string;
-  imageUrl: string;
-  socialUrl: string;
+  bio?: string;
+  isFounder?: boolean;
+  socialUrl?: string;
+  imageUrl?: string;
+  imageAlt?: string;
 }
 
 export interface TrustMetric {

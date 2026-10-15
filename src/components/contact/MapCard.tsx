@@ -1,38 +1,85 @@
 import React from "react";
-import { MapPin } from "lucide-react";
+import { Globe2, ExternalLink, CheckCircle2 } from "lucide-react";
+import { GOOGLE_BUSINESS_PROFILE_URL } from "../../constants/contact";
 import { cn } from "../../lib/utils";
 
 export default function MapCard({ isDark = false }: { isDark?: boolean }) {
   return (
     <div
       className={cn(
-        "relative h-64 w-full rounded-xl overflow-hidden group border transition-all duration-300 ease-out",
+        "p-6 md:p-8 rounded-xl border transition-all duration-300 ease-out flex flex-col justify-between",
         isDark
-          ? "border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.25)] hover:border-[#5dcafd]/20 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(93,202,253,0.08)]"
-          : "border-outline-variant/10 shadow-sm"
+          ? "glass-details-premium text-white border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.25)] hover:border-[#5dcafd]/30"
+          : "glass-card text-on-background border border-outline-variant/10 shadow-sm hover:border-secondary/20"
       )}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        alt="HexaKode Kerala Office location"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcAJBvF9MPRq1rH2eMQw1PL04B4NaIAfUt9y3O81m_sBpTiadM10sL5PBN2DbRrOaub6nHj78Pddv0_v6zSdHDGS5uYQRFOfG_16vivhWkzsTLRqy7KjUuzIeV2t8jqHJ1N8M02cf4MOn0_WbhJfcMe6aaVhFuXsyKFqYvt9wWTIeqhuG_r9m3sH7Wn4RH-z297l1uX1MPXFhEfzy0ycxScjXoHHdar5JX5gkbv-3i6-vP_DNpLFyJ2Ti1j_WDoMrmL-Q8ZnK3WkJW"
-      />
-      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center transition-colors duration-300 group-hover:bg-primary/30">
-        <div
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                isDark ? "bg-white/10 text-[#5dcafd]" : "bg-primary/10 text-primary"
+              )}
+            >
+              <Globe2 className="w-5 h-5" />
+            </span>
+            <span
+              className={cn(
+                "font-label-mono text-xs uppercase tracking-wider",
+                isDark ? "text-slate-400" : "text-on-surface-variant"
+              )}
+            >
+              Service Area
+            </span>
+          </div>
+
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full",
+              isDark
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            )}
+          >
+            <CheckCircle2 className="w-3 h-3" />
+            Verified
+          </span>
+        </div>
+
+        <p
           className={cn(
-            "p-4 rounded-full border transition-all duration-300 group-hover:scale-110",
-            isDark
-              ? "bg-[#0b1530]/95 border-white/10 shadow-[0_0_15px_rgba(93,202,253,0.30)] group-hover:shadow-[0_0_25px_rgba(93,202,253,0.55)] text-secondary"
-              : "bg-surface border-outline-variant text-secondary shadow-lg"
+            "font-headline-sm text-lg md:text-xl font-bold mb-2 transition-colors",
+            isDark ? "text-white" : "text-primary"
           )}
         >
-          <MapPin className="w-6 h-6 text-secondary fill-secondary/20" />
-        </div>
+          Kerala, India
+        </p>
+
+        <p
+          className={cn(
+            "font-body-sm text-xs leading-relaxed mb-6 transition-colors",
+            isDark ? "text-slate-300" : "text-on-surface-variant"
+          )}
+        >
+          HexaKode operates as a remote-first engineering practice delivering custom web applications, mobile apps, and digital solutions for clients across Kerala and globally. We do not operate a physical walk-in office.
+        </p>
       </div>
-      <div className="absolute bottom-4 left-4 bg-primary-container/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-outline-variant/10">
-        <span className="font-label-mono text-[10px] text-white tracking-wider uppercase">Kerala, India</span>
-      </div>
+
+      <a
+        href={GOOGLE_BUSINESS_PROFILE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(
+          "inline-flex items-center justify-center gap-2 text-xs font-semibold py-2.5 px-4 rounded-lg transition-all duration-300 w-full group",
+          isDark
+            ? "bg-white/10 text-[#5dcafd] hover:bg-white/15 hover:text-white border border-white/10"
+            : "bg-primary text-white hover:bg-primary-hover shadow-sm"
+        )}
+      >
+        <span>View Google Business Profile</span>
+        <ExternalLink className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </a>
     </div>
   );
 }

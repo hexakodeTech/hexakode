@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 export const SITE_URL = "https://hexakode.in";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 export const SITE_NAME = "HexaKode";
+export const GOOGLE_BUSINESS_PROFILE_URL =
+  "https://www.google.com/search?kgmid=%2Fg%2F11npyfhq8b&hl=ml-IN&q=HexaKode&shem=epsd1%2Cesd2e%2Cltae%2Crimspwouoe%2Csdpie&shndl=30&source=sh%2Fx%2Floc%2Fosrp%2Fm5%2F1&kgs=73fee9171bc13cab";
 
 export interface MetadataOptions {
   title: string;
@@ -184,6 +186,7 @@ export function getSitewideJsonLd() {
           },
         ],
         sameAs: [
+          GOOGLE_BUSINESS_PROFILE_URL,
           "https://in.linkedin.com/company/hexakodeteh",
           "https://www.instagram.com/hexakode_tech/",
           "https://www.facebook.com/profile.php?id=61589246312714",
@@ -398,5 +401,70 @@ export function constructBreadcrumbJsonLd(items: BreadcrumbItemInput[]) {
     }),
   };
 }
+
+export interface AboutPersonInput {
+  name: string;
+  role: string;
+  imageUrl?: string;
+  socialUrl?: string;
+}
+
+export interface AboutPageJsonLdOptions {
+  founders: AboutPersonInput[];
+  teamMembers?: AboutPersonInput[];
+}
+
+/**
+ * Builds AboutPage and verified Person JSON-LD.
+ */
+export function constructAboutPageJsonLd({
+  founders,
+  teamMembers = [],
+}: AboutPageJsonLdOptions) {
+  const persons = [
+    ...founders.map((founder) => ({
+      "@type": "Person",
+      name: founder.name,
+      jobTitle: founder.role,
+      worksFor: {
+        "@id": ORGANIZATION_ID,
+      },
+      ...(founder.imageUrl ? { image: founder.imageUrl } : {}),
+      ...(founder.socialUrl ? { sameAs: founder.socialUrl } : {}),
+    })),
+    ...teamMembers.map((member) => ({
+      "@type": "Person",
+      name: member.name,
+      jobTitle: member.role,
+      worksFor: {
+        "@id": ORGANIZATION_ID,
+      },
+      ...(member.imageUrl ? { image: member.imageUrl } : {}),
+      ...(member.socialUrl ? { sameAs: member.socialUrl } : {}),
+    })),
+  ];
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AboutPage",
+        "@id": `${SITE_URL}/about#webpage`,
+        url: `${SITE_URL}/about`,
+        name: "About Us | HexaKode Engineering",
+        description:
+          "Learn about HexaKode: our founders, remote engineering team, and our commitment to high-standard web and mobile development based in Kerala, India.",
+        isPartOf: {
+          "@id": WEBSITE_ID,
+        },
+        about: {
+          "@id": ORGANIZATION_ID,
+        },
+      },
+      ...persons,
+    ],
+  };
+}
+
 
 

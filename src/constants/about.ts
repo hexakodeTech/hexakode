@@ -26,33 +26,31 @@ export const CORE_VALUES: CoreValue[] = [
   },
 ];
 
+export const FOUNDERS: TeamMember[] = [
+  {
+    id: "f1",
+    name: "Navaneeth P P",
+    role: "Co-Founder & CEO, Full Stack Engineer",
+    bio: "Co-founded HexaKode to deliver transparent, scalable software engineering. Leads full-stack application development, technical architecture, and client partnerships, specializing in modern web and mobile ecosystems.",
+    socialUrl: "https://www.linkedin.com/in/navaneethpp/",
+    isFounder: true,
+  },
+  {
+    id: "f2",
+    name: "Prajosh C",
+    role: "Co-Founder & CTO, Backend Engineer",
+    bio: "Co-founded HexaKode alongside Navaneeth with a focus on robust backend systems. Oversees core API development, database architecture, security standards, and infrastructure scalability across all client deployments.",
+    socialUrl: "https://www.linkedin.com/in/prajosh-c-586404304/",
+    isFounder: true,
+  },
+];
+
 export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "t1",
-    name: "Navaneeth P P",
-    role: "CEO, Full Stack Engineer",
-    imageUrl:
-      "https://media.licdn.com/dms/image/v2/D5603AQGI7qc0KWHh-A/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1711121694916?e=1782950400&v=beta&t=KcselM7swgrb65AWGv9Mi_mS-yzw0s0pYoR1XvkTtSY",
-    imageAlt: "Navaneeth, CEO and Full Stack Engineer",
-    socialUrl: "https://www.linkedin.com/in/navaneethpp/",
-  },
-  {
-    id: "t3",
-    name: "Prajosh C",
-    role: "CTO, Backend Engineer",
-    imageUrl:
-      "https://media.licdn.com/dms/image/v2/D4E03AQGAqvvY2DcSMw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1713256342366?e=1782950400&v=beta&t=_SwYB3uEWqEVQoaVioy3_zC-mMvaBbf5zqlxsDsZeGQ",
-    imageAlt: "Prajosh C, CTO and Backend Engineer",
-    socialUrl: "https://www.linkedin.com/in/prajosh-c-586404304/",
-  },
-  {
-    id: "t2",
-    name: "Sindhu P",
-    role: "Frontend Engineer",
-    imageUrl:
-      "https://media.licdn.com/dms/image/v2/D4D03AQGqtPFc0XIVEQ/profile-displayphoto-crop_800_800/B4DZkvWa7DJgAM-/0/1757436041864?e=1782950400&v=beta&t=qHnPIRJP_VuGHA62LwmXNPA7GRzRk05_MDV1rvM556E",
-    imageAlt: "Sindu P, Frontend Engineer",
-    socialUrl: "https://www.linkedin.com/in/sindhu-p-330baa362/",
+    name: "Prajith",
+    role: "Team Member",
+    isFounder: false,
   },
 ];
 

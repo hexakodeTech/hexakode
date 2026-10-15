@@ -8,8 +8,10 @@ export interface ContactDetail {
   id: string;
   label: string;
   value: string;
-  type: "email" | "phone" | "location";
+  type: "email" | "phone" | "location" | "website";
   href: string;
+  description?: string;
+  isExternal?: boolean;
 }
 
 export interface SocialLink {
