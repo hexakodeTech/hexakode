@@ -181,7 +181,9 @@ export function getSitewideJsonLd() {
         "@id": WEBSITE_ID,
         url: SITE_URL,
         name: "HexaKode",
-        description: "Code That Powers Growth",
+        alternateName: "HexaKode Engineering",
+        description:
+          "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
         publisher: {
           "@id": ORGANIZATION_ID,
         },
