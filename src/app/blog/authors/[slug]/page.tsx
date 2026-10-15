@@ -40,7 +40,12 @@ export async function generateStaticParams() {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
   const author = getAuthorBySlug(slug);
-  if (!author) notFound();
+  if (!author) {
+    return {
+      title: "Author Not Found | HexaKode",
+      robots: { index: false, follow: false },
+    };
+  }
 
   const title = `${author.name} — Author Profile | HexaKode`;
   const description = `${author.name} is ${author.role} at HexaKode. Read published engineering articles, software insights, and technical guides.`;

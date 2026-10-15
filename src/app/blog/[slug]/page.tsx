@@ -31,7 +31,12 @@ import {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
   const post = await getPublishedBlogBySlug(slug).catch(() => null);
-  if (!post) notFound();
+  if (!post) {
+    return {
+      title: "Blog Post Not Found | HexaKode",
+      robots: { index: false, follow: false },
+    };
+  }
 
   const fallbackTitle = post.title.length + 11 <= 59 ? `${post.title} | HexaKode` : post.title;
   const title = clampTitle(post.seoTitle || fallbackTitle);

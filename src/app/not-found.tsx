@@ -42,7 +42,7 @@ export default function NotFound() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-navy-dark leading-[1.12] mb-4">
-              Oops! This Page Doesn&apos;t Exist
+              Page Not Found
             </h1>
 
             <p className="text-slate-500 text-base sm:text-lg leading-relaxed mb-8 font-normal max-w-lg">
@@ -51,7 +51,7 @@ export default function NotFound() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
               <PrimaryButton href="/" variant="dark" showArrow className="btn-gradient-hover w-full sm:w-auto">
-                Go Home
+                Back to Home
               </PrimaryButton>
               <SecondaryButton href="/services" variant="light" className="w-full sm:w-auto">
                 View Our Services
