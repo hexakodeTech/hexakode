@@ -8,9 +8,10 @@ import SearchBox from "@/components/blog/SearchBox";
 import CategoryFilter from "@/components/blog/CategoryFilter";
 import FeaturedBlog from "@/components/blog/FeaturedBlog";
 import BlogGrid from "@/components/blog/BlogGrid";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { getBlogs, getFeaturedBlog } from "@/modules/blog/services/blog.service";
 import { getAllCategories } from "@/modules/blog/services/category.service";
-import { BlogStatus } from "@/modules/blog/types/blog";
+import { BlogCategoryData, BlogListItem } from "@/modules/blog/types/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ export default async function BlogIndexPage(props: PageProps) {
   ]);
 
   // Adapt to CategoryFilter's expected shape
-  const categories = rawCategories.map((c: any) => ({
+  const categories = rawCategories.map((c: BlogCategoryData) => ({
     _id: c.id,
     name: c.name,
     slug: c.slug,
@@ -69,11 +70,11 @@ export default async function BlogIndexPage(props: PageProps) {
   const showFeatured = page === 1 && !search && !category && !tag && !!featuredPost;
 
   // Adapt posts to match BlogCard/Grid expected shape
-  const adaptPost = (p: any) => ({
+  const adaptPost = (p: BlogListItem) => ({
     _id: p.id,
     title: p.title,
     slug: p.slug,
-    shortDescription: p.excerpt,
+    shortDescription: p.excerpt || "",
     featuredImage: p.featuredImage ? { asset: { _ref: p.featuredImage } } : null,
     _featuredImageUrl: p.featuredImage,
     publishedAt: p.publishedAt?.toISOString() ?? p.createdAt.toISOString(),
@@ -81,12 +82,12 @@ export default async function BlogIndexPage(props: PageProps) {
     featured: p.featured,
     author: { name: p.authorName, avatar: p.authorAvatar },
     category: p.category ? { name: p.category.name, slug: p.category.slug } : undefined,
-    tags: p.tags?.map((t: any) => ({ name: t.tag.name, slug: t.tag.slug })) ?? [],
+    tags: p.tags?.map((t: { tag: { id: string; name: string; slug: string } }) => ({ name: t.tag.name, slug: t.tag.slug })) ?? [],
   });
 
   const adaptedFeatured = featuredPost ? adaptPost(featuredPost) : null;
   const displayPosts = showFeatured
-    ? posts.filter((p: any) => p.id !== featuredPost!.id).map(adaptPost)
+    ? posts.filter((p: BlogListItem) => p.id !== featuredPost!.id).map(adaptPost)
     : posts.map(adaptPost);
 
   return (
@@ -95,6 +96,13 @@ export default async function BlogIndexPage(props: PageProps) {
       <main className="flex-1 flex flex-col w-full bg-background overflow-x-hidden pt-28">
         <Section variant="muted" className="py-16 md:py-20 border-b border-outline-variant/10 text-left">
           <Container className="max-w-4xl">
+            <Breadcrumbs
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Blog", href: "/blog" },
+              ]}
+              className="mb-6"
+            />
             <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold bg-secondary-container text-primary border border-secondary-container/40 uppercase tracking-widest mb-4">
               Latest Insights
             </span>

@@ -13,6 +13,7 @@ import { getPublishedProjects, getPublishedProjectBySlug } from "@/modules/portf
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import PortfolioGallery from "@/modules/portfolio/components/public/PortfolioGallery";
 import { PortfolioViewTracker } from "@/components/common/AnalyticsTracker";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 
 // Type definition for detailed project specification
@@ -218,11 +219,19 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
           }}
         >
           <Container className="relative z-10 w-full flex-1 flex flex-col justify-between pt-28 md:pt-32 lg:pt-40 pb-16 md:pb-24">
-            {/* Top portion of Hero: Back Button */}
-            <div>
+            {/* Top portion of Hero: Breadcrumbs & Back Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <Breadcrumbs
+                variant="dark"
+                items={[
+                  { label: "Home", href: "/" },
+                  { label: "Portfolio", href: "/portfolio" },
+                  { label: project.title, href: `/portfolio/${project.slug}` },
+                ]}
+              />
               <Link
                 href="/portfolio"
-                className="inline-flex items-center gap-2 text-sm font-label-mono text-label-mono text-white/70 hover:text-white transition-colors duration-200 group focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+                className="inline-flex items-center gap-2 text-sm font-label-mono text-label-mono text-white/70 hover:text-white transition-colors duration-200 group focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded shrink-0"
               >
                 <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
                 BACK TO PORTFOLIO

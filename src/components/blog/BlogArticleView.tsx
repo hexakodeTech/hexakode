@@ -83,7 +83,7 @@ export default function BlogArticleView({
           <Breadcrumb
             items={[
               { label: "Blog", href: "/blog" },
-              { label: displayTitle },
+              { label: displayTitle, href: pageUrl },
             ]}
           />
 

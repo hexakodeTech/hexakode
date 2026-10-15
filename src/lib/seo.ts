@@ -348,3 +348,30 @@ export function constructFaqPageJsonLd({
   };
 }
 
+export interface BreadcrumbItemInput {
+  name: string;
+  path?: string;
+  url?: string;
+}
+
+/**
+ * Builds page-specific BreadcrumbList JSON-LD.
+ */
+export function constructBreadcrumbJsonLd(items: BreadcrumbItemInput[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => {
+      const targetPath = item.path || item.url;
+      const targetUrl = targetPath ? getCanonicalUrl(targetPath) : undefined;
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        ...(targetUrl ? { item: targetUrl } : {}),
+      };
+    }),
+  };
+}
+
+

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion, Variants } from "framer-motion";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -36,6 +37,15 @@ export default function ContactHero() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
       >
+        <motion.div variants={fadeUp} className="mb-6">
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Contact", href: "/contact" },
+            ]}
+          />
+        </motion.div>
+
         <motion.span
           variants={fadeUp}
           className="font-label-mono text-label-mono text-secondary tracking-widest uppercase mb-6 block"

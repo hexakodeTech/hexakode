@@ -21,8 +21,8 @@ interface PageProps {
 import {
   constructMetadata,
   constructBlogPostingJsonLd,
+  constructBreadcrumbJsonLd,
   safeJsonLdStringify,
-  SITE_URL,
 } from "@/lib/seo";
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
@@ -81,30 +81,11 @@ export default async function BlogDetailPage(props: PageProps) {
   });
 
   // Breadcrumb JSON-LD
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: SITE_URL,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Blog",
-        item: `${SITE_URL}/blog`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: post.title,
-        item: `${SITE_URL}/blog/${post.slug}`,
-      },
-    ],
-  };
+  const breadcrumbJsonLd = constructBreadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
 
   // FAQ JSON-LD
   const faqJsonLd = faqEntries.length > 0 ? {

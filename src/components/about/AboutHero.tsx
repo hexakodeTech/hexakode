@@ -4,6 +4,7 @@ import React from "react";
 import { motion, Variants } from "framer-motion";
 import PrimaryButton from "../ui/PrimaryButton";
 import SecondaryButton from "../ui/SecondaryButton";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -33,6 +34,15 @@ export default function AboutHero() {
         initial="hidden"
         animate="visible"
       >
+        <motion.div variants={fadeUp} className="mb-6 flex justify-center">
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "About", href: "/about" },
+            ]}
+          />
+        </motion.div>
+
         <motion.div variants={fadeUp} className="mb-6">
           <span className="font-label-mono text-label-mono text-secondary mb-6 block uppercase tracking-widest">
             Architecting the Future

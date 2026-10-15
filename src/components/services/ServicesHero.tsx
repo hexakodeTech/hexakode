@@ -5,8 +5,8 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import Container from "../ui/Container";
 import PrimaryButton from "../ui/PrimaryButton";
-import SecondaryButton from "../ui/SecondaryButton";
 import Badge from "../ui/Badge";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function ServicesHero() {
@@ -461,6 +461,16 @@ export default function ServicesHero() {
           animate="visible"
           className="max-w-3xl flex flex-col items-start"
         >
+          {/* Breadcrumbs */}
+          <motion.div variants={fadeUp} className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Services", href: "/services" },
+              ]}
+            />
+          </motion.div>
+
           {/* Badge */}
           <motion.div variants={fadeUp}>
             <Badge variant="capabilities">Our Capabilities</Badge>

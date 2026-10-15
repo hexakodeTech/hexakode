@@ -4,6 +4,7 @@ import React from "react";
 import { motion, Variants } from "framer-motion";
 import { Cookie } from "lucide-react";
 import { PolicyMeta } from "@/types/legal";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -53,6 +54,17 @@ export default function CookieHero({ meta }: CookieHeroProps) {
           animate="visible"
           className="max-w-3xl"
         >
+          {/* Breadcrumbs */}
+          <motion.div variants={fadeUp} className="mb-6">
+            <Breadcrumbs
+              variant="dark"
+              items={[
+                { label: "Home", href: "/" },
+                { label: meta.title, href: "/cookie-policy" },
+              ]}
+            />
+          </motion.div>
+
           {/* Badge */}
           <motion.div variants={fadeUp} className="mb-6 flex items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary/10 px-4 py-1.5 font-label-mono text-label-mono text-secondary uppercase tracking-widest">

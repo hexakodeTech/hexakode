@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Container from "../ui/Container";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function PortfolioHero() {
@@ -18,6 +19,16 @@ export default function PortfolioHero() {
           animate="visible"
           className="max-w-3xl flex flex-col items-center"
         >
+          {/* Breadcrumbs */}
+          <motion.div variants={fadeUp} className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Portfolio", href: "/portfolio" },
+              ]}
+            />
+          </motion.div>
+
           {/* Badge */}
           <motion.span
             variants={fadeUp}

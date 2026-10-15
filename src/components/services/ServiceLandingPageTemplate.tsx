@@ -16,6 +16,7 @@ import { useDemoModal } from "../common/DemoModal";
 import { Project } from "@/types/home";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 import CTASection from "./CTASection";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { constructServiceJsonLd, constructFaqPageJsonLd, safeJsonLdStringify } from "@/lib/seo";
 
 export interface Challenge {
@@ -202,30 +203,11 @@ export default function ServiceLandingPageTemplate({
     image: effectiveServiceImage,
   });
 
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://hexakode.in"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Services",
-        "item": "https://hexakode.in/services"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": serviceName,
-        "item": `https://hexakode.in${serviceUrl}`
-      }
-    ]
-  };
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Services", href: "/services" },
+    { label: serviceName, href: serviceUrl },
+  ];
 
   const faqSchema = constructFaqPageJsonLd({
     path: serviceUrl,
@@ -244,10 +226,6 @@ export default function ServiceLandingPageTemplate({
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(faqSchema) }}
       />
 
@@ -263,18 +241,8 @@ export default function ServiceLandingPageTemplate({
           <Container>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-8 text-left">
-                {/* Visible Breadcrumbs */}
-                <nav className="flex items-center gap-2 mb-6 text-xs text-slate-400 font-medium">
-                  <Link href="/" className="hover:text-primary transition-colors">
-                    Home
-                  </Link>
-                  <span className="text-slate-300">/</span>
-                  <Link href="/services" className="hover:text-primary transition-colors">
-                    Services
-                  </Link>
-                  <span className="text-slate-300">/</span>
-                  <span className="text-slate-600 font-semibold">{serviceName}</span>
-                </nav>
+                {/* Visible Breadcrumbs & BreadcrumbList JSON-LD */}
+                <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 bg-secondary-container text-primary border border-secondary-container/80">
                   {badge}

@@ -17,6 +17,7 @@ import {
 } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { COMPANY_STATS } from "@/constants/stats";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 // Count-up helper component for stats cards
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
@@ -474,9 +475,20 @@ export default function CareersHero() {
       {/* -------------------- CONTENT AREA -------------------- */}
       <div className="relative z-10 max-w-container-max mx-auto w-full px-margin-mobile md:px-margin-desktop py-24">
         <div className="max-w-2xl">
+          {/* Breadcrumbs */}
+          <motion.div variants={fadeInUp(0)} initial="hidden" animate="visible" className="mb-6">
+            <Breadcrumbs
+              variant="dark"
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Careers", href: "/careers" },
+              ]}
+            />
+          </motion.div>
+
           {/* Badge */}
           <motion.span
-            variants={fadeInUp(0)}
+            variants={fadeInUp(0.05)}
             initial="hidden"
             animate="visible"
             className="inline-flex items-center gap-2 font-label-mono text-label-mono uppercase tracking-[0.2em] text-secondary mb-6 block"
