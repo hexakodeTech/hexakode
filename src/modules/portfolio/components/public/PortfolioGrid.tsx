@@ -17,6 +17,7 @@ export default function PortfolioGrid({ projects }: PortfolioGridProps) {
   return (
     <Section id="portfolio-grid" variant="white" spacing="none" className="pt-16 pb-24 md:pt-20 md:pb-32 overflow-hidden">
       <Container clean className="max-w-[1400px] mx-auto px-6 md:px-8 w-full">
+        <h2 className="sr-only">Featured Projects</h2>
         <motion.div
           variants={staggerContainer}
           initial="hidden"

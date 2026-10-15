@@ -62,7 +62,7 @@ export default function CompanyStory() {
                   <Rocket className="text-secondary w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h4 className="font-headline-sm text-headline-sm text-primary mb-2">Our Mission</h4>
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-2">Our Mission</h3>
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
                     HexaKode is dedicated to engineering superior web and mobile experiences through structured, scalable code. Our mission is to provide businesses with the digital tools necessary to accelerate their growth and dominate their industry
                   </p>
@@ -74,7 +74,7 @@ export default function CompanyStory() {
                   <Eye className="text-secondary w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h4 className="font-headline-sm text-headline-sm text-primary mb-2">Our Vision</h4>
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-2">Our Vision</h3>
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
                     To bridge the gap between ambitious ideas and digital reality, ensuring that every entrepreneur has access to the world-class technology needed to power their growth
                   </p>

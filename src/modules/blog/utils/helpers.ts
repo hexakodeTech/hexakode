@@ -56,6 +56,59 @@ export function slugifyHeading(text: string): string {
 }
 
 /**
+ * Normalizes heading hierarchy within CMS-provided blog HTML content.
+ * - Removes any <h1> that duplicates the article title (or demotes unexpected <h1> to <h2>).
+ * - Tracks heading hierarchy levels so that headings logically follow the document structure
+ *   and do not skip levels (e.g. <h2> followed by <h4> without an <h3>).
+ */
+export function normalizeBlogHeadingHierarchy(htmlContent: string, articleTitle?: string): string {
+  if (!htmlContent) return "";
+  let content = htmlContent;
+
+  // 1. Remove duplicate <h1> that matches articleTitle (or demote any rogue <h1> to <h2>)
+  content = content.replace(/<h1(\b[^>]*)>([\s\S]*?)<\/h1>/gi, (match, attrs, inner) => {
+    const text = inner.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    const normalizedArticleTitle = (articleTitle || "").replace(/\s+/g, " ").trim();
+    if (!text || text.toLowerCase() === normalizedArticleTitle.toLowerCase()) {
+      return "";
+    }
+    return `<h2${attrs}>${inner}</h2>`;
+  });
+
+  // 2. Track hierarchy stack and source-level mapping to eliminate skips
+  const stack = [{ source: 1, target: 1 }];
+  const levelMap = new Map<number, number>();
+
+  content = content.replace(/<(h[1-6])(\b[^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag, attrs, inner) => {
+    const sourceLevel = parseInt(tag[1], 10);
+
+    // Pop from stack until the top has source < sourceLevel
+    while (stack.length > 1 && stack[stack.length - 1].source >= sourceLevel) {
+      const popped = stack.pop()!;
+      // Invalidate level mappings deeper than popped target
+      for (const [k, v] of Array.from(levelMap.entries())) {
+        if (v >= popped.target) levelMap.delete(k);
+      }
+    }
+
+    const parent = stack[stack.length - 1];
+    let targetLevel: number;
+
+    if (levelMap.has(sourceLevel)) {
+      targetLevel = levelMap.get(sourceLevel)!;
+    } else {
+      targetLevel = Math.min(sourceLevel, parent.target + 1);
+      levelMap.set(sourceLevel, targetLevel);
+    }
+
+    stack.push({ source: sourceLevel, target: targetLevel });
+    return `<h${targetLevel}${attrs}>${inner}</h${targetLevel}>`;
+  });
+
+  return content;
+}
+
+/**
  * Extract H2/H3/H4 headings from HTML for Table of Contents.
  * Parses headings, generating clean unique ids from heading text with duplicate suffixing (-2, -3, etc.).
  */

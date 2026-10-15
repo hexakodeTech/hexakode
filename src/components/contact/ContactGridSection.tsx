@@ -272,6 +272,7 @@ export default function ContactGridSection() {
       </div>
 
       <Container className="relative">
+        <h2 className="sr-only">Contact Information &amp; Enquiry Form</h2>
         {/* Glow behind the form container */}
         <div
           className={cn(

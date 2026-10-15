@@ -290,7 +290,7 @@ export default function ServiceLandingPageTemplate({
                     <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto text-2xl font-bold">
                       ✓
                     </div>
-                    <h3 className="font-bold text-navy-dark text-lg">Production Ready</h3>
+                    <p className="font-bold text-navy-dark text-lg">Production Ready</p>
                     <p className="text-slate-500 text-xs leading-relaxed">
                       We optimize every line of code for performance, security, and responsive layouts.
                     </p>
@@ -532,9 +532,9 @@ export default function ServiceLandingPageTemplate({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Left Column: Key Activities */}
                         <div>
-                          <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">
+                          <p className="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">
                             Key Activities
-                          </h4>
+                          </p>
                           <ul className="space-y-3">
                             {processSteps[activeIndex].bullets.map((bullet, idx) => (
                               <li key={idx} className="flex items-start gap-2.5 text-slate-600 text-sm">
@@ -548,9 +548,9 @@ export default function ServiceLandingPageTemplate({
                         {/* Right Column: Deliverables & Business Value */}
                         <div className="flex flex-col justify-between gap-6">
                           <div>
-                            <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">
+                            <p className="text-xs font-bold text-slate-400 tracking-wider uppercase mb-4">
                               Deliverables
-                            </h4>
+                            </p>
                             <div className="flex flex-wrap gap-2.5">
                               {processSteps[activeIndex].deliverables.map((item, idx) => (
                                 <span
@@ -566,9 +566,9 @@ export default function ServiceLandingPageTemplate({
 
                           {/* Business Value Box */}
                           <div className="bg-primary/5 rounded-xl p-5 border border-primary/10">
-                            <h5 className="text-[10px] font-bold text-primary tracking-wider uppercase mb-1">
+                            <p className="text-[10px] font-bold text-primary tracking-wider uppercase mb-1">
                               Why this matters
-                            </h5>
+                            </p>
                             <p className="text-slate-600 text-sm font-medium leading-relaxed">
                               {processSteps[activeIndex].businessValue}
                             </p>
@@ -620,9 +620,9 @@ export default function ServiceLandingPageTemplate({
                               <span className="text-[9px] font-bold text-slate-400 block tracking-wider uppercase">
                                 Step {idx + 1}
                               </span>
-                              <h4 className="font-bold text-navy-dark text-base">
+                              <p className="font-bold text-navy-dark text-base">
                                 {step.title}
-                              </h4>
+                              </p>
                             </div>
                           </div>
                           
@@ -663,9 +663,9 @@ export default function ServiceLandingPageTemplate({
                                 </p>
                                 
                                 {/* Activities */}
-                                <h5 className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2">
+                                <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2">
                                   Key Activities
-                                </h5>
+                                </p>
                                 <ul className="space-y-2 mb-4">
                                   {step.bullets.map((bullet, bIdx) => (
                                     <li key={bIdx} className="flex items-start gap-2 text-slate-600 text-xs">
@@ -676,9 +676,9 @@ export default function ServiceLandingPageTemplate({
                                 </ul>
 
                                 {/* Deliverables */}
-                                <h5 className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2">
+                                <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2">
                                   Deliverables
-                                </h5>
+                                </p>
                                 <div className="flex flex-wrap gap-1.5 mb-4">
                                   {step.deliverables.map((item, dIdx) => (
                                     <span
@@ -693,9 +693,9 @@ export default function ServiceLandingPageTemplate({
 
                                 {/* Business Value */}
                                 <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
-                                  <h5 className="text-[9px] font-bold text-primary tracking-wider uppercase mb-1">
+                                  <p className="text-[9px] font-bold text-primary tracking-wider uppercase mb-1">
                                     Why this matters
-                                  </h5>
+                                  </p>
                                   <p className="text-slate-600 text-xs font-medium leading-relaxed">
                                     {step.businessValue}
                                   </p>
@@ -713,9 +713,9 @@ export default function ServiceLandingPageTemplate({
               {/* Bottom CTA Block */}
               <div className="flex flex-col items-center justify-center text-center mt-16 bg-slate-50/50 rounded-3xl p-8 md:p-10 border border-slate-100/60 max-w-2xl mx-auto relative overflow-hidden w-full">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full filter blur-xl pointer-events-none" />
-                <h4 className="font-bold text-navy-dark text-lg md:text-xl mb-4 tracking-tight">
+                <h3 className="font-bold text-navy-dark text-lg md:text-xl mb-4 tracking-tight">
                   Ready to start your project?
-                </h4>
+                </h3>
                 <PrimaryButton
                   href={contactHref}
                 >
@@ -753,10 +753,10 @@ export default function ServiceLandingPageTemplate({
                 {technologies.map((tech, idx) => (
                   <motion.div key={idx} variants={fadeUp} className="h-full">
                     <div className="p-8 h-full bg-slate-50/50 rounded-2xl border border-slate-100/80 flex flex-col justify-start hover:shadow-premium transition-all duration-300">
-                      <h4 className="text-xl font-bold text-navy-dark mb-3 tracking-tight flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-navy-dark mb-3 tracking-tight flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
                         {tech.name}
-                      </h4>
+                      </h3>
                       <p className="text-slate-500 text-sm leading-relaxed mb-4">
                         {tech.reason}
                       </p>

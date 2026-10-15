@@ -16,6 +16,7 @@ import {
   formatBlogDate,
   calculateReadingTime,
   extractTableOfContents,
+  normalizeBlogHeadingHierarchy,
 } from "@/modules/blog/utils/helpers";
 
 export interface BlogArticleViewData {
@@ -49,14 +50,19 @@ export default function BlogArticleView({
       ? post.featuredImage
       : "/images/blog-placeholder.svg";
 
+  const normalizedContent = useMemo(
+    () => normalizeBlogHeadingHierarchy(post.content || "", displayTitle),
+    [post.content, displayTitle]
+  );
+
   const readingTime = useMemo(
-    () => calculateReadingTime(post.content || ""),
-    [post.content]
+    () => calculateReadingTime(normalizedContent),
+    [normalizedContent]
   );
 
   const headings = useMemo(
-    () => extractTableOfContents(post.content || ""),
-    [post.content]
+    () => extractTableOfContents(normalizedContent),
+    [normalizedContent]
   );
 
   const normalizedTags = useMemo(() => {
@@ -138,7 +144,7 @@ export default function BlogArticleView({
 
             {/* Rich Content Renderer */}
             <div className="mt-2">
-              <HTMLRenderer html={post.content || "<p class='text-slate-400 italic'>No content written yet.</p>"} />
+              <HTMLRenderer html={normalizedContent || "<p class='text-slate-400 italic'>No content written yet.</p>"} />
             </div>
 
             {/* Article Tags */}

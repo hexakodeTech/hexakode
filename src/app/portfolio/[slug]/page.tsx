@@ -277,9 +277,9 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
 
                 {/* 4. Redesigned Key Features cards */}
                 <div className="flex flex-col gap-6">
-                  <h3 className="font-headline-md text-headline-sm text-on-background uppercase tracking-wider border-l-2 border-secondary pl-4">
+                  <h2 className="font-headline-md text-headline-sm text-on-background uppercase tracking-wider border-l-2 border-secondary pl-4">
                     Key Features
-                  </h3>
+                  </h2>
                   <div className="flex flex-col gap-6">
                     {dbProject.features && dbProject.features.length > 0 ? (
                       [...dbProject.features]
@@ -289,9 +289,9 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
                             key={feature.id}
                             className="p-6 md:p-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl hover-lift hover-glow transition-all duration-300 hover:border-secondary/40"
                           >
-                            <h4 className="font-headline-sm text-headline-sm text-on-background mb-3">
+                            <h3 className="font-headline-sm text-headline-sm text-on-background mb-3">
                               {feature.title}
-                            </h4>
+                            </h3>
                             <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
                               {feature.description}
                             </p>
@@ -315,9 +315,9 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
             <div className="lg:col-span-4">
               <div className="sticky top-28 bg-surface-container-low rounded-xl p-8 border border-outline-variant/10 shadow-sm flex flex-col gap-8">
                 
-                <h4 className="font-headline-sm text-headline-sm text-on-background pb-4 border-b border-outline-variant/10">
+                <h2 className="font-headline-sm text-headline-sm text-on-background pb-4 border-b border-outline-variant/10">
                   Project Specs
-                </h4>
+                </h2>
 
                 <div className="flex flex-col gap-6">
                   {/* Client */}

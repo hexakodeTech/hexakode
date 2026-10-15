@@ -12,9 +12,9 @@ export default function NewsletterCTA() {
         <span className="text-[10px] font-bold text-primary tracking-widest uppercase mb-3">
           Partner with HexaKode
         </span>
-        <h3 className="text-xl md:text-3xl font-extrabold tracking-tight mb-4 leading-tight">
+        <h2 className="text-xl md:text-3xl font-extrabold tracking-tight mb-4 leading-tight">
           Ready to Build Your Next Digital Product?
-        </h3>
+        </h2>
         <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8 max-w-lg">
           Transform your custom software ideas into production-ready solutions. Contact our engineering team today to design, build, and deploy.
         </p>

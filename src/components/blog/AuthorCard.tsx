@@ -6,7 +6,7 @@ import Image from "next/image";
 interface AuthorCardProps {
   author: {
     name: string;
-    avatar?: any;
+    avatar?: string | null;
   };
 }
 
@@ -37,9 +37,9 @@ export default function AuthorCard({ author }: AuthorCardProps) {
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
           Written by
         </span>
-        <h5 className="text-sm font-bold text-navy-dark leading-tight mt-0.5">
+        <p className="text-sm font-bold text-navy-dark leading-tight mt-0.5">
           {author.name || "HexaKode Team"}
-        </h5>
+        </p>
       </div>
     </div>
   );

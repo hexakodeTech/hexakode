@@ -7,10 +7,10 @@ import Section from "@/components/ui/Section";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { getBlogs } from "@/modules/blog/services/blog.service";
 import { formatBlogDate } from "@/modules/blog/utils/helpers";
-import { BlogStatus } from "@/modules/blog/types/blog";
+import { BlogListItem } from "@/modules/blog/types/blog";
 
 export default async function LatestInsights() {
-  let posts: any[] = [];
+  let posts: BlogListItem[] = [];
   try {
     const data = await getBlogs({ limit: 3, status: "PUBLISHED" });
     posts = data.posts;
@@ -81,9 +81,9 @@ export default async function LatestInsights() {
                         </span>
                       )}
                     </div>
-                    <h4 className="text-base font-bold text-navy-dark leading-snug group-hover:text-primary transition-colors duration-200 line-clamp-2">
+                    <h3 className="text-base font-bold text-navy-dark leading-snug group-hover:text-primary transition-colors duration-200 line-clamp-2">
                       <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                    </h4>
+                    </h3>
                     {post.excerpt && (
                       <p className="text-slate-500 text-xs leading-relaxed mt-2.5 line-clamp-3">
                         {post.excerpt}

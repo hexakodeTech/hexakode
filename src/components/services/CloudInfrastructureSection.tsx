@@ -67,10 +67,10 @@ export default function CloudInfrastructureSection() {
 
               {/* Expected Outcomes */}
               <motion.div variants={fadeUp} className="pt-8 border-t border-outline-variant/20 space-y-3">
-                <h4 className="text-headline-sm font-headline-sm text-[20px] flex items-center gap-3 text-on-background">
+                <h3 className="text-headline-sm font-headline-sm text-[20px] flex items-center gap-3 text-on-background">
                   <TrendingUp className="w-5 h-5 text-secondary shrink-0" />
                   Expected Outcomes
-                </h4>
+                </h3>
                 <p className="text-on-surface-variant font-body-sm leading-relaxed">
                   Reduced operational costs by up to 40% through serverless optimization and improved deployment frequency via automated CI/CD pipelines.
                 </p>

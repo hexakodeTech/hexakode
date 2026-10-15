@@ -248,8 +248,8 @@ function CountUpNumber({
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      setCount(target);
-      return;
+      const frameId = requestAnimationFrame(() => setCount(target));
+      return () => cancelAnimationFrame(frameId);
     }
 
     let startTime: number | null = null;
@@ -392,9 +392,9 @@ export default function WhyChooseHexaKode() {
                         </div>
                       </div>
 
-                      <h4 className="text-base font-bold text-navy-dark mb-1">
+                      <p className="text-base font-bold text-navy-dark mb-1">
                         {metric.label}
-                      </h4>
+                      </p>
                       <p className="text-xs text-slate-500 leading-relaxed">
                         {metric.subtext}
                       </p>

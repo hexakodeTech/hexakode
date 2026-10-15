@@ -63,9 +63,9 @@ export default function BenefitsSection() {
                     <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5 text-secondary" aria-hidden="true" />
                     </div>
-                    <h5 className="font-headline-sm text-headline-sm text-on-surface tracking-tight">
+                    <h3 className="font-headline-sm text-headline-sm text-on-surface tracking-tight">
                       {benefit.title}
-                    </h5>
+                    </h3>
                     <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
                       {benefit.description}
                     </p>

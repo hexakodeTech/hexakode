@@ -135,9 +135,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
             {/* Services Links — 20% width */}
             <div>
-              <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
+              <p className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
                 Services
-              </h5>
+              </p>
               <ul className="space-y-4 font-body-sm text-body-sm">
                 <li>
                   <Link href="/services/web-development" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -164,9 +164,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
             {/* Company Links — 16% width */}
             <div>
-              <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
+              <p className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
                 Company
-              </h5>
+              </p>
               <ul className="space-y-4 font-body-sm text-body-sm text-left">
                 <li>
                   <Link href="/about" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -198,9 +198,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
             {/* Recent Posts — 16% width */}
             <div>
-              <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
+              <p className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
                 Recent Posts
-              </h5>
+              </p>
               <ul className="space-y-4 font-body-sm text-body-sm text-left">
                 {recentPosts.length > 0 ? (
                   recentPosts.map((post) => (
@@ -218,9 +218,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
             {/* Legal Links — 25% width */}
             <div>
-              <h5 className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
+              <p className="font-label-mono text-label-mono text-white mb-6 uppercase tracking-wider">
                 Legal
-              </h5>
+              </p>
               <ul className="space-y-4 font-body-sm text-body-sm">
                 <li>
                   <Link href="/privacy-policy" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -357,9 +357,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
           {/* SECTION 3 — QUICK LINKS */}
           <div className="flex flex-col items-center">
-            <h5 className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
+            <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
               Quick Links
-            </h5>
+            </p>
             <ul className="flex flex-col items-center space-y-4 font-body-sm text-body-sm">
               <li>
                 <Link href="/" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -404,9 +404,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
           {/* SECTION 3.5 — SERVICES */}
           <div className="flex flex-col items-center">
-            <h5 className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
+            <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
               Services
-            </h5>
+            </p>
             <ul className="flex flex-col items-center space-y-4 font-body-sm text-body-sm">
               <li>
                 <Link href="/services/web-development" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -436,9 +436,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
           {/* SECTION 3.6 — RECENT POSTS */}
           <div className="flex flex-col items-center">
-            <h5 className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
+            <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
               Recent Posts
-            </h5>
+            </p>
             <ul className="flex flex-col items-center space-y-4 font-body-sm text-body-sm text-center px-4 w-full">
               {recentPosts.length > 0 ? (
                 recentPosts.map((post) => (
@@ -459,9 +459,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
           {/* SECTION 4 — LEGAL */}
           <div className="flex flex-col items-center">
-            <h5 className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
+            <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
               Legal
-            </h5>
+            </p>
             <ul className="flex flex-col items-center space-y-4 font-body-sm text-body-sm">
               <li>
                 <Link href="/privacy-policy" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
@@ -486,9 +486,9 @@ export default async function Footer({ recentPosts: initialPosts }: FooterProps 
 
           {/* SECTION 5 — CONTACT */}
           <div className="flex flex-col items-center">
-            <h5 className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
+            <p className="font-label-mono text-label-mono text-white mb-4 uppercase tracking-wider">
               Contact
-            </h5>
+            </p>
             <div className="flex flex-col items-center space-y-3 font-body-sm text-body-sm">
               <a href="mailto:contact@hexakode.in" className="text-on-primary-container/70 hover:text-white transition-colors duration-300">
                 contact@hexakode.in

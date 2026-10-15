@@ -42,7 +42,7 @@ export default function TrustMetrics() {
                     {point.number}
                   </span>
                   <div>
-                    <h4 className="font-headline-sm text-headline-sm mb-2 text-white">{point.title}</h4>
+                    <h3 className="font-headline-sm text-headline-sm mb-2 text-white">{point.title}</h3>
                     <p className="font-body-md text-on-primary-container leading-relaxed">
                       {point.description}
                     </p>

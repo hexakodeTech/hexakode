@@ -34,9 +34,9 @@ export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
   return (
     <div className="flex flex-col gap-6 mt-12 pt-12 border-t border-outline-variant/10">
       <div>
-        <h3 className="font-headline-md text-headline-sm text-on-background mb-2 uppercase tracking-wider border-l-2 border-secondary pl-4">
+        <h2 className="font-headline-md text-headline-sm text-on-background mb-2 uppercase tracking-wider border-l-2 border-secondary pl-4">
           Project Gallery
-        </h3>
+        </h2>
         <p className="font-body-sm text-xs text-on-surface-variant/70 pl-5">
           Visual documentation and platform highlights. Click any image to enlarge.
         </p>

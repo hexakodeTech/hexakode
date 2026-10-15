@@ -9,20 +9,18 @@ interface TableOfContentsProps {
 }
 
 export default function TableOfContents({ headings }: TableOfContentsProps) {
-  const [activeId, setActiveId] = useState<string>("");
+  const [activeId, setActiveId] = useState<string>(() => headings[0]?.id || "");
   const isManualScrollRef = useRef(false);
   const manualScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!headings || headings.length === 0) return;
 
-    // Initialize active ID from URL hash or default to first heading
+    // Initialize active ID from URL hash if present
     const initialHash =
       typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
     if (initialHash && headings.some((h) => h.id === initialHash)) {
-      setActiveId(initialHash);
-    } else if (headings.length > 0) {
-      setActiveId(headings[0].id);
+      requestAnimationFrame(() => setActiveId(initialHash));
     }
 
     const headingElements = headings
@@ -139,9 +137,9 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
 
   return (
     <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-6 sticky top-28 self-start w-full">
-      <h4 className="text-xs font-bold text-navy-dark uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+      <p className="text-xs font-bold text-navy-dark uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
         Table of Contents
-      </h4>
+      </p>
       <nav className="space-y-3">
         {headings.map((heading) => (
           <a
