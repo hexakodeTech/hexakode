@@ -9,9 +9,9 @@ import { Project } from "@/types/home";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Website Development & Web Engineering Company in Kerala | HexaKode",
+  title: "Web Development and Engineering in Kerala | HexaKode",
   description:
-    "Looking for a premier Web Development and Web Engineering Company in Kerala? HexaKode designs custom, responsive, and SEO-friendly websites & web applications using React, Next.js, and headless CMS.",
+    "HexaKode builds custom, responsive, SEO-friendly websites and web apps in Kerala using Next.js, React, and modern headless CMS architectures.",
   path: "/services/web-development",
   image: "/og-web-development.png",
   imageAlt: "HexaKode Website Development & Web Engineering",

@@ -50,13 +50,36 @@ export function getAbsoluteImageUrl(image?: string | null): string {
 }
 
 /**
+ * Clamps title to the strict SEO character limit (max 59 characters).
+ */
+export function clampTitle(title: string, maxLength = 59): string {
+  const cleaned = title.trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  const truncated = cleaned.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return (lastSpace > 20 ? truncated.slice(0, lastSpace) : truncated).trim();
+}
+
+/**
+ * Clamps meta description to the strict SEO character limit (max 159 characters).
+ */
+export function clampDescription(description: string, maxLength = 159): string {
+  const cleaned = description.trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  const truncated = cleaned.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return (lastSpace > 50 ? truncated.slice(0, lastSpace) : truncated).trim();
+}
+
+/**
  * Centralized Next.js Metadata factory ensuring:
  * 1. Self-referencing canonical URL on https://hexakode.in
  * 2. og:url exactly matches canonical URL
  * 3. Consistent og:title and twitter:title
  * 4. Consistent og:description and twitter:description
- * 5. Valid 1200x630 social share image with absolute HTTPS URL
- * 6. twitter:card = "summary_large_image"
+ * 5. Strict length enforcement (title <= 59 chars, description <= 159 chars)
+ * 6. Valid 1200x630 social share image with absolute HTTPS URL
+ * 7. twitter:card = "summary_large_image"
  */
 export function constructMetadata({
   title,
@@ -71,20 +94,22 @@ export function constructMetadata({
   keywords,
   robots,
 }: MetadataOptions): Metadata {
+  const safeTitle = clampTitle(title);
+  const safeDescription = clampDescription(description);
   const canonicalUrl = getCanonicalUrl(path);
   const imageUrl = getAbsoluteImageUrl(image);
-  const effectiveAlt = imageAlt || title;
+  const effectiveAlt = imageAlt || safeTitle;
 
   return {
-    title,
-    description,
+    title: safeTitle,
+    description: safeDescription,
     ...(keywords && keywords.length > 0 ? { keywords } : {}),
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title,
-      description,
+      title: safeTitle,
+      description: safeDescription,
       url: canonicalUrl,
       siteName: SITE_NAME,
       locale: "en_US",
@@ -103,8 +128,8 @@ export function constructMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: safeTitle,
+      description: safeDescription,
       images: [imageUrl],
     },
     robots: robots || { index: true, follow: true },

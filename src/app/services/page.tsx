@@ -12,7 +12,7 @@ import { constructMetadata } from "@/lib/seo";
 export const metadata: Metadata = constructMetadata({
   title: "Services | HexaKode Engineering",
   description:
-    "HexaKode delivers high-performance engineering solutions designed for scale. From cloud-native architectures to intuitive user experiences, explore our web, mobile, design, and API competencies.",
+    "Explore HexaKode's engineering services: custom web applications, mobile apps, UI/UX design, and digital marketing built to scale your business.",
   path: "/services",
   image: "/og-image.png",
   imageAlt: "HexaKode Software & Engineering Services",

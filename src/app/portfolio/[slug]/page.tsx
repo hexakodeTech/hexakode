@@ -92,7 +92,7 @@ export async function generateStaticParams() {
   }));
 }
 
-import { constructMetadata } from "@/lib/seo";
+import { constructMetadata, clampTitle, clampDescription } from "@/lib/seo";
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
@@ -105,8 +105,9 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     };
   }
 
-  const title = project.metaTitle || `${project.title} | HexaKode Case Study`;
-  const description = project.metaDescription || project.shortDescription;
+  const fallbackTitle = project.title.length + 11 <= 59 ? `${project.title} | HexaKode` : project.title;
+  const title = clampTitle(project.metaTitle || fallbackTitle);
+  const description = clampDescription(project.metaDescription || project.shortDescription || "");
   const image = project.ogImage || project.coverImage;
 
   return constructMetadata({

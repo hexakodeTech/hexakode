@@ -38,9 +38,9 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hexakode.in"),
-  title: "HexaKode | Code that powers growth",
+  title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",
   description:
-    "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
+    "HexaKode builds websites and mobile apps for businesses in Palakkad, Kerala, with UI/UX design and digital marketing services.",
   keywords: [
     "Software Development",
     "Web App Development",
@@ -49,13 +49,13 @@ export const metadata: Metadata = {
     "API Integrations",
     "HexaKode",
     "SaaS Platform",
-    "Looking forward to engineering excellence",
+    "Palakkad Kerala",
   ],
   authors: [{ name: "HexaKode" }],
   openGraph: {
-    title: "HexaKode | Code that powers growth",
+    title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",
     description:
-      "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
+      "HexaKode builds websites and mobile apps for businesses in Palakkad, Kerala, with UI/UX design and digital marketing services.",
     type: "website",
     url: "https://hexakode.in",
     siteName: "HexaKode",
@@ -71,9 +71,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HexaKode | Code that powers growth",
+    title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",
     description:
-      "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
+      "HexaKode builds websites and mobile apps for businesses in Palakkad, Kerala, with UI/UX design and digital marketing services.",
     images: ["/og-image.png"],
   },
 };

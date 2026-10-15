@@ -18,12 +18,12 @@ export const dynamic = "force-dynamic";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "HexaKode Blog | Engineering & Product Design Insights",
+  title: "HexaKode Blog | Engineering and Product Insights",
   description:
     "Read the latest articles on web engineering, mobile apps, UI/UX design, technology consulting, and software development insights from the HexaKode team.",
   path: "/blog",
   image: "/og-image.png",
-  imageAlt: "HexaKode Blog — Engineering & Product Design Insights",
+  imageAlt: "HexaKode Blog — Engineering and Product Insights",
   keywords: [
     "Software Engineering Blog",
     "Web Development Insights",

@@ -11,7 +11,7 @@ import { constructMetadata } from "@/lib/seo";
 export const metadata: Metadata = constructMetadata({
   title: "Portfolio | HexaKode Engineering",
   description:
-    "Explore HexaKode's portfolio of enterprise software, high-performance web systems, intuitive mobile products, and custom UI/UX engineering case studies.",
+    "Explore HexaKode's portfolio of enterprise software, high-performance web apps, intuitive mobile products, and custom UI/UX engineering case studies.",
   path: "/portfolio",
   image: "/og-image.png",
   imageAlt: "HexaKode Software Portfolio and Case Studies",

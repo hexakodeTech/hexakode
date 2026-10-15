@@ -20,6 +20,8 @@ interface PageProps {
 
 import {
   constructMetadata,
+  clampTitle,
+  clampDescription,
   constructBlogPostingJsonLd,
   constructBreadcrumbJsonLd,
   safeJsonLdStringify,
@@ -30,8 +32,9 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const post = await getPublishedBlogBySlug(slug).catch(() => null);
   if (!post) notFound();
 
-  const title = post.seoTitle || `${post.title} | HexaKode Blog`;
-  const description = post.metaDescription || post.excerpt || "";
+  const fallbackTitle = post.title.length + 11 <= 59 ? `${post.title} | HexaKode` : post.title;
+  const title = clampTitle(post.seoTitle || fallbackTitle);
+  const description = clampDescription(post.metaDescription || post.excerpt || "");
   const rawCanonical = post.canonicalUrl?.trim();
   const canonical = rawCanonical
     ? rawCanonical.replace(/^https?:\/\/www\.hexakode\.in/, "https://hexakode.in")

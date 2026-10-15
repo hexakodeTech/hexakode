@@ -20,20 +20,19 @@ const GoogleReviewCTA = dynamic(() => import("@/components/common/GoogleReviewCT
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "HexaKode | Code that powers growth",
+  title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",
   description:
-    "Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.",
+    "HexaKode builds websites and mobile apps for businesses in Palakkad, Kerala, with UI/UX design and digital marketing services.",
   path: "/",
   image: "/og-image.png",
-  imageAlt: "HexaKode — Code That Powers Growth",
+  imageAlt: "HexaKode — Web and Mobile App Development in Palakkad, Kerala",
   keywords: [
+    "Web Development Palakkad",
+    "Mobile App Development Kerala",
+    "UI/UX Design Palakkad",
+    "Digital Marketing Kerala",
     "Software Development",
-    "Web App Development",
-    "Mobile Apps",
-    "UI/UX Design",
-    "API Integrations",
     "HexaKode",
-    "SaaS Platform",
   ],
 });
 

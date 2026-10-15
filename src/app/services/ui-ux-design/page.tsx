@@ -9,7 +9,7 @@ import { Project } from "@/types/home";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "UI UX Design Company in Kerala | UI UX Designers | HexaKode",
+  title: "UI/UX Design Company in Kerala | HexaKode",
   description:
     "Looking for a top UI UX Design Company in Kerala? HexaKode creates beautiful, intuitive, and WCAG-accessible digital interfaces in Figma to boost engagement.",
   path: "/services/ui-ux-design",

@@ -9,7 +9,7 @@ import { Project } from "@/types/home";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Mobile App Development Company in Kerala | App Developers | HexaKode",
+  title: "Mobile App Development Company in Kerala | HexaKode",
   description:
     "Seeking a Mobile App Development Company in Kerala? HexaKode designs high-performance iOS and Android applications using Flutter and clean architecture.",
   path: "/services/mobile-app-development",

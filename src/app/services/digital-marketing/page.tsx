@@ -9,9 +9,9 @@ import { Project } from "@/types/home";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Digital Marketing Company in Kerala | SEO & Ads | HexaKode",
+  title: "Digital Marketing and SEO in Kerala | HexaKode",
   description:
-    "HexaKode provides data-driven Digital Marketing services in Kerala including Technical SEO, Google Ads, Local SEO, Social Media Marketing & conversion campaigns.",
+    "HexaKode provides data-driven digital marketing in Kerala: technical SEO, Google Ads, local SEO, social media marketing, and conversion campaigns.",
   path: "/services/digital-marketing",
   image: "/og-digital-marketing.png",
   imageAlt: "HexaKode Digital Marketing & Technical SEO Services",
