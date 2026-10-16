@@ -24,13 +24,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/blog",
   image: "/og-image.png",
   imageAlt: "HexaKode Blog — Engineering and Product Insights",
-  keywords: [
-    "Software Engineering Blog",
-    "Web Development Insights",
-    "Mobile App Architecture",
-    "UI/UX Design Trends",
-    "HexaKode Blog",
-  ],
 });
 
 interface PageProps {

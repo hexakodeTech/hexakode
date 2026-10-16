@@ -15,22 +15,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/services/ui-ux-design",
   image: "/og-ui-ux-design.png",
   imageAlt: "HexaKode UI/UX and Product Design Services",
-  keywords: [
-    "UI UX Design Company in Kerala",
-    "UI UX Design Company in Palakkad",
-    "UI UX Design Company Near Me",
-    "UI UX Designers Kerala",
-    "User Experience Design",
-    "User Interface Design",
-    "Mobile App UI Design",
-    "Dashboard UI Design",
-    "SaaS UI Design",
-    "Website UI Design",
-    "Figma Designers",
-    "Product Design Company",
-    "UX Research",
-    "UI Design Services Kerala",
-  ],
 });
 
 const CHALLENGES = [

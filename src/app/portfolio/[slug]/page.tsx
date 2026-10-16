@@ -116,7 +116,6 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     path: `/portfolio/${project.slug}`,
     image,
     imageAlt: `${project.title} — HexaKode Case Study`,
-    keywords: project.technologies?.map((t) => t.name),
   });
 }
 

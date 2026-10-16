@@ -16,16 +16,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/services",
   image: "/og-image.png",
   imageAlt: "HexaKode Software & Engineering Services",
-  keywords: [
-    "Web Engineering",
-    "Website Development",
-    "Mobile Apps",
-    "UI/UX Design",
-    "Digital Marketing",
-    "Cloud Infrastructure",
-    "API Development",
-    "HexaKode Services",
-  ],
 });
 
 export default function ServicesPage() {

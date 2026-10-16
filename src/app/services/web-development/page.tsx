@@ -15,27 +15,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/services/web-development",
   image: "/og-web-development.png",
   imageAlt: "HexaKode Website Development & Web Engineering",
-  keywords: [
-    "Website Development Company in Kerala",
-    "Web Engineering Company in Kerala",
-    "Website Development Company in Palakkad",
-    "Website Development Company Near me",
-    "Web Development Company Kerala",
-    "Web Engineering Services Kerala",
-    "Website Designers Kerala",
-    "Custom Website Development",
-    "Custom Web Engineering",
-    "Business Website Development",
-    "Business Web Applications",
-    "Corporate Website Development",
-    "Responsive Website Design",
-    "Professional Website Development",
-    "SEO Friendly Website Development",
-    "SEO Friendly Web Engineering",
-    "Next.js Development Company",
-    "Website Development Services Kerala",
-    "Scalable Web Applications",
-  ],
 });
 
 const CHALLENGES = [

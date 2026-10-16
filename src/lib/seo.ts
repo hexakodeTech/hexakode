@@ -16,7 +16,6 @@ export interface MetadataOptions {
   publishedTime?: string;
   modifiedTime?: string;
   authors?: string[];
-  keywords?: string[];
   robots?: { index?: boolean; follow?: boolean };
 }
 
@@ -93,7 +92,6 @@ export function constructMetadata({
   publishedTime,
   modifiedTime,
   authors,
-  keywords,
   robots,
 }: MetadataOptions): Metadata {
   const safeTitle = clampTitle(title);
@@ -105,7 +103,6 @@ export function constructMetadata({
   return {
     title: safeTitle,
     description: safeDescription,
-    ...(keywords && keywords.length > 0 ? { keywords } : {}),
     alternates: {
       canonical: canonicalUrl,
     },

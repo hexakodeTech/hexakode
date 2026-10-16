@@ -26,14 +26,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/",
   image: "/og-image.png",
   imageAlt: "HexaKode — Web and Mobile App Development in Palakkad, Kerala",
-  keywords: [
-    "Web Development Palakkad",
-    "Mobile App Development Kerala",
-    "UI/UX Design Palakkad",
-    "Digital Marketing Kerala",
-    "Software Development",
-    "HexaKode",
-  ],
 });
 
 export const revalidate = 3600;

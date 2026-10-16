@@ -15,22 +15,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/services/mobile-app-development",
   image: "/og-mobile-development.png",
   imageAlt: "HexaKode Mobile App Development Services",
-  keywords: [
-    "Mobile App Development Company in Kerala",
-    "App Developers Kerala",
-    "Mobile App Development Company in Palakkad",
-    "Mobile App Development Company near me",
-    "Flutter App Development Company",
-    "Android App Development",
-    "iOS App Development",
-    "Cross Platform App Development",
-    "Flutter Developers Kerala",
-    "Business Mobile Apps",
-    "Startup App Development",
-    "Mobile Application Development Services",
-    "Custom Mobile App Development",
-    "React Native Developers",
-  ],
 });
 
 const CHALLENGES = [

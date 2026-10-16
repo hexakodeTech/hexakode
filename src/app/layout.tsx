@@ -41,16 +41,6 @@ export const metadata: Metadata = {
   title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",
   description:
     "HexaKode builds websites and mobile apps for businesses in Palakkad, Kerala, with UI/UX design and digital marketing services.",
-  keywords: [
-    "Software Development",
-    "Web App Development",
-    "Mobile Apps",
-    "UI/UX Design",
-    "API Integrations",
-    "HexaKode",
-    "SaaS Platform",
-    "Palakkad Kerala",
-  ],
   authors: [{ name: "HexaKode" }],
   openGraph: {
     title: "Web and Mobile App Development, Palakkad, Kerala | HexaKode",

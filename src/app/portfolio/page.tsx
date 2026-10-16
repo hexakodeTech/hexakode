@@ -15,14 +15,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/portfolio",
   image: "/og-image.png",
   imageAlt: "HexaKode Software Portfolio and Case Studies",
-  keywords: [
-    "Software Architecture",
-    "Web Engineering",
-    "Mobile Development",
-    "UI/UX Design",
-    "Enterprise Solutions",
-    "HexaKode Portfolio",
-  ],
 });
 
 export default async function PortfolioPage() {

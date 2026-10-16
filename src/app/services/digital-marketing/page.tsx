@@ -15,24 +15,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/services/digital-marketing",
   image: "/og-digital-marketing.png",
   imageAlt: "HexaKode Digital Marketing & Technical SEO Services",
-  keywords: [
-    "Digital Marketing Kerala",
-    "Digital Marketing Company Kerala",
-    "SEO Services Kerala",
-    "Local SEO Kerala",
-    "Social Media Marketing Kerala",
-    "Google Ads Kerala",
-    "Performance Marketing Kerala",
-    "Online Marketing Kerala",
-    "Website SEO",
-    "Technical SEO",
-    "Content Marketing",
-    "Instagram Marketing",
-    "Facebook Ads",
-    "Search Engine Optimization",
-    "Digital Growth",
-    "Marketing Agency Kerala",
-  ],
 });
 
 const CHALLENGES = [

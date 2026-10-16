@@ -21,13 +21,6 @@ export const metadata: Metadata = constructMetadata({
   path: "/careers",
   image: "/og-image.png",
   imageAlt: "Careers at HexaKode",
-  keywords: [
-    "Careers at HexaKode",
-    "Engineering Jobs Kerala",
-    "Developer Jobs Palakkad",
-    "Tech Careers",
-    "Software Engineering Jobs",
-  ],
 });
 
 // ─── JSON-LD Organization + JobPosting schema ────────────────────────────────
