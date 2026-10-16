@@ -225,6 +225,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
               priority
               fetchPriority="high"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
+              quality={60}
               className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
