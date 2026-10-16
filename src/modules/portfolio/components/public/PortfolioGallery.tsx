@@ -51,9 +51,6 @@ export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
         )}
       >
         {activeImages.map((img, idx) => {
-          const isSupabase =
-            img.url.includes("supabase.co") || img.url.includes("/storage/v1/object/");
-
           return (
             <button
               key={img.url}
@@ -72,7 +69,6 @@ export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
                 fill
                 priority={isSingle}
                 loading={isSingle ? undefined : "lazy"}
-                unoptimized={isSupabase}
                 sizes={
                   isSingle
                     ? "(max-width: 1024px) 100vw, 66vw"

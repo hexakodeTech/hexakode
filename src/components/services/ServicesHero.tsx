@@ -7,7 +7,6 @@ import Container from "../ui/Container";
 import PrimaryButton from "../ui/PrimaryButton";
 import Badge from "../ui/Badge";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
-import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export default function ServicesHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,6 +21,8 @@ export default function ServicesHero() {
   const springGlowOpacity = useSpring(glowOpacity, { damping: 20, stiffness: 150 });
 
   useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia("(pointer: fine)").matches) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -455,47 +456,36 @@ export default function ServicesHero() {
       </div>
 
       <Container className="relative z-10">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="max-w-3xl flex flex-col items-start"
-        >
+        <div className="max-w-3xl flex flex-col items-start">
           {/* Breadcrumbs */}
-          <motion.div variants={fadeUp} className="mb-6">
+          <div className="mb-6">
             <Breadcrumbs
               items={[
                 { label: "Home", href: "/" },
                 { label: "Services", href: "/services" },
               ]}
             />
-          </motion.div>
+          </div>
 
           {/* Badge */}
-          <motion.div variants={fadeUp}>
+          <div>
             <Badge variant="capabilities">Our Capabilities</Badge>
-          </motion.div>
+          </div>
 
           {/* Heading */}
-          <motion.h1
-            variants={fadeUp}
-            className="text-headline-xl font-headline-xl mb-8 text-on-background"
-          >
+          <h1 className="text-headline-xl font-headline-xl mb-8 text-on-background">
             Expertise That Powers Innovation
-          </motion.h1>
+          </h1>
 
           {/* Subtitle Description */}
-          <motion.p
-            variants={fadeUp}
-            className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-12 leading-relaxed"
-          >
+          <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-12 leading-relaxed">
             HexaKode delivers high-performance engineering solutions designed for scale. 
             From cloud-native architectures to intuitive user experiences, we build the 
             technical foundations for global industry leaders.
-          </motion.p>
+          </p>
 
           {/* Call to action buttons */}
-          <motion.div variants={fadeUp} className="flex flex-wrap gap-4 items-center">
+          <div className="flex flex-wrap gap-4 items-center">
             <PrimaryButton
               href="#services-grid"
               size="lg"
@@ -504,8 +494,8 @@ export default function ServicesHero() {
               Explore Services{" "}
               <ArrowDown className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-1" />
             </PrimaryButton>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </Container>
     </header>
   );

@@ -7,7 +7,7 @@ import Container from "../common/Container";
 import PrimaryButton from "../common/PrimaryButton";
 import SecondaryButton from "../common/SecondaryButton";
 import { useDemoModal } from "../common/DemoModal";
-import { fadeUp, staggerContainer } from "@/lib/motion";
+import { fadeUp } from "@/lib/motion";
 
 export default function HeroSection() {
   const { openDemoModal } = useDemoModal();
@@ -19,39 +19,22 @@ export default function HeroSection() {
 
       <Container className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
         {/* Left Side text content */}
-        <motion.div
-          className="lg:col-span-7 flex flex-col items-start text-left max-w-2xl"
-          variants={staggerContainer}
-          initial={false}
-          animate="visible"
-        >
-          <motion.span
-            variants={fadeUp}
-            className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 bg-secondary-container text-primary border border-secondary-container/80 shadow-[0_2px_10px_rgba(14,165,233,0.04)]"
-          >
+        <div className="lg:col-span-7 flex flex-col items-start text-left max-w-2xl">
+          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 bg-secondary-container text-primary border border-secondary-container/80 shadow-[0_2px_10px_rgba(14,165,233,0.04)]">
             ENGINEERED EXCELLENCE
-          </motion.span>
-          <motion.h1
-            variants={fadeUp}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-navy-dark leading-[1.08] mb-6"
-          >
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-navy-dark leading-[1.08] mb-6">
             Build Digital Products{" "}
             <span className="text-primary relative inline-block">
               That
               <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-gradient-to-r from-secondary to-cyan-400 rounded-full" />
             </span>{" "}
             Drive Business Growth
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            className="text-slate-500 text-base sm:text-lg md:text-xl leading-relaxed mb-10 font-normal"
-          >
+          </h1>
+          <p className="text-slate-500 text-base sm:text-lg md:text-xl leading-relaxed mb-10 font-normal">
             Custom software, web applications, mobile apps, and digital experiences built to help businesses scale with technical precision and market-leading innovation.
-          </motion.p>
-          <motion.div
-            variants={fadeUp}
-            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
-          >
+          </p>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
             <PrimaryButton href="/contact#contact-form" variant="dark" showArrow className="btn-gradient-hover">
               Start Your Project
             </PrimaryButton>
@@ -64,8 +47,8 @@ export default function HeroSection() {
             <SecondaryButton href="/services" variant="light">
               View All Services
             </SecondaryButton>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Right Side Mock/Visual Graphic */}
         <motion.div
@@ -117,7 +100,6 @@ export default function HeroSection() {
                 sizes="(max-width: 768px) min(100vw - 2rem, 420px), 400px"
                 className="object-cover"
                 priority
-                fetchPriority="high"
               />
             </div>
           </div>

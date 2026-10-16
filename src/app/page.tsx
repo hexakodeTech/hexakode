@@ -3,14 +3,14 @@ import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/home/HeroSection";
-import ServicesSection from "@/components/home/ServicesSection";
-import ProjectsSection from "@/components/home/ProjectsSection";
-import LatestInsights from "@/components/home/LatestInsights";
 import Footer from "@/components/layout/Footer";
 import { getPublishedProjects } from "@/modules/portfolio/services/portfolio.service";
 import { mapDbCategoryToPublic } from "@/modules/portfolio/types/portfolio";
 import { Project } from "@/types/home";
 
+const ServicesSection = dynamic(() => import("@/components/home/ServicesSection"));
+const ProjectsSection = dynamic(() => import("@/components/home/ProjectsSection"));
+const LatestInsights = dynamic(() => import("@/components/home/LatestInsights"));
 const WhyChooseHexaKode = dynamic(() => import("@/components/home/WhyChooseHexaKode"));
 const HomepageFAQ = dynamic(() => import("@/components/home/HomepageFAQ"));
 const ProcessSection = dynamic(() => import("@/components/home/ProcessSection"));

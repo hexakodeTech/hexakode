@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -14,19 +14,19 @@ interface MobileNavigationProps {
   pathname: string;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function MobileNavigation({ pathname }: MobileNavigationProps) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   // Track mount state so we never call createPortal before the DOM is available
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // Close drawer on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setDrawerOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <div className="flex lg:hidden items-center justify-between w-full h-[56px] sm:h-[60px]">
@@ -38,6 +38,8 @@ export default function MobileNavigation({ pathname }: MobileNavigationProps) {
             alt="HexaKode Logo"
             fill
             sizes="36px"
+            priority
+            fetchPriority="high"
             className="object-contain"
           />
         </div>

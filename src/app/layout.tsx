@@ -1,25 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Zen_Dots, Kalam, Poppins, JetBrains_Mono } from "next/font/google";
+import { Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
 // ─── Font configuration ──────────────────────────────────────────────────────
-const zenDots = Zen_Dots({
-  variable: "--font-zen-dots",
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
-
-const kalam = Kalam({
-  variable: "--font-kalam",
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
-
 const poppins = Poppins({
   variable: "--font-poppins",
   weight: ["400", "500", "600", "700"],
@@ -91,9 +75,10 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${zenDots.variable} ${kalam.variable} ${poppins.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
+      className={`${poppins.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
       <head>
+        <link rel="preconnect" href="https://fmgpntelhwanasrtvhoj.supabase.co" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -123,11 +108,13 @@ export default function RootLayout({
             strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
-                (function(c,l,a,r,i,t,y){
-                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}");
+                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                  (function(c,l,a,r,i,t,y){
+                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                  })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}");
+                }
               `,
             }}
           />

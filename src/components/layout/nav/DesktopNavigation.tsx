@@ -148,6 +148,7 @@ export default function DesktopNavigation({ pathname }: DesktopNavigationProps) 
             alt="HexaKode Logo"
             fill
             sizes="36px"
+            priority
             className="object-contain"
           />
         </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Calendar, User, Tag, Layers, Globe } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -213,11 +214,21 @@ export default async function ProjectDetailPage(props: { params: Promise<{ slug:
         {/* Hero Section */}
         <section 
           id="hero-section"
-          className="relative w-full bg-cover bg-center bg-no-repeat overflow-hidden flex flex-col min-h-viewport border-b border-outline-variant/10 animate-fade-in"
-          style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.75) 100%), url('${project.image}')`
-          }}
+          className="relative w-full overflow-hidden flex flex-col min-h-viewport border-b border-outline-variant/10"
         >
+          {/* Optimized Next.js LCP Hero Image */}
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <Image
+              src={project.image}
+              alt={`${project.title} cover`}
+              fill
+              priority
+              fetchPriority="high"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+          </div>
           <Container className="relative z-10 w-full flex-1 flex flex-col justify-between pt-28 md:pt-32 lg:pt-40 pb-16 md:pb-24">
             {/* Top portion of Hero: Breadcrumbs & Back Button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useMemo } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, Tag, User } from "lucide-react";
@@ -51,34 +49,18 @@ export default function BlogArticleView({
       ? post.featuredImage
       : "/images/blog-placeholder.svg";
 
-  const normalizedContent = useMemo(
-    () => normalizeBlogHeadingHierarchy(post.content || "", displayTitle),
-    [post.content, displayTitle]
-  );
+  const normalizedContent = normalizeBlogHeadingHierarchy(post.content || "", displayTitle);
+  const resolvedAuthor = resolveAuthor(post.authorName);
+  const readingTime = calculateReadingTime(normalizedContent);
+  const headings = extractTableOfContents(normalizedContent);
 
-  const resolvedAuthor = useMemo(
-    () => resolveAuthor(post.authorName),
-    [post.authorName]
-  );
-
-  const readingTime = useMemo(
-    () => calculateReadingTime(normalizedContent),
-    [normalizedContent]
-  );
-
-  const headings = useMemo(
-    () => extractTableOfContents(normalizedContent),
-    [normalizedContent]
-  );
-
-  const normalizedTags = useMemo(() => {
-    if (!post.tags) return [];
-    return post.tags.map((t, idx: number) => {
-      if ("name" in t && typeof t.name === "string") return { id: t.id || `tag-${idx}`, name: t.name };
-      if ("tag" in t && t.tag?.name) return { id: t.tagId || `tag-${idx}`, name: t.tag.name };
-      return { id: `tag-${idx}`, name: String(t) };
-    });
-  }, [post.tags]);
+  const normalizedTags = !post.tags
+    ? []
+    : post.tags.map((t, idx: number) => {
+        if ("name" in t && typeof t.name === "string") return { id: t.id || `tag-${idx}`, name: t.name };
+        if ("tag" in t && t.tag?.name) return { id: t.tagId || `tag-${idx}`, name: t.tag.name };
+        return { id: `tag-${idx}`, name: String(t) };
+      });
 
   const displayDate = formatBlogDate(
     post.publishedAt || post.createdAt || new Date()
@@ -152,6 +134,7 @@ export default function BlogArticleView({
                 alt={displayTitle}
                 fill
                 priority
+                fetchPriority="high"
                 sizes="(max-width: 768px) 100vw, 800px"
                 className="object-cover"
               />

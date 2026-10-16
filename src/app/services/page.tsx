@@ -1,11 +1,13 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import ServicesHero from "@/components/services/ServicesHero";
-import CompetenciesSection from "@/components/services/CompetenciesSection";
-import CloudInfrastructureSection from "@/components/services/CloudInfrastructureSection";
-import CTASection from "@/components/services/CTASection";
 import Footer from "@/components/layout/Footer";
+
+const CompetenciesSection = dynamic(() => import("@/components/services/CompetenciesSection"));
+const CloudInfrastructureSection = dynamic(() => import("@/components/services/CloudInfrastructureSection"));
+const CTASection = dynamic(() => import("@/components/services/CTASection"));
 
 import { constructMetadata } from "@/lib/seo";
 

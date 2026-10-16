@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import AnalyticsTracker from "./AnalyticsTracker";
 
 /**
@@ -15,39 +15,37 @@ export function isAdminRoute(pathname: string): boolean {
 const rawGaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-KF1P37M1E4";
 const GA_ID = rawGaId.replace(/['"]/g, "").trim();
 
-/**
- * AnalyticsProvider — renders GA4 script and the global click/event tracker
- * ONLY for public-facing routes.
- *
- * Admin routes (/admin, /admin/*) are completely excluded:
- *  - No GA4 script is injected.
- *  - No click/interaction events are sent.
- *  - No page_view events are recorded.
- */
 export default function AnalyticsProvider() {
   const pathname = usePathname();
 
-  // Hard stop: do not render anything for admin routes.
-  if (!GA_ID || isAdminRoute(pathname)) {
+  const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+  // Hard stop: do not render anything for admin routes or local testing.
+  if (!GA_ID || isAdminRoute(pathname) || isLocal) {
     return null;
   }
 
   return (
     <>
-      {/*
-        GoogleAnalytics from @next/third-parties/google:
-        - Injects the gtag.js script once.
-        - Automatically tracks page_view on every client-side route change
-          via Next.js router integration — no manual page_view call needed.
-        - strategy="afterInteractive" ensures it doesn't block render.
-      */}
-      <GoogleAnalytics gaId={GA_ID} />
-
-      {/*
-        AnalyticsTracker: global document-level click handler that fires
-        custom events (email_click, phone_click, whatsapp_click, etc.)
-        for public-website interactions only.
-      */}
+      <Script
+        id="google-analytics"
+        strategy="lazyOnload"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+      />
+      <Script
+        id="google-analytics-init"
+        strategy="lazyOnload"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}', {
+              page_path: window.location.pathname,
+            });
+          `,
+        }}
+      />
       <AnalyticsTracker />
     </>
   );
