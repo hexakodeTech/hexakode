@@ -1,35 +1,35 @@
 {
   "homepage": [
     {
-      "score": 92,
+      "score": 88,
       "fcp": "1.5 s",
-      "lcp": "3.2 s",
-      "tbt": "110 ms",
-      "cls": "0",
-      "si": "1.5 s"
-    },
-    {
-      "score": 91,
-      "fcp": "1.5 s",
-      "lcp": "3.3 s",
-      "tbt": "100 ms",
-      "cls": "0",
-      "si": "1.5 s"
-    }
-  ],
-  "services": [
-    {
-      "score": 90,
-      "fcp": "1.5 s",
-      "lcp": "3.4 s",
-      "tbt": "140 ms",
+      "lcp": "3.8 s",
+      "tbt": "120 ms",
       "cls": "0",
       "si": "1.5 s"
     },
     {
       "score": 88,
       "fcp": "1.5 s",
-      "lcp": "3.1 s",
+      "lcp": "3.8 s",
+      "tbt": "70 ms",
+      "cls": "0",
+      "si": "1.5 s"
+    }
+  ],
+  "services": [
+    {
+      "score": 86,
+      "fcp": "1.5 s",
+      "lcp": "3.9 s",
+      "tbt": "130 ms",
+      "cls": "0",
+      "si": "1.5 s"
+    },
+    {
+      "score": 86,
+      "fcp": "1.5 s",
+      "lcp": "3.5 s",
       "tbt": "250 ms",
       "cls": "0",
       "si": "1.5 s"
@@ -37,36 +37,36 @@
   ],
   "blog": [
     {
-      "score": 91,
+      "score": 90,
       "fcp": "1.5 s",
-      "lcp": "3.4 s",
-      "tbt": "80 ms",
+      "lcp": "3.1 s",
+      "tbt": "210 ms",
       "cls": "0",
       "si": "1.5 s"
     },
     {
-      "score": 86,
+      "score": 91,
       "fcp": "1.5 s",
-      "lcp": "4.0 s",
-      "tbt": "150 ms",
+      "lcp": "3.4 s",
+      "tbt": "70 ms",
       "cls": "0",
       "si": "1.5 s"
     }
   ],
   "portfolio": [
     {
-      "score": 88,
+      "score": 81,
       "fcp": "1.5 s",
-      "lcp": "3.8 s",
-      "tbt": "90 ms",
+      "lcp": "4.8 s",
+      "tbt": "120 ms",
       "cls": "0",
       "si": "1.5 s"
     },
     {
-      "score": 89,
+      "score": 87,
       "fcp": "1.5 s",
-      "lcp": "3.7 s",
-      "tbt": "110 ms",
+      "lcp": "3.9 s",
+      "tbt": "100 ms",
       "cls": "0",
       "si": "1.5 s"
     }
