@@ -9,7 +9,7 @@ export interface BlogCardProps {
     title: string;
     slug: string;
     shortDescription: string;
-    featuredImage: any;
+    featuredImage: string | null | undefined | Record<string, unknown>;
     _featuredImageUrl?: string;
     publishedAt: string;
     readingTime?: number;
@@ -31,7 +31,7 @@ export default function BlogCard({ post }: BlogCardProps) {
           src={imageUrl}
           alt={post.title}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
+          sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />

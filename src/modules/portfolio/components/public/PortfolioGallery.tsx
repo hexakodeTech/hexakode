@@ -67,12 +67,11 @@ export default function PortfolioGallery({ images }: PortfolioGalleryProps) {
                 src={img.url}
                 alt={img.alt}
                 fill
-                priority={isSingle}
-                loading={isSingle ? undefined : "lazy"}
+                loading="lazy"
                 sizes={
                   isSingle
-                    ? "(max-width: 1024px) 100vw, 66vw"
-                    : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    ? "(max-width: 1024px) calc(100vw - 32px), 66vw"
+                    : "(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 33vw"
                 }
                 onError={() => handleImageError(img.url)}
                 className="object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-103 transition-all duration-500 ease-out z-10"

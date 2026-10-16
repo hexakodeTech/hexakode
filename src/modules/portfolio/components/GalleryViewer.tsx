@@ -33,8 +33,6 @@ export default function GalleryViewer({
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
 
-  const isSupabase = url.includes("supabase.co") || url.includes("/storage/v1/object/");
-
   // Adapt state when url or zoomScale change during rendering
   const [prevUrl, setPrevUrl] = useState(url);
   if (url !== prevUrl) {
@@ -181,7 +179,6 @@ export default function GalleryViewer({
           src={url}
           alt={alt}
           fill
-          unoptimized={isSupabase}
           priority
           sizes="(max-width: 1024px) 100vw, 85vw"
           className={cn(

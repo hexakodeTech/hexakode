@@ -31,7 +31,7 @@ export default function ProjectCard({ project, className }: ProjectCardProps) {
           src={imageUrl}
           alt={title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 33vw"
           className="object-cover hover-image-zoom"
           loading="lazy"
         />

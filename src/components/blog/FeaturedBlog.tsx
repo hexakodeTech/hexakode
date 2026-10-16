@@ -9,7 +9,7 @@ interface FeaturedBlogProps {
     title: string;
     slug: string;
     shortDescription: string;
-    featuredImage: any;
+    featuredImage: string | null | undefined | Record<string, unknown>;
     _featuredImageUrl?: string;
     publishedAt: string;
     readingTime?: number;
@@ -32,7 +32,7 @@ export default function FeaturedBlog({ post }: FeaturedBlogProps) {
           alt={post.title}
           fill
           priority
-          sizes="(max-width: 1024px) 100vw, 60vw"
+          sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 100vw, 60vw"
           className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
         />
         {post.category && (

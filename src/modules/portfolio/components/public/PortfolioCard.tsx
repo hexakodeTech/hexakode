@@ -15,12 +15,10 @@ interface PortfolioCardProps {
 
 export default function PortfolioCard({
   project,
-  layoutSize,
 }: PortfolioCardProps) {
   // Fallback cover image URL
   const defaultPlaceholder = "https://lh3.googleusercontent.com/aida-public/AB6AXuB2YxLvd3x5jPAxgZFL6XMO5u3FKnZOqm3Sw5jiYFwt6C_1rbby046caqliXpWGTpjLpPwnIvaeaOmdE4lDZVyZ_sdZvktvMtR48G9PDwq9PdT4z5dmEyDZmvTGdtk0tGLYG3aND_F-CKnXlxCnvDioVyszWJ-5hrLBoAQmefvVnmK51ys89hcKnm770jq6SVjM3Pg-onRL9YM_DO5PLioIGZ3Onw3JrHAYxnPC4ePN8pVa9SN1k4ErAvN0hneQVUTOK8JkgL9fql8e";
   const displayImage = project.image && project.image.trim() !== "" ? project.image.trim() : defaultPlaceholder;
-  const isSupabase = displayImage.includes("supabase.co") || displayImage.includes("/storage/v1/object/");
 
   return (
     <Link href={`/portfolio/${project.slug}`} className="block h-full cursor-pointer select-none">
@@ -62,10 +60,9 @@ export default function PortfolioCard({
               src={displayImage}
               alt={project.title}
               fill
-              unoptimized={isSupabase}
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 33vw"
               className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
-              priority={layoutSize === "featured" || layoutSize === "side"}
+              loading="lazy"
             />
           </div>
 

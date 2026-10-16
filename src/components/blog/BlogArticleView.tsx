@@ -135,7 +135,7 @@ export default function BlogArticleView({
                 fill
                 priority
                 fetchPriority="high"
-                sizes="(max-width: 768px) 100vw, 800px"
+                sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(100vw - 48px), 800px"
                 className="object-cover"
               />
             </div>

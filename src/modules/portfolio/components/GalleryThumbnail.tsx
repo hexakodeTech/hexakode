@@ -17,8 +17,6 @@ export default function GalleryThumbnail({
   isActive,
   onClick,
 }: GalleryThumbnailProps) {
-  const isSupabase = url.includes("supabase.co") || url.includes("/storage/v1/object/");
-
   return (
     <button
       onClick={onClick}
@@ -36,7 +34,6 @@ export default function GalleryThumbnail({
         alt={alt}
         fill
         sizes="80px"
-        unoptimized={isSupabase}
         className="object-cover z-10"
       />
     </button>

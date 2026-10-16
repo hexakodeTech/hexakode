@@ -42,9 +42,9 @@ export default function FeaturedPortfolioCard({
             src={image}
             alt={title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 66vw"
+            sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 100vw, 66vw"
             className="object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
-            priority={layoutSize === "featured"}
+            loading="lazy"
           />
         </div>
 

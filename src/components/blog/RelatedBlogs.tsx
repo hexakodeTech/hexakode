@@ -45,7 +45,7 @@ export default function RelatedBlogs({ posts }: RelatedBlogsProps) {
                   src={imageUrl}
                   alt={post.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
+                  sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
