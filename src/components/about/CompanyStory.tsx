@@ -83,7 +83,7 @@ export default function CompanyStory() {
                   <span className="text-slate-400">focus:</span> [
                 </p>
                 <p className="pl-8 text-cyan-300">
-                  &quot;Custom Web Platforms&quot;, &quot;Mobile Apps&quot;, &quot;Cloud Systems&quot;
+                  &quot;Custom Web Platforms&quot;, &quot;Mobile Apps&quot;, &quot;Cloud Systems&quot;, &quot;Digital Marketing&quot;
                 </p>
                 <p className="pl-4">],</p>
                 <p className="pl-4">
