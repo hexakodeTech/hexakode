@@ -3,6 +3,7 @@ import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/layout/Footer";
 import ContactHero from "../../components/contact/ContactHero";
 import ContactGridSection from "../../components/contact/ContactGridSection";
+import ContactEnquiryGuide from "../../components/contact/ContactEnquiryGuide";
 import FAQSection from "../../components/contact/FAQSection";
 import GoogleReviewCTA from "../../components/common/GoogleReviewCTA";
 import { FAQ_ITEMS } from "../../constants/contact";
@@ -70,6 +71,8 @@ export default function ContactPage() {
         {/* Form and Details Grid (Scroll-driven background shift) */}
         <ContactGridSection />
 
+        {/* Enquiry Guide & Service Decision Framework */}
+        <ContactEnquiryGuide />
 
         {/* FAQ Section */}
         <FAQSection />

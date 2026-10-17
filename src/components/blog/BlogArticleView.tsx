@@ -26,6 +26,7 @@ export interface BlogArticleViewData {
   featuredImage?: string | null;
   publishedAt?: Date | string | null;
   createdAt?: Date | string | null;
+  contentUpdatedAt?: Date | string | null;
   category?: { name: string; slug?: string } | null;
   tags?: Array<{ id?: string; name: string } | { tagId?: string; tag: { name: string } }>;
   authorName?: string | null;
@@ -66,6 +67,16 @@ export default function BlogArticleView({
     post.publishedAt || post.createdAt || new Date()
   );
 
+  // Reliable editorial last-updated date (only show when genuinely distinct from publication)
+  let displayLastUpdated: string | null = null;
+  if (post.contentUpdatedAt) {
+    const pubTime = (post.publishedAt ? new Date(post.publishedAt) : post.createdAt ? new Date(post.createdAt) : null)?.getTime();
+    const updatedTime = new Date(post.contentUpdatedAt).getTime();
+    if (!isNaN(updatedTime) && (!pubTime || updatedTime > pubTime)) {
+      displayLastUpdated = formatBlogDate(post.contentUpdatedAt);
+    }
+  }
+
   return (
     <div className="flex-1 flex flex-col w-full bg-background overflow-x-hidden">
       {/* Article Header */}
@@ -99,8 +110,14 @@ export default function BlogArticleView({
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
-                {displayDate}
+                <span>{displayDate}</span>
               </span>
+              {displayLastUpdated && (
+                <span className="flex items-center gap-1.5 text-slate-600 bg-slate-200/60 px-2.5 py-0.5 rounded-full border border-slate-300/60 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block shrink-0" />
+                  <span>Last updated: {displayLastUpdated}</span>
+                </span>
+              )}
               {readingTime > 0 && (
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />

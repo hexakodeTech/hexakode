@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
-import { GetBlogsParams, GetBlogsResult, CreateBlogInput, UpdateBlogInput } from "@/modules/blog/types/blog";
-import { BlogStatus } from "../../../generated/prisma/client";
+import { GetBlogsParams, GetBlogsResult, BlogListItem, CreateBlogInput, UpdateBlogInput } from "@/modules/blog/types/blog";
+import { BlogStatus, Prisma } from "../../../generated/prisma/client";
 import { calculateReadingTime } from "@/modules/blog/utils/helpers";
 
 export interface FooterRecentPost {
@@ -27,7 +27,7 @@ export const getRecentPostsForFooter = unstable_cache(
           slug: true,
           publishedAt: true,
         },
-        orderBy: { publishedAt: "desc" },
+        orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
         take: 3,
       });
 
@@ -67,7 +67,7 @@ export async function getBlogs({
   page = 1,
   limit = 12,
 }: GetBlogsParams = {}): Promise<GetBlogsResult> {
-  const where: any = {};
+  const where: Prisma.BlogWhereInput = {};
 
   if (status) where.status = status;
   if (featured !== undefined) where.featured = featured;
@@ -90,14 +90,16 @@ export async function getBlogs({
       prisma.blog.findMany({
         where,
         include: blogInclude,
-        orderBy: sort === "oldest" ? { publishedAt: "asc" } : { publishedAt: "desc" },
+        orderBy: sort === "oldest"
+          ? [{ publishedAt: "asc" }, { id: "asc" }]
+          : [{ publishedAt: "desc" }, { id: "desc" }],
         skip: (page - 1) * limit,
         take: limit,
       }),
       prisma.blog.count({ where }),
     ]);
 
-    return { posts: posts as any, total };
+    return { posts: posts as unknown as BlogListItem[], total };
   } catch (error) {
     console.error("Failed to query blogs (tables may not be migrated):", error);
     return { posts: [], total: 0 };
@@ -142,7 +144,7 @@ export async function getFeaturedBlog() {
     return await prisma.blog.findFirst({
       where: { status: BlogStatus.PUBLISHED, featured: true },
       include: blogInclude,
-      orderBy: { publishedAt: "desc" },
+      orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
     });
   } catch (error) {
     console.error("Failed to query featured blog:", error);
@@ -162,7 +164,7 @@ export async function getRelatedBlogs(blogId: string, categoryId?: string | null
         ...(categoryId ? { categoryId } : {}),
       },
       include: blogInclude,
-      orderBy: { publishedAt: "desc" },
+      orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
       take: limit,
     });
 
@@ -173,7 +175,7 @@ export async function getRelatedBlogs(blogId: string, categoryId?: string | null
           status: BlogStatus.PUBLISHED,
         },
         include: blogInclude,
-        orderBy: { publishedAt: "desc" },
+        orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
         take: limit - related.length,
       });
       return [...related, ...more];
@@ -239,7 +241,7 @@ export async function updateBlog(id: string, input: UpdateBlogInput) {
     ? (readingTime ?? calculateReadingTime(content))
     : readingTime;
 
-  const data: any = { ...rest };
+  const data: Prisma.BlogUpdateInput = { ...rest };
   if (content !== undefined) data.content = content;
   if (rt !== undefined) data.readingTime = rt;
 
@@ -248,6 +250,19 @@ export async function updateBlog(id: string, input: UpdateBlogInput) {
     const existing = await prisma.blog.findUnique({ where: { id }, select: { publishedAt: true, status: true } });
     if (existing?.status !== BlogStatus.PUBLISHED && !rest.publishedAt) {
       data.publishedAt = new Date();
+    }
+  }
+
+  // Set contentUpdatedAt when editorial content is modified
+  if (
+    content !== undefined ||
+    rest.title !== undefined ||
+    rest.excerpt !== undefined ||
+    rest.seoTitle !== undefined ||
+    rest.metaDescription !== undefined
+  ) {
+    if (rest.contentUpdatedAt === undefined) {
+      data.contentUpdatedAt = new Date();
     }
   }
 
@@ -363,7 +378,7 @@ export async function getPublishedBlogsByAuthor(authorNames: string[]) {
         authorName: { in: authorNames },
       },
       include: blogInclude,
-      orderBy: { publishedAt: "desc" },
+      orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
     });
   } catch (error) {
     console.error("Failed to query blogs by author:", error);

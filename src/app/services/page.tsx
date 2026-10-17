@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 
 const CompetenciesSection = dynamic(() => import("@/components/services/CompetenciesSection"));
 const CloudInfrastructureSection = dynamic(() => import("@/components/services/CloudInfrastructureSection"));
+const ServicesEditorialGuide = dynamic(() => import("@/components/services/ServicesEditorialGuide"));
 const CTASection = dynamic(() => import("@/components/services/CTASection"));
 
 import { constructMetadata } from "@/lib/seo";
@@ -28,6 +29,7 @@ export default function ServicesPage() {
         <ServicesHero />
         <CompetenciesSection />
         <CloudInfrastructureSection />
+        <ServicesEditorialGuide />
         <CTASection />
       </main>
       <Footer />

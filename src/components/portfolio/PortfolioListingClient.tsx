@@ -8,6 +8,7 @@ import PortfolioGrid from "@/modules/portfolio/components/public/PortfolioGrid";
 import PortfolioSkeleton from "@/modules/portfolio/components/public/PortfolioSkeleton";
 import EmptyPortfolio from "@/modules/portfolio/components/public/EmptyPortfolio";
 import ErrorState from "@/modules/portfolio/components/public/ErrorState";
+import PortfolioEditorialGuide from "@/components/portfolio/PortfolioEditorialGuide";
 import PortfolioCTA from "@/components/portfolio/PortfolioCTA";
 import { usePortfolioProjects } from "@/modules/portfolio/hooks/usePortfolioProjects";
 import { PublicProject } from "@/modules/portfolio/types/portfolio";
@@ -70,6 +71,7 @@ export default function PortfolioListingClient({
           onFilterChange={setActiveFilter}
         />
         {renderContent()}
+        <PortfolioEditorialGuide />
         <PortfolioCTA />
       </main>
       {footer}

@@ -5,8 +5,21 @@ Disallow: /admin/
 Disallow: /studio/
 Disallow: /api/
 
-# Host
-Host: https://hexakode.in
+# GPTBot
+User-agent: GPTBot
+Allow: /
+
+# ClaudeBot
+User-agent: ClaudeBot
+Allow: /
+
+# PerplexityBot
+User-agent: PerplexityBot
+Allow: /
+
+# Google-Extended
+User-agent: Google-Extended
+Allow: /
 
 # Sitemaps
 Sitemap: https://hexakode.in/sitemap.xml

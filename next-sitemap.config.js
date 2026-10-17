@@ -48,13 +48,15 @@ async function fetchDynamicDates() {
       const { Pool } = require("pg");
       const pool = new Pool({ connectionString: connStr, connectionTimeoutMillis: 5000 });
       
-      // Use verified publishedAt for blogs to avoid view-count mutation churn
+      // Use reliable editorial modification date (contentUpdatedAt) or publishedAt
+      // to avoid view-count mutation churn from updatedAt
       const blogRes = await pool.query(
-        'SELECT slug, "publishedAt" FROM blogs WHERE status = \'PUBLISHED\''
+        'SELECT slug, "contentUpdatedAt", "publishedAt" FROM blogs WHERE status = \'PUBLISHED\''
       );
       for (const row of blogRes.rows) {
-        if (row.publishedAt) {
-          dates[`/blog/${row.slug}`] = new Date(row.publishedAt).toISOString();
+        const dt = row.contentUpdatedAt || row.publishedAt;
+        if (dt) {
+          dates[`/blog/${row.slug}`] = new Date(dt).toISOString();
         }
       }
 
@@ -142,7 +144,27 @@ module.exports = {
         allow: "/",
         disallow: ["/admin/", "/studio/", "/api/"],
       },
+      {
+        userAgent: "GPTBot",
+        allow: "/",
+      },
+      {
+        userAgent: "ClaudeBot",
+        allow: "/",
+      },
+      {
+        userAgent: "PerplexityBot",
+        allow: "/",
+      },
+      {
+        userAgent: "Google-Extended",
+        allow: "/",
+      },
     ],
     additionalSitemaps: [],
+    transformRobotsTxt: async (config, robotsTxt) => {
+      // Remove deprecated Host directive entirely
+      return robotsTxt.replace(/# Host\nHost: [^\n]+\n+/, "");
+    },
   },
 };

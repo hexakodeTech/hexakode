@@ -55,7 +55,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     imageAlt: title,
     type: "article",
     publishedTime: post.publishedAt?.toISOString(),
-    modifiedTime: post.updatedAt.toISOString(),
+    modifiedTime: (post.contentUpdatedAt || post.publishedAt || post.createdAt).toISOString(),
     authors: [resolveAuthor(post.authorName).name],
   });
 }
@@ -85,7 +85,7 @@ export default async function BlogDetailPage(props: PageProps) {
     headline: post.title,
     description: post.excerpt || post.metaDescription,
     datePublished: post.publishedAt || post.createdAt,
-    dateModified: post.updatedAt || post.publishedAt || post.createdAt,
+    dateModified: post.contentUpdatedAt || post.publishedAt || post.createdAt,
     authorName: resolvedAuthor.name,
     authorSlug: resolvedAuthor.slug,
     image: displayImage,

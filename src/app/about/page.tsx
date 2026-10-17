@@ -6,6 +6,7 @@ import CompanyStory from "../../components/about/CompanyStory";
 import FoundersSection from "../../components/about/FoundersSection";
 import TeamSection from "../../components/about/TeamSection";
 import WorkingModel from "../../components/about/WorkingModel";
+import AboutApproachSection from "../../components/about/AboutApproachSection";
 import CoreValues from "../../components/about/CoreValues";
 import TrustMetrics from "../../components/about/TrustMetrics";
 import FinalCTA from "../../components/about/FinalCTA";
@@ -57,6 +58,7 @@ export default function AboutPage() {
         <CompanyStory />
         <FoundersSection />
         <TeamSection />
+        <AboutApproachSection />
         <WorkingModel />
         <CoreValues />
         <TrustMetrics />

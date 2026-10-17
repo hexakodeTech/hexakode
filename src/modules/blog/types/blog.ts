@@ -41,6 +41,7 @@ export interface BlogListItem {
   views: number;
   createdAt: Date;
   updatedAt: Date;
+  contentUpdatedAt?: Date | null;
   category: { id: string; name: string; slug: string } | null;
   tags: { tag: { id: string; name: string; slug: string } }[];
 }
@@ -82,6 +83,7 @@ export interface CreateBlogInput {
   featured?: boolean;
   categoryId?: string;
   publishedAt?: Date;
+  contentUpdatedAt?: Date | null;
   readingTime?: number;
   tagIds?: string[];
   seoTitle?: string;

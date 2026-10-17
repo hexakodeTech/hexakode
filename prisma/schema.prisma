@@ -420,6 +420,7 @@ model Blog {
 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+  contentUpdatedAt DateTime?
 
   category BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags     BlogToTag[]
