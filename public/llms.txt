@@ -1,0 +1,35 @@
+# HexaKode
+
+> HexaKode is a software engineering and digital solutions studio based in Kerala, India, operating under a transparent, 100% remote-first model without corporate overhead. Founded by engineers, HexaKode delivers custom web platforms, mobile applications, UI/UX design, and technical digital marketing & SEO.
+
+HexaKode connects clients directly with experienced software engineers to design, build, and scale high-performance digital products. This file provides an index of HexaKode's primary public pages, engineering capabilities, case studies, and informational resources for large language models and search engines.
+
+## Company
+
+- [HexaKode](https://hexakode.in): Official website homepage detailing core services, client guarantees, and engineering approach.
+- [About Us & Our Story](https://hexakode.in/about): Company origin, founding leadership (Navaneeth P P and Prajosh C), remote-first operating model, and engineering culture.
+- [Contact Us](https://hexakode.in/contact): Project consultations, engineering inquiries, and direct contact details.
+- [Careers](https://hexakode.in/careers): Remote engineering roles and career opportunities at HexaKode.
+
+## Services
+
+- [Services Overview](https://hexakode.in/services): Comprehensive directory of HexaKode's engineering, design, and growth services.
+- [Web Development](https://hexakode.in/services/web-development): Custom full-stack web applications, enterprise portals, API engineering, and scalable cloud architectures.
+- [Mobile App Development](https://hexakode.in/services/mobile-app-development): Native and cross-platform mobile app development for iOS and Android.
+- [UI/UX Design](https://hexakode.in/services/ui-ux-design): User experience strategy, UI design systems, wireframing, and interactive design prototypes.
+- [Digital Marketing](https://hexakode.in/services/digital-marketing): Data-driven technical SEO, search engine marketing, performance campaigns, and conversion optimization.
+
+## Portfolio
+
+- [Portfolio Overview](https://hexakode.in/portfolio): Showcase of delivered client projects, enterprise solutions, and production software.
+- [REVOPZ Energy Systems Website](https://hexakode.in/portfolio/revopz-website): Case study on designing and engineering a high-performance web platform for a renewable energy company.
+- [REVOPZ Internal Management System](https://hexakode.in/portfolio/revopz-internal-management-system): Case study on architecting a custom operational management system and business workflow platform.
+
+## Resources
+
+- [HexaKode Blog](https://hexakode.in/blog): Technical articles, architectural deep dives, product insights, and engineering best practices.
+- [Business Website Cost in Kerala: 2026 Price Guide](https://hexakode.in/blog/how-much-does-a-business-website-cost-in-kerala): Detailed breakdown of website development costs in Kerala, analyzing pricing models, tech stacks, agency vs. freelancer options, and budget factors.
+- [Why We Built HexaKode](https://hexakode.in/blog/why-we-built-hexakode): The origin story, transparent engineering principles, and motivations behind creating HexaKode.
+- [Web Engineering Guide](https://hexakode.in/blog/web-engineering-a-complete-guide-to-building-modern-scalable-web-applications): Comprehensive guide on modern web architectures, scalability, and software engineering methodologies.
+- [5 Client Promises](https://hexakode.in/blog/hexakode-5-client-promises): HexaKode's five core transparency and delivery commitments to clients.
+- [What Does a UI/UX Designer Do?](https://hexakode.in/blog/what-is-ui-ux-designer): Educational guide exploring the role, processes, and business value of UI/UX design.
