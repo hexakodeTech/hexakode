@@ -12,7 +12,18 @@ function LinkedInIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-export default function TeamMemberCard({ member }: { member: TeamMember }) {
+interface TeamMemberCardProps {
+  member: TeamMember;
+  showSocial?: boolean;
+}
+
+export default function TeamMemberCard({
+  member,
+  showSocial = true,
+}: TeamMemberCardProps) {
+  // Founder cards do not display social badges per design specification
+  const hasSocial = showSocial && !member.isFounder && Boolean(member.socialUrl);
+
   return (
     <div className="group h-full flex flex-col bg-surface rounded-2xl border border-outline-variant/30 p-8 hover:border-secondary/40 hover:shadow-lg transition-all duration-300">
       <div className="flex items-center justify-between gap-4 mb-5">
@@ -20,7 +31,7 @@ export default function TeamMemberCard({ member }: { member: TeamMember }) {
           {member.isFounder ? "Co-Founder" : "Team"}
         </span>
 
-        {member.socialUrl && (
+        {hasSocial && member.socialUrl && (
           <Link
             href={member.socialUrl}
             target="_blank"

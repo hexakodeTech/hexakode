@@ -69,7 +69,7 @@ export default function FoundersSection() {
         >
           {FOUNDERS.map((founder) => (
             <motion.div key={founder.id} variants={fadeUp} className="w-full">
-              <TeamMemberCard member={founder} />
+              <TeamMemberCard member={founder} showSocial={false} />
             </motion.div>
           ))}
         </motion.div>
